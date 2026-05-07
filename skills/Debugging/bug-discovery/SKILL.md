@@ -1,6 +1,6 @@
 ---
 name: bug-discovery
-description: Diagnose bugs, errors, tracebacks, crashes, failing tests, and unexpected runtime behavior through evidence gathering rather than guess-and-fix. Use this skill aggressively whenever the user mentions a bug, error, traceback, exception, crash, segfault, NaN, hang, deadlock, regression, "doesn't work", "broken", "failing test", or unexpected output — even if they don't explicitly ask for debugging help. Use it before proposing any code change. The skill enforces: (1) gather environment and run-condition context, (2) read the relevant code and full terminal output thoroughly, (3) perform exhaustive web/issue search including reading linked discussions and PRs, (4) deliver a written diagnostic report with ranked hypotheses, sources, and suggested next diagnostic steps — and stop there for user discussion before any fix is attempted.
+description: Diagnose bugs, errors, tracebacks, crashes, failing tests, and unexpected runtime behavior through evidence gathering rather than guess-and-fix. Use this skill aggressively whenever the user mentions a bug, error, traceback, exception, crash, segfault, NaN, hang, deadlock, regression, "doesn't work", "broken", "failing test", or unexpected output — even if they don't explicitly ask for debugging help. Use it before proposing any code change. The skill enforces (1) gather environment and run-condition context, (2) read the relevant code and full terminal output thoroughly, (3) perform exhaustive web/issue search including reading linked discussions and PRs, (4) deliver a written diagnostic report with ranked hypotheses, sources, and suggested next diagnostic steps — and stop there for user discussion before any fix is attempted.
 ---
 
 # Bug Discovery
@@ -29,7 +29,7 @@ Before asking the user anything, gather these silently from the working environm
 - **OS and kernel** — `uname -a`, and on macOS also `sw_vers`.
 - **Python / runtime version** — `python --version`, `node --version`, `rustc --version`, etc., as appropriate to the project.
 - **Project dependency state** — read `pyproject.toml` and `uv.lock` (or `requirements.txt`, `package.json` + lockfile, `Cargo.toml` + `Cargo.lock`) to identify the versions of packages plausibly involved in the bug.
-Don't dump the entire lockfile; extract the specific dependencies that appear in the traceback or are mentioned by the user.
+  Don't dump the entire lockfile; extract the specific dependencies that appear in the traceback or are mentioned by the user.
 - **Git state** — `git status`, `git log --oneline -20`, and if a regression is suspected, `git diff` against the last known-working commit if the user named one.
 
 Record these findings concisely; they go into the report.
@@ -42,7 +42,7 @@ Do not proceed with assumptions — guesses about run conditions are the single 
 - **Hardware context** — GPU model, CUDA / ROCm / MPS version, number of devices, whether this is local or on a cluster (and which one — SLURM node? SkyPilot VM? Container?).
 - **Exact reproduction command** — the precise command-line invocation, including all flags, the config file path, the seed, and any relevant environment variables (`CUDA_VISIBLE_DEVICES`, `HF_HOME`, etc.).
 - **When it last worked** — has this code path ever worked?
-If yes, what changed (new dependency, new data, new hardware, new commit)?
+  If yes, what changed (new dependency, new data, new hardware, new commit)?
 - **Reproducibility** — does it fail every time, intermittently, or only on specific inputs / seeds?
 
 Ask these in a single batched message, not one at a time.
@@ -61,7 +61,7 @@ Read the full output:
 - The **complete traceback**, top to bottom — the outermost frame often reveals which subsystem triggered the failure (e.g., a `forward()` call originating from a `Trainer.training_step` differs meaningfully from one originating from `evaluate()`).
 - **Warnings** logged before the failure — deprecation warnings, `RuntimeWarning`s, CUDA warnings, and HuggingFace `UserWarning`s frequently foreshadow the actual failure.
 - **Log lines from libraries** — DeepSpeed init logs, vLLM engine startup, Accelerate launch info, SLURM node assignments.
-These reveal the actual runtime configuration, which often differs from what the user thinks they configured.
+  These reveal the actual runtime configuration, which often differs from what the user thinks they configured.
 - **The lines immediately before the error** — the last successful operation tells you where the program got to, which constrains the hypothesis space.
 
 If only a partial traceback was shared, ask for the full one.
@@ -73,10 +73,10 @@ For each frame in the traceback that lives in user code or in a project dependen
 
 - Open the file and read the function in full, not just the failing line.
 - Trace the values flowing into the failing operation — where does each argument come from?
-What are its shape, dtype, device, and expected range?
+  What are its shape, dtype, device, and expected range?
 - Check the **call sites** of the failing function — is it being invoked in a context the author didn't anticipate?
 - For library code (TRL, transformers, DeepSpeed, vLLM, etc.), open the actual installed source — not your memory of how it works.
-Library internals change between minor versions, and your training data is not a substitute for reading the version actually installed.
+  Library internals change between minor versions, and your training data is not a substitute for reading the version actually installed.
 
 Use `grep` / `rg` to find related code paths — the same pattern often appears elsewhere in the codebase and the working instance reveals what the broken instance is missing.
 
@@ -95,10 +95,10 @@ The goal is to find out whether this is a known issue.
 Cast a wide net before going deep:
 
 - **GitHub issues** of every directly involved library — search both open and closed issues.
-Use the verbatim error message, then progressively shorter / more abstract variants.
-Closed issues with workarounds are gold.
+  Use the verbatim error message, then progressively shorter / more abstract variants.
+  Closed issues with workarounds are gold.
 - **GitHub pull requests** — especially recently merged ones.
-A bug that appeared after an upgrade is often addressed in a PR that hasn't been released yet, or has been released in a version the user hasn't pinned to.
+  A bug that appeared after an upgrade is often addressed in a PR that hasn't been released yet, or has been released in a version the user hasn't pinned to.
 - **Release notes and changelogs** for the involved libraries — particularly between the version that worked (if known) and the version that's failing.
 - **Stack Overflow**, but treat it as a starting point rather than a source of truth — its signal-to-noise on modern ML/infra issues is poor.
 - **Official documentation** — sometimes the behavior is documented and the bug is a misuse rather than a defect.
@@ -111,7 +111,7 @@ For every promising lead — **read it in full**.
 This is non-negotiable:
 
 - Read the full issue thread, not just the original post.
-The resolution is usually buried in comment 47.
+  The resolution is usually buried in comment 47.
 - Follow links to other issues and PRs referenced in the discussion, and read those too.
 - If a PR is linked, read the actual diff to understand what changed and whether it applies to the user's version.
 - If a maintainer comment says "fixed in v0.X.Y", verify the user's installed version against that.
