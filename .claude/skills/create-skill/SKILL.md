@@ -38,6 +38,50 @@ Everything below operationalises that.
 
 ---
 
+## Source formatting — one sentence per line
+
+Whenever you write markdown in this workflow — the `SKILL.md` body, reference files, or any commit/PR text — put each sentence on its own line in the source.
+This convention is sometimes called *semantic line breaks*.
+
+The rendered output is unchanged: a markdown renderer collapses consecutive non-blank lines within a paragraph into one rendered line, so the visual result is identical to a soft-wrapped paragraph.
+The benefit is in `git diff`: editing one sentence produces a one-line diff instead of a re-flowed paragraph that touches every wrapped line.
+
+Within a list item, the same rule applies — the bullet marker stays on the first line, and continuation sentences sit on subsequent unindented lines.
+A blank line ends the paragraph or list item.
+
+````markdown
+- This is one bullet.
+The bullet continues here, still in the same item.
+
+- This is the next bullet.
+````
+
+Type each sentence on a new line as you author.
+Do not rely on a post-processing script to enforce this — the rule is small and unambiguous when you write sentence-by-sentence.
+
+---
+
+## Companion skills — delegating to siblings
+
+This skill is one of three that together cover Claude Code's authoring primitives:
+
+- **`create-skill`** (this skill) — reusable prompt/workflow context that loads on demand into the parent conversation.
+- **`create-hook`** — deterministic interception of a lifecycle event (format on save, block a command, inject context).
+- **`create-agent`** — delegated subagent with its own context window, tool scope, and return-value contract.
+
+If the user's request expands beyond a plain skill, invoke the sibling skill via the `Skill` tool rather than re-deriving its workflow inline.
+Hand over the context you have already gathered (the wrapping file path, the lifecycle event, the desired tool scope) so the sibling does not re-ask its own Phase 0 questions.
+
+Common compositions when authoring a skill:
+
+- The skill should bundle a **hook** in its frontmatter (e.g. a skill that auto-formats on save or injects context after compaction).
+  Delegate the hook design to `create-hook`, then place the resulting hook config in the skill's `hooks:` frontmatter field.
+- The skill should preload or document a **subagent** that the user delegates to (e.g. a skill that wraps a code-review subagent).
+  Delegate the agent design to `create-agent`, then reference it from the skill body and (optionally) the skill's `preloaded-skills`/`agents` directives.
+- The skill is itself a **meta-skill** that authors agents or hooks for other projects — the sibling skill is a reference, not a replacement.
+
+---
+
 ## Phase 0 — Capture intent
 
 Before writing anything, establish what the skill is for.

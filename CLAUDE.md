@@ -11,6 +11,10 @@ Each skill lives in its own directory under a category and is described by a sin
 
 ```text
 AgenticSkills/
+├── .claude/skills/       authoring meta-skills (project-scoped)
+│   ├── create-skill/
+│   ├── create-hook/
+│   └── create-agent/
 ├── Configuration/        configuration / dotfile management
 │   └── dotset/
 ├── Debugging/            diagnosis and investigation skills
@@ -23,7 +27,8 @@ AgenticSkills/
 ```
 
 Each leaf directory contains exactly one `SKILL.md`.
-Categories are organisational only — Claude Code's skill loader still requires a flat directory at install time, so the README documents how to flatten on install.
+The category folders (`Configuration/`, `Debugging/`, `Git/`, `HuggingFace/`) are organisational only — Claude Code's skill loader still requires a flat directory at install time, so the README documents how to flatten on install.
+The `.claude/skills/` directory is the loader's project-scoped location and holds the meta-skills that author the rest of the library (see [§ Authoring Meta-Skills](#authoring-meta-skills) below).
 
 ---
 
@@ -121,15 +126,36 @@ This is the safety contract.
 
 ---
 
+## Authoring Meta-Skills
+
+Three skills under `.claude/skills/` automate the authoring of new Claude Code primitives.
+Use them whenever you create or refine the corresponding artefact instead of writing the file from scratch:
+
+| Skill          | For authoring                                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------------------------ |
+| `create-skill` | A new `SKILL.md` — any leaf skill in this repo, or a skill bundled inside a plugin or agent.                  |
+| `create-hook`  | A hook entry — `settings.json`, plugin `hooks/hooks.json`, or skill/agent frontmatter `hooks:` field.         |
+| `create-agent` | A subagent definition — Markdown frontmatter under `.claude/agents/` or JSON passed to `--agents`.            |
+
+These meta-skills are aware of each other.
+When a job needs more than one primitive — e.g. a skill that bundles a hook, an agent with preloaded skills, or a hook scoped to a specific subagent — each skill delegates to its sibling via the `Skill` tool rather than reimplementing the workflow inline.
+The "Companion skills" section near the top of each meta-skill enumerates the common compositions.
+
+Each meta-skill enforces the project conventions documented above (semantic line breaks, model-agnostic Co-Authored-By trailers, prohibitions tables for skills that touch Git or the filesystem), so using them keeps new artefacts consistent with the rest of the repo.
+
+---
+
 ## Adding a Skill — Checklist
 
 1. Pick (or create) the right category folder.
 2. Create `<Category>/<slug>/SKILL.md`.
-3. Write the frontmatter — `name` matches the folder, `description` is trigger-rich.
-4. Draft the body in **semantic line breaks** as you type.
-5. If the skill runs commands, finish with a Strict Prohibitions table.
-6. Verify the rendered output looks right in your editor's Markdown preview.
-7. Update `README.md` if the category list changed.
+3. Invoke the `create-skill` meta-skill (or `/create-skill`) and let it drive the draft → test → review loop.
+   For hooks or subagents, invoke `create-hook` or `create-agent` instead — and the meta-skills will delegate to each other when a composite artefact is needed.
+4. Write the frontmatter — `name` matches the folder, `description` is trigger-rich.
+5. Draft the body in **semantic line breaks** as you type.
+6. If the skill runs commands, finish with a Strict Prohibitions table.
+7. Verify the rendered output looks right in your editor's Markdown preview.
+8. Update `README.md` if the category list changed.
 
 No build step.
 No code is needed to manage the file — keep editing the markdown by hand.

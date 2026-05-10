@@ -40,6 +40,54 @@ Everything below operationalises that.
 
 ---
 
+## Source formatting — one sentence per line
+
+Whenever you write markdown in this workflow — the agent frontmatter `description`, the system-prompt body, reference files the agent points to, or any commit/PR text — put each sentence on its own line in the source.
+This convention is sometimes called *semantic line breaks*.
+
+The rendered output is unchanged: a markdown renderer collapses consecutive non-blank lines within a paragraph into one rendered line, so the visual result is identical to a soft-wrapped paragraph.
+The benefit is in `git diff`: editing one sentence produces a one-line diff instead of a re-flowed paragraph that touches every wrapped line.
+
+Within a list item, the same rule applies — the bullet marker stays on the first line, and continuation sentences sit on subsequent unindented lines.
+A blank line ends the paragraph or list item.
+
+````markdown
+- This is one bullet.
+The bullet continues here, still in the same item.
+
+- This is the next bullet.
+````
+
+Type each sentence on a new line as you author.
+Do not rely on a post-processing script to enforce this — the rule is small and unambiguous when you write sentence-by-sentence.
+
+---
+
+## Companion skills — delegating to siblings
+
+This skill is one of three that together cover Claude Code's authoring primitives:
+
+- **`create-agent`** (this skill) — delegated subagent with its own context window, tool scope, and return-value contract.
+- **`create-skill`** — reusable prompt/workflow context that loads on demand into the parent conversation.
+- **`create-hook`** — deterministic interception of a lifecycle event (format on save, block a command, inject context).
+
+The "Choose the right primitive" table later in this skill helps you decide *whether* an agent is the correct primitive at all.
+This section is the complement: once you have committed to authoring an agent, what other primitives might you also need?
+
+If the user's request requires a sibling primitive, invoke the sibling skill via the `Skill` tool rather than re-deriving its workflow inline.
+Hand over the context you have already gathered (the wrapping agent file path, the agent's tool scope, the desired permission mode) so the sibling does not re-ask its own Phase 0 questions.
+
+Common compositions when authoring an agent:
+
+- The agent should **preload custom skills** via its `preloaded-skills` frontmatter — delegate the skill authoring to `create-skill` for each skill that does not already exist.
+- The agent should have **agent-scoped hooks** in its `hooks:` frontmatter (e.g. a `SubagentStart` injector or a `PreToolUse` guard) — delegate the hook design to `create-hook`.
+- The agent is part of an **agent team** or plugin that also ships skills and hooks — delegate those parts to the matching sibling skill.
+
+Note: subagents cannot spawn other subagents.
+That constraint is about *runtime* delegation, not *authoring* — at authoring time you are free to invoke any sibling skill from this conversation.
+
+---
+
 ## Phase 0 — Capture intent
 
 Before writing any frontmatter, establish what the agent is for.

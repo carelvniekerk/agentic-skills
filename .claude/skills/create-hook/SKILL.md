@@ -42,6 +42,50 @@ Everything below operationalises that.
 
 ---
 
+## Source formatting — one sentence per line
+
+Whenever you write markdown in this workflow — a `SKILL.md` or agent-frontmatter body that wraps the hook config, handler-script docstrings, README snippets, or any commit/PR text — put each sentence on its own line in the source.
+This convention is sometimes called *semantic line breaks*.
+
+The rendered output is unchanged: a markdown renderer collapses consecutive non-blank lines within a paragraph into one rendered line, so the visual result is identical to a soft-wrapped paragraph.
+The benefit is in `git diff`: editing one sentence produces a one-line diff instead of a re-flowed paragraph that touches every wrapped line.
+
+Within a list item, the same rule applies — the bullet marker stays on the first line, and continuation sentences sit on subsequent unindented lines.
+A blank line ends the paragraph or list item.
+
+````markdown
+- This is one bullet.
+The bullet continues here, still in the same item.
+
+- This is the next bullet.
+````
+
+Type each sentence on a new line as you author.
+Do not rely on a post-processing script to enforce this — the rule is small and unambiguous when you write sentence-by-sentence.
+
+---
+
+## Companion skills — delegating to siblings
+
+This skill is one of three that together cover Claude Code's authoring primitives:
+
+- **`create-hook`** (this skill) — deterministic interception of a lifecycle event (format on save, block a command, inject context).
+- **`create-skill`** — reusable prompt/workflow context that loads on demand into the parent conversation.
+- **`create-agent`** — delegated subagent with its own context window, tool scope, and return-value contract.
+
+If the user's request expands beyond a standalone hook, invoke the sibling skill via the `Skill` tool rather than re-deriving its workflow inline.
+Hand over the context you have already gathered (the chosen lifecycle event, matcher and `if` filters, decision contract, handler type) so the sibling does not re-ask its own Phase 0 questions.
+
+Common compositions when authoring a hook:
+
+- The hook is being **packaged inside a skill** (skill frontmatter `hooks:`).
+  Delegate the wrapping `SKILL.md` design to `create-skill` once the hook config is finalised.
+- The hook lives in **agent frontmatter** (scoped to a specific subagent).
+  Delegate the wrapping agent design to `create-agent` and embed the hook config in its `hooks:` field.
+- The hook is part of a **plugin** that bundles skills and/or agents — delegate those parts to the matching sibling skill.
+
+---
+
 ## Phase 0 — Capture intent
 
 Before writing any JSON, establish what the hook is for.
