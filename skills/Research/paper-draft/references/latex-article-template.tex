@@ -1,0 +1,220 @@
+% ============================================================
+% Basic LaTeX Article Template — paper-draft skill default
+% ============================================================
+% Check CLAUDE.md for a project-specific template before using this one.
+% If the project defines `latex_template`, insert content there instead.
+% ============================================================
+
+\documentclass[12pt, a4paper]{article}
+
+% --- Encoding & fonts ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Page geometry ---
+\usepackage[margin=2.5cm]{geometry}
+
+% --- Mathematics ---
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+% --- Algorithms ---
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% --- Code listings ---
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{orange},
+}
+
+% --- Tables ---
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+
+% --- Figures ---
+\usepackage{graphicx}
+\usepackage{subcaption}
+\graphicspath{{./figures/}}
+
+% --- Hyperlinks & cross-references ---
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+
+% --- Bibliography ---
+% Using biblatex with biber (preferred). Switch to natbib if the venue requires it.
+\usepackage[backend=biber, style=authoryear, sorting=nyt]{biblatex}
+\addbibresource{references.bib}
+
+% --- Utilities ---
+\usepackage{lipsum}   % placeholder text — remove before submission
+\usepackage{todonotes}  % \todo{}, \missingfigure{} — remove before submission
+
+% ============================================================
+% Document metadata — fill in before drafting
+% ============================================================
+
+\title{%
+  \textbf{Draft Title}\\
+  \large Subtitle (if applicable)
+}
+
+\author{%
+  First Author\thanks{Affiliation. \texttt{email@institution.edu}} \and
+  Second Author\thanks{Affiliation. \texttt{email@institution.edu}}
+}
+
+\date{\today}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\maketitle
+
+\begin{abstract}
+  One paragraph (150--250 words).
+  State the problem, the approach, the key result, and the significance.
+  Write the abstract last.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Introduction}
+\label{sec:introduction}
+% ============================================================
+
+% - Motivate the problem. Why does it matter?
+% - State the gap in existing work.
+% - List contributions as bullet points.
+% - Describe the paper structure in one short paragraph.
+
+\begin{itemize}
+  \item \textbf{Contribution 1:} ...
+  \item \textbf{Contribution 2:} ...
+\end{itemize}
+
+% ============================================================
+\section{Related Work}
+\label{sec:related}
+% ============================================================
+
+% Organise by theme, not chronology.
+% Position this work relative to each cluster of prior work.
+% \cite{} every paper discussed.
+
+% ============================================================
+\section{Background}
+\label{sec:background}
+% ============================================================
+
+% Definitions, notation, and prerequisite results.
+% Keep this section tight — move non-essential background to appendix.
+
+% ============================================================
+\section{Method}
+\label{sec:method}
+% ============================================================
+
+% The core technical contribution.
+% Include pseudocode or algorithms where the procedure is non-trivial.
+% Reproduce all key equations in full with variable definitions.
+
+\begin{equation}
+  \mathcal{L}(\theta) = \ldots
+  \label{eq:loss}
+\end{equation}
+
+where $\theta$ are the model parameters and \ldots
+
+% ============================================================
+\section{Experiments}
+\label{sec:experiments}
+% ============================================================
+
+\subsection{Experimental Setup}
+
+% Datasets, baselines, evaluation metrics, compute details.
+
+\subsection{Main Results}
+
+% Results table — reproduce key numbers; never paraphrase into prose.
+
+\begin{table}[h]
+  \centering
+  \caption{Main results on [Benchmark]. Best result in \textbf{bold}, second-best \underline{underlined}.}
+  \label{tab:main}
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{Method} & \textbf{Metric A} & \textbf{Metric B} & \textbf{Metric C} \\
+    \midrule
+    Baseline        & 00.0 & 00.0 & 00.0 \\
+    Prior Work~\cite{ref} & 00.0 & 00.0 & 00.0 \\
+    \textbf{Ours}   & \textbf{00.0} & \textbf{00.0} & \textbf{00.0} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Ablation Study}
+
+% Isolate each component's contribution.
+
+\subsection{Analysis}
+
+% Error analysis, qualitative examples, failure modes.
+
+% ============================================================
+\section{Discussion}
+\label{sec:discussion}
+% ============================================================
+
+% Interpret results. Limitations. Negative results (if any).
+
+% ============================================================
+\section{Conclusion}
+\label{sec:conclusion}
+% ============================================================
+
+% Summarise contributions. Future work.
+
+% ============================================================
+% Appendix (optional)
+% ============================================================
+
+\appendix
+
+\section{Supplementary Material}
+\label{app:supplementary}
+
+% Proofs, additional experiments, implementation details.
+
+% ============================================================
+% Bibliography
+% ============================================================
+
+\printbibliography
+
+% ============================================================
+\end{document}
+% ============================================================

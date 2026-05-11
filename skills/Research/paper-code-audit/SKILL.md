@@ -1,0 +1,127 @@
+---
+name: paper-code-audit
+description: >
+  Compare a research paper's claims against its public codebase — identifies mismatches, omissions, undocumented deviations, and reproducibility risks.
+  Use this skill whenever the user asks to audit a paper, check code-claim consistency, verify reproducibility, or wants to know whether an implementation actually matches what was published.
+when_to_use: >
+  Trigger phrases: "audit this paper", "check the code", "does the implementation match", "verify reproducibility",
+  "code vs paper", "is the code consistent with the paper", "check the repo against the paper",
+  "reproducibility check", "what deviates from the paper", "does the code do what the paper claims".
+argument-hint: <paper-url-or-arXiv-ID> <repo-url>
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *)
+disable-model-invocation: true
+---
+
+# Paper–Code Audit
+
+Compare a research paper's claims against its public codebase.
+Identifies mismatches, omissions, and reproducibility risks.
+
+Check `CLAUDE.md` for the project's output directory (default: `output/`).
+
+## Workflow
+
+### 1. Identify Targets
+
+Determine:
+
+- The paper — arXiv ID, URL, or local file path.
+- The code repository — GitHub URL, or locate it from the paper's text.
+
+If the user provided both as arguments (`$ARGUMENTS`), parse them directly.
+If only one was provided, locate the missing one before proceeding.
+
+### 2. Extract Claims
+
+Read the paper and extract:
+
+- Claimed methods, architectures, and algorithms.
+- Default hyperparameters and training details.
+- Reported metrics, datasets, and evaluation protocols.
+- Data handling and preprocessing steps.
+- Any ablations or variants described.
+
+### 3. Inspect the Code
+
+Read the repository and compare against each extracted claim:
+
+- Do the implemented methods match the paper's description?
+- Are default hyperparameters consistent?
+- Is the evaluation code present and does it match the described protocol?
+- Are there undocumented steps, hardcoded values, or silent deviations?
+- Is data preprocessing consistent with the paper?
+- Are ablation variants implemented?
+
+### 4. Classify Findings
+
+Label each finding by severity:
+
+| Severity | Meaning |
+| -------- | ------- |
+| **CRITICAL** | The code does something materially different from the paper's core claim — results may not be reproducible |
+| **MODERATE** | A meaningful deviation (e.g. different default hyperparameter, undocumented preprocessing step) |
+| **MINOR** | Small inconsistency unlikely to affect results (e.g. naming difference, cosmetic variation) |
+| **MISSING** | Something described in the paper has no corresponding code |
+| **MATCH** | Claim confirmed by the code |
+
+### 5. Deliver
+
+Derive a slug from the paper title.
+Save the audit to `<output>/<slug>-audit.md` using this template:
+
+```markdown
+---
+tags: [paper-audit, reproducibility]
+type: notes
+date_added: YYYY-MM-DD
+date_updated: YYYY-MM-DD
+sources: 2
+source_type: technical
+---
+
+# Audit: [Paper Title]
+
+![Type](https://img.shields.io/badge/type-paper--audit-orange) ![Added](https://img.shields.io/badge/added-YYYY--MM--DD-lightgrey)
+
+One paragraph summarising the paper's central claim and the overall reproducibility verdict.
+
+## 🎯 Key Takeaways
+
+- 3–5 bullets summarising the most important audit findings.
+
+## Paper and Repository
+
+- **Paper:** [Title — Authors (Year)](https://url)
+- **Repository:** [org/repo](https://github.com/url)
+- **Commit audited:** `<git-sha>` (if determinable)
+
+## ✅ Matches
+
+- **[M1]** Claimed X; code implements X correctly. `file.py:line`
+
+## ❌ Mismatches
+
+- **[CRITICAL — X1]** Paper claims Y, but code does Z. `file.py:line`
+- **[MODERATE — X2]** Default learning rate is 1e-4 in paper, 3e-4 in code. `config.py:42`
+- **[MINOR — X3]** Variable named differently from paper notation. `model.py:17`
+
+## 🕳️ Missing
+
+- **[G1]** No evaluation script provided for the main benchmark.
+- **[G2]** Data preprocessing pipeline described in §3.2 is not in the repository.
+
+## 🔬 Reproduction Risk Assessment
+
+**Overall verdict:** High / Medium / Low reproducibility risk.
+
+Explain which findings drive the verdict and what a practitioner would need to do to successfully reproduce the results despite the gaps.
+
+## 🔮 Open Questions
+
+- Questions raised by the audit that the paper and code together do not answer.
+
+## Sources
+
+- [Paper title](https://url)
+- [Repository](https://github.com/url)
+```
