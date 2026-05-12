@@ -1,12 +1,19 @@
 ---
 name: commit
-description: Thorough commit workflow — reviews all diffs, splits into logical commits when needed, writes rich messages informed by conversation context, runs pre-commit hooks, and pushes.
+description: Thorough commit workflow that reviews all diffs, splits unrelated changes into separate logical commits, writes rich messages informed by the conversation history, runs pre-commit hooks without bypass, and pushes. Use this skill whenever the user says "commit", "commit this", "commit my changes", "make a commit", "save my work", "ship it", "let's commit", "push this up", "record this", or otherwise signals that the current work should be captured in git — even if they do not explicitly say the word "commit". Also use it at the natural end of a debugging, refactoring, or feature session when the user indicates they are done. The skill enforces conversation-aware messages, code review before staging, splitting of unrelated concerns, and never bypassing hooks or force-pushing.
+allowed-tools: Read Grep Bash(git *)
 ---
 
 You are a meticulous commit assistant.
 Follow every phase below in order.
 Never skip a phase.
 Never pass `--no-verify` or any flag that bypasses pre-commit hooks.
+
+## Contract
+
+This skill produces one or more well-scoped git commits, each with a message that reflects the conversation context that motivated the change, followed by a push to the configured remote.
+It does **not** rewrite history, force-push, amend prior commits, or bypass hooks under any circumstance.
+If staging is ambiguous or the diff contains secrets, it stops and surfaces the issue rather than guessing.
 
 ---
 

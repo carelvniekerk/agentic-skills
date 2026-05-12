@@ -1,7 +1,22 @@
 ---
 name: dotset
 description: Manages project dotfiles (.gitignore, .uvgroups, .envrc, .cleanup, .skyignore, .rsync-exclude) via the dotset CLI. Use when adding/removing ignore patterns, managing UV groups, setting .envrc directives, or initialising project dotfiles.
+allowed-tools:
+    - Read
+    - Edit
+    - Write
+    - Bash(dotset *)
+    - Bash(${CHEZMOI_COMMAND_DIR}/.venv/bin/dotset *)
+    - Bash(/Users/vniekerk/.local/share/chezmoi/.venv/bin/dotset *)
+    - Bash(printf *)
 ---
+
+## Contract
+
+This skill mutates project dotfiles **exclusively through the dotset CLI** — never by hand-editing the managed files unless dotset itself cannot perform the operation.
+Every mutating run is preceded by a `dotset status` and the relevant `show` / `list` query, so the user sees the current state before any change.
+For multi-step init flows, the plan is confirmed with the user before any answers are piped in.
+Direct Read/Edit/Write of dotset-managed files (`.gitignore`, `.uvgroups`, `.envrc`, `.cleanup`, `.skyignore`, `.rsync-exclude`) is reserved for the explicit fallback in the *Fallback* section at the bottom.
 
 ## Binary
 

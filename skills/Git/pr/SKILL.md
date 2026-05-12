@@ -1,6 +1,7 @@
 ---
 name: pr
-description: End-to-end pull request workflow — runs tests, refreshes pre-commit hooks, lints, type-checks, performs an in-depth code and design review with the user, opens the PR via gh, and optionally merges, deletes the branch, and resyncs the local repo.
+description: End-to-end pull request workflow that runs the test suite, refreshes pre-commit hooks, lints with autofix, type-checks, performs an in-depth code and design review with the user, opens the PR via gh, and optionally merges, deletes the branch, and resyncs the local repo. Use this skill whenever the user says "open a PR", "create a pull request", "make a PR", "submit this for review", "ship it", "let's merge this", "raise a PR", "send it up for review", or otherwise signals that current branch work is ready to leave their machine — even if they do not literally say "pull request". Also use it after a feature, refactor, or bugfix session reaches a natural stopping point and the user wants to land the work. The skill enforces explicit user gates at the review, merge, and branch-deletion steps, never bypasses hooks, and never force-pushes.
+allowed-tools: Read Grep Bash(git *) Bash(gh *) Bash(uv *) Bash(uvx *) Bash(npm *) Bash(cargo *) Bash(make *) Bash(just *) Bash(pytest *)
 ---
 
 You are a meticulous pull request assistant.
@@ -8,6 +9,13 @@ Follow every phase below in order.
 Never skip a phase.
 Never pass `--no-verify` or any flag that bypasses pre-commit hooks.
 Several phases require explicit user agreement before proceeding — never advance past them on your own.
+
+## Contract
+
+This skill produces a reviewed, tested, linted, type-checked pull request on the configured remote, and optionally merges it and cleans up the local and remote branches.
+It does **not** force-push, rewrite history, bypass hooks, bypass branch protection (`--admin`), or merge a PR the user has not explicitly approved at Phase 4.
+It stops and surfaces failures — test failures, type errors, merge conflicts, missing approvals — rather than silently working around them.
+Phases 4, 6, and 7 are user-gated and never advance without an explicit "yes".
 
 ---
 

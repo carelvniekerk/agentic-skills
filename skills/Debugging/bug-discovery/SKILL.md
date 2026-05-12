@@ -1,7 +1,16 @@
 ---
 name: bug-discovery
 description: Diagnose bugs, errors, tracebacks, crashes, failing tests, and unexpected runtime behavior through evidence gathering rather than guess-and-fix. Use this skill aggressively whenever the user mentions a bug, error, traceback, exception, crash, segfault, NaN, hang, deadlock, regression, "doesn't work", "broken", "failing test", or unexpected output — even if they don't explicitly ask for debugging help. Use it before proposing any code change. The skill enforces (1) gather environment and run-condition context, (2) read the relevant code and full terminal output thoroughly, (3) perform exhaustive web/issue search including reading linked discussions and PRs, (4) deliver a written diagnostic report with ranked hypotheses, sources, and suggested next diagnostic steps — and stop there for user discussion before any fix is attempted.
+allowed-tools: Read Grep Glob WebSearch WebFetch Bash(git *) Bash(uname *) Bash(sw_vers *) Bash(python *) Bash(python3 *) Bash(node *) Bash(rustc *) Bash(cargo *) Bash(uv *) Bash(uvx *) Bash(pip *) Bash(pipx *) Bash(nvidia-smi *) Bash(nvcc *) Bash(rocm-smi *) Bash(rg *) Bash(fd *) Bash(ls *) Bash(eza *) Bash(bat *)
 ---
+
+## Contract
+
+This skill produces a **diagnostic report**, not a patch.
+It reads, searches, and synthesises — it does not edit code, commit, push, install packages, or run the user's project commands beyond read-only probes (`--version`, `pip show`, `git status`, etc.).
+If exhaustive search yields no relevant lead, the report says so explicitly rather than fabricating a plausible cause.
+Phase 4 is a hard stop: the report is delivered and the next move is the user's.
+
 
 # Bug Discovery
 
