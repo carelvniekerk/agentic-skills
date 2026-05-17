@@ -65,6 +65,14 @@ Add or update a `## Sources` section at the end with footnote definitions:
 
 **Never use** HTML anchors (`<a id="ref-N">`) or bracketed anchor links (`[[N]](#ref-N)`): Obsidian does not render HTML anchors, and `[[...]]` is parsed as a wikilink that creates a phantom file named `N`.
 
+### Linking Rules (Markdown)
+
+- **Inline citations:** `[^N]` — markdown footnote reference only.
+- **Bibliography entries:** `[^N]: [Title — Authors (Year)](https://url) — one-line contribution note` under `## Sources`.
+- **Local knowledge articles:** use relative paths (e.g. `../wiki/article.md`) — never absolute paths or URLs for files within the project.
+- **External sources:** use full web URLs.
+- **Never link to scratch files** — they are transient and will not exist for the reader.
+
 ---
 
 ## Track B — LaTeX
