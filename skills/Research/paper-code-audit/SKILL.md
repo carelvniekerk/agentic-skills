@@ -8,7 +8,7 @@ when_to_use: >
   "code vs paper", "is the code consistent with the paper", "check the repo against the paper",
   "reproducibility check", "what deviates from the paper", "does the code do what the paper claims".
 argument-hint: <paper-url-or-arXiv-ID> <repo-url>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *)
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
 disable-model-invocation: true
 ---
 
@@ -31,30 +31,20 @@ Determine:
 If the user provided both as arguments (`$ARGUMENTS`), parse them directly.
 If only one was provided, locate the missing one before proceeding.
 
-### 2. Extract Claims
+### 2. Gather Evidence
 
-Read the paper and extract:
+Spawn a **`researcher`** agent.
+Include in its brief:
+- The paper (URL, arXiv ID, or path) and the repo (URL or path).
+- Task: extract from the paper — claimed methods, architectures, algorithms, default hyperparameters, training details, reported metrics, datasets, evaluation protocols, data handling, ablations/variants.
+- Task: inspect the repository and document, for each paper claim, the corresponding code behaviour with `file:line` references.
+- Output files: `<scratch>/<slug>-claims.md` (paper claims) and `<scratch>/<slug>-code.md` (code behaviours mapped to claims).
+- Reminder: every claim and every code reference must include a verifiable URL or `file:line` location.
 
-- Claimed methods, architectures, and algorithms.
-- Default hyperparameters and training details.
-- Reported metrics, datasets, and evaluation protocols.
-- Data handling and preprocessing steps.
-- Any ablations or variants described.
+### 3. Classify Findings
 
-### 3. Inspect the Code
-
-Read the repository and compare against each extracted claim:
-
-- Do the implemented methods match the paper's description?
-- Are default hyperparameters consistent?
-- Is the evaluation code present and does it match the described protocol?
-- Are there undocumented steps, hardcoded values, or silent deviations?
-- Is data preprocessing consistent with the paper?
-- Are ablation variants implemented?
-
-### 4. Classify Findings
-
-Label each finding by severity:
+Read both research files.
+For each paper claim, compare against the documented code behaviour and label by severity:
 
 | Severity | Meaning |
 | -------- | ------- |
@@ -64,10 +54,19 @@ Label each finding by severity:
 | **MISSING** | Something described in the paper has no corresponding code |
 | **MATCH** | Claim confirmed by the code |
 
-### 5. Deliver
+Classification is Claude's judgment call — it is not delegated.
+Save the classified finding list to `<scratch>/<slug>-findings.md`.
 
-Derive a slug from the paper title.
-Save the audit to `<output>/<slug>-audit.md` using this template:
+### 4. Write the Audit
+
+Spawn a **`writer`** agent.
+Include in its brief:
+- The findings file from step 3 and both research files from step 2.
+- Draft save path: `<scratch>/.drafts/<slug>-audit-draft.md`.
+- The full audit template below — the writer must follow it exactly.
+- Writing rules: each sentence on its own line; preserve `file:line` references verbatim; do not weaken or reorder findings; do not add citations (the verifier handles that).
+
+Audit template:
 
 ```markdown
 ---
@@ -125,3 +124,13 @@ Explain which findings drive the verdict and what a practitioner would need to d
 - [Paper title](https://url)
 - [Repository](https://github.com/url)
 ```
+
+### 5. Verify and Cite
+
+Spawn a **`verifier`** agent.
+Include in its brief:
+- Draft path: `<scratch>/.drafts/<slug>-audit-draft.md`.
+- Source pool: both research files from step 2 plus the paper URL and repo URL.
+- Final output path: `<output>/<slug>-audit.md`.
+- Citation format: markdown footnotes `[^N]`. The paper URL and repo URL must be verified to resolve.
+- Internal `file:line` references must not be modified — they are not external citations and the verifier should leave them in place.

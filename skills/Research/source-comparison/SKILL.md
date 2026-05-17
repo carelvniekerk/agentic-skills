@@ -8,7 +8,7 @@ when_to_use: >
   "comparison matrix", "compare papers", "compare tools", "compare frameworks", "compare methods",
   "what are the trade-offs", "side by side", "how does X stack up against Y".
 argument-hint: <topic or list of things to compare>
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *)
+allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
 disable-model-invocation: false
 ---
 
@@ -39,57 +39,37 @@ Write the plan to `<scratch>/.plans/<slug>.md`.
 
 ### 3. Gather
 
-Collect evidence on each item being compared.
-**Ensure comparable coverage across all items** — do not let one item have many sources and another have one.
-If evidence is thin for one item, say so explicitly in the matrix rather than padding with inference.
+Spawn a **`researcher`** agent.
+Include in its brief:
+- The plan from step 2 (items to compare, dimensions to evaluate).
+- Requirement: **comparable coverage across all items** — do not let one item have many sources and another have one. If evidence is thin for one item, document that explicitly rather than padding with inference.
+- Output file naming: `<scratch>/<slug>-research-<item>.md` (one file per item).
+- Reminder: every claim must have a URL; no fabricated sources.
 
-Write research files to `<scratch>/<slug>-research-*.md`.
+### 4. Build the Comparison
 
-### 4. Build the Matrix
+Spawn a **`writer`** agent.
+Include in its brief:
+- Paths to all research files in `<scratch>/`.
+- The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template.
+- Draft save path: `<scratch>/.drafts/<slug>-comparison-draft.md`.
+- The matrix structure: dimensions on rows, items on columns, one confidence column per cell. Confidence levels:
+  - `high` — supported by ≥2 independent primary sources per cell.
+  - `medium` — supported by 1 primary source or multiple secondary sources.
+  - `low` — inferred, single tertiary source, or the claim could not be independently verified.
+- Section order: framing paragraph → 🔗 Prerequisites (if needed) → 🎯 Key Takeaways (3–5 bullets) → Comparison Matrix → Agreements → Disagreements → Gaps → 🔮 Open Questions → Sources placeholder.
+- Required content per section:
+  - **Agreements**: where sources align across items, with which sources support each.
+  - **Disagreements**: where sources conflict; name which source says what.
+  - **Gaps**: dimensions or items with no reliable evidence — stated explicitly, not guessed.
+- Reminder: do NOT add inline citations or fill the Sources section — the verifier handles that.
 
-Structure the matrix around dimensions, not items.
-For each cell, record the evidence and its confidence level.
+### 5. Verify and Cite
 
-| Dimension | Item A | Item B | Item C | Confidence |
-| --------- | ------ | ------ | ------ | ---------- |
-| Method | ... | ... | ... | high |
-| Performance | ... | ... | ... | medium |
-| Limitations | ... | ... | ... | low |
-
-**Confidence levels:**
-
-- `high` — supported by ≥2 independent primary sources per cell.
-- `medium` — supported by 1 primary source or multiple secondary sources.
-- `low` — inferred, single tertiary source, or the claim could not be independently verified.
-
-### 5. Surface Agreements, Disagreements, and Gaps
-
-**Agreements** — where sources align across items, with evidence citations.
-**Disagreements** — where sources conflict; name which source says what.
-**Gaps** — dimensions or items where no reliable evidence was found; state this explicitly rather than guessing.
-
-### 6. Verify and Cite
-
-- Every cell in the matrix must trace to a source citation.
-- Use markdown footnote citations `[^N]` inline and `[^N]: [Title](url) — note` in the Sources section.
-- **Never use HTML anchors** (`<a id="ref-N">`) or bracketed anchor links (`[[N]](#ref-N)`).
-- Verify every source URL resolves.
-- Downgrade any cell to `low` confidence if only a single unverified source supports it.
-
-### 7. Deliver
-
-Read [references/output-format.md](references/output-format.md) for the full template and frontmatter spec.
-Save to `<output>/<slug>-comparison.md` using the standard article structure, with the comparison matrix as a dedicated section.
-
-Section order for a comparison document:
-
-1. Frontmatter + badge row
-2. One-paragraph framing of what is being compared and why
-3. 🔗 Prerequisites (if needed)
-4. 🎯 Key Takeaways (3–5 bullets on the most important findings)
-5. Comparison Matrix
-6. Agreements
-7. Disagreements
-8. Gaps
-9. 🔮 Open Questions
-10. Sources
+Spawn a **`verifier`** agent.
+Include in its brief:
+- Draft path: `<scratch>/.drafts/<slug>-comparison-draft.md`.
+- All research file paths (as the authoritative source pool).
+- Final output path: `<output>/<slug>-comparison.md`.
+- Citation format: markdown footnotes `[^N]`.
+- Additional rule: **every cell in the matrix must trace to a source citation**. If any cell rests on a single unverified source, downgrade its confidence label to `low`.

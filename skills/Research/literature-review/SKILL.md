@@ -7,7 +7,7 @@ when_to_use: >
   Trigger phrases: "literature review", "lit review", "survey the field", "state of the art", "what papers exist on",
   "related work", "academic landscape", "map the research", "what has been done on", "survey papers on",
   "what does the literature say", "who has worked on", "prior work on", "review the papers on".
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *)
+allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
 disable-model-invocation: false
 ---
 
@@ -40,59 +40,46 @@ Write the plan to `<scratch>/.plans/<slug>.md`.
 
 ### 3. Gather
 
-Search academic sources systematically:
-
-- Start with broad queries to map the landscape.
-- Identify seminal papers, then trace citations forward and backward.
-- Look for survey papers that might already summarise the area.
-- For each paper, extract: title, authors, year, venue, key contribution, method, and quantitative results.
-- Target **≥10 papers**; fewer than 8 produces an inadequate lit review.
-
-Write research files to `<scratch>/<slug>-research-papers.md`.
+Spawn a **`researcher`** agent.
+Include in its brief:
+- The plan from step 2 (questions, sources, time period, expected thematic structure).
+- Search strategy: start broad to map the landscape, identify seminal papers, trace citations forward and backward, look for existing survey papers.
+- Per-paper extraction: title, authors, year, venue, key contribution, method, and quantitative results.
+- Target: **≥10 papers**; fewer than 8 produces an inadequate review.
+- Output file: `<scratch>/<slug>-research-papers.md`.
 
 ### 4. Synthesise
 
-Structure the review around **themes**, not chronology.
-Each paper must receive substantive individual treatment — its method, results, and significance explained — not just a citation in passing.
-
-**Required structural elements — all mandatory:**
-
-- **Each paper's contribution** explained in detail within its thematic section.
-- **Quantitative results** preserved where reported (accuracy, F1, speedup, etc.) — never paraphrase numbers into prose when a table is clearer.
-- **Results tables are mandatory** wherever 2+ papers report numbers on the same task, dataset, or benchmark. Reproduce key rows from the papers' own result tables. Format: `Method | Paper | Dataset | Metric | Score`. Note differing experimental conditions in a footnote below the table.
-- **Mathematical notation** preserved in LaTeX (`$inline$` / `$$display$$`) for any key objective, loss, or algorithm the papers define.
-- **Consensus:** what do most papers agree on? Supported by evidence from ≥2 sources.
-- **Disagreements:** where do methods or findings conflict? Name the papers on each side.
-- **Open questions:** what remains unsolved or under-explored?
-- **Trends:** which directions are gaining or losing traction? With dates.
-
-Minimum body length: ~2,500 words.
-A thorough review of a mature field should be 4,000+ words.
-Where useful, propose concrete next experiments or follow-up reading.
-
-Save the draft to `<scratch>/.drafts/<slug>-draft.md`.
+Spawn a **`writer`** agent.
+Include in its brief:
+- Path to the research file in `<scratch>/`.
+- The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly.
+- Draft save path: `<scratch>/.drafts/<slug>-draft.md`.
+- Structural requirement: organise around **themes, not chronology**. Each paper receives substantive individual treatment — method, results, significance — not just a citation in passing.
+- Required content (all mandatory):
+  - Each paper's contribution explained in detail within its thematic section.
+  - Quantitative results preserved where reported (accuracy, F1, speedup, etc.).
+  - **Results tables are mandatory** wherever 2+ papers report numbers on the same task or benchmark. Format: `Method | Paper | Dataset | Metric | Score`. Note differing experimental conditions in a footnote below the table.
+  - Mathematical notation preserved in LaTeX (`$inline$` / `$$display$$`) for any key objective, loss, or algorithm the papers define. Define all variables immediately after each equation.
+  - **Consensus** — what do most papers agree on (≥2 sources).
+  - **Disagreements** — where do methods or findings conflict; name papers on each side.
+  - **Open questions** — what remains unsolved or under-explored.
+  - **Trends** — which directions are gaining or losing traction, with dates.
+- Length: minimum ~2,500 words; a thorough review of a mature field should be 4,000+.
+- Reminder: do NOT add inline citations or fill the Sources section — the verifier handles that.
 
 ### 5. Verify and Cite
 
-- Replace all provisional references with **markdown footnote citations** `[^N]`.
-- Convert every Sources entry to a footnote definition: `[^N]: [Title — Authors (Year)](https://url) — note`.
-- **Never use HTML anchors** (`<a id="ref-N">`) or bracketed anchor links (`[[N]](#ref-N)`) — these break in Obsidian and similar renderers.
-- Verify every URL resolves.
-- Every factual paragraph must have at least one citation.
-- Downgrade anything inferred or single-source-critical to hedged language.
+Spawn a **`verifier`** agent.
+Include in its brief:
+- Draft path: `<scratch>/.drafts/<slug>-draft.md`.
+- Research file path (as the authoritative source pool).
+- Final output path: `<output>/<slug>.md`.
+- Citation format: markdown footnotes `[^N]`.
+- Additional rule: every factual paragraph must have at least one citation. Downgrade single-source-critical claims to hedged language rather than asserting them.
 
 ### 6. Deliver
 
-Read [references/output-format.md](references/output-format.md) for the full template and frontmatter field definitions.
-Save to `<output>/<slug>.md` following that template.
-
-**Linking rules:**
-
-- Inline citations: `[^N]` — markdown footnote reference.
-- Bibliography: `[^N]: [Title — Authors (Year)](https://url) — one-line contribution note` under `## Sources`.
-- Links to local knowledge articles: relative paths.
-- Links to external sources: full web URLs.
-- Never link to scratch files — they are transient.
-
+The verifier writes the final output directly to `<output>/<slug>.md`.
 Write a provenance sidecar to `<scratch>/<slug>.provenance.md`.
 Check `CLAUDE.md` for knowledge base integration instructions before promoting output to permanent storage — never do this automatically.

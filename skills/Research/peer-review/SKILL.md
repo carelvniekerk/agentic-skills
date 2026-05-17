@@ -10,7 +10,7 @@ when_to_use: >
   "review my paper", "sanity check before submission", "simulate a reviewer", "what are the weaknesses",
   "would this pass review", "reviewer 2 this".
 argument-hint: <paper-path, arXiv-ID, or URL>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *)
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
 disable-model-invocation: false
 ---
 
@@ -31,46 +31,23 @@ Determine what is being reviewed from `$ARGUMENTS` or the conversation:
 - An arXiv ID or URL → fetch and read it.
 - Text pasted in the conversation → use that directly.
 
-### 2. Gather Context
+### 2. Conduct the Review
 
-If the artifact cites external work, search for key cited papers to verify claims independently.
-Check the local knowledge base (if available) for related coverage that might inform the review.
+Spawn a **`reviewer`** agent.
+Include in its brief:
+- The artifact location (file path, arXiv ID, URL, or pasted text from the conversation).
+- Permission to search for key cited papers and consult local knowledge if available, to verify claims independently.
+- Final output path: `<output>/<slug>-review.md` (derive the slug from the artifact's title).
+- Severity grading: FATAL / MAJOR / MINOR — the reviewer agent already enforces these definitions.
+- Review checklist to apply (the reviewer agent has its own checklist; these additions complement it):
+  - **Substance**: novelty, sufficiency of evidence, complete and fair quantitative reporting, honest limitations, presence of negative results.
+  - **Technical correctness**: proofs/derivations/equations, soundness of experimental protocols, reproducibility of hyperparameters and implementation details.
+  - **Related work**: completeness and fairness of citations; accuracy of positioning relative to prior art.
+  - **Clarity**: contribution stated early; all technical terms defined before use; figures/tables self-contained; abstract accurate.
+  - **Presentation**: structure, notation consistency, English and formatting.
+- The output template below — the reviewer must wrap its structured-review and inline-annotations output in this template, including the frontmatter and badge row.
 
-### 3. Review Checklist
-
-Evaluate the artifact against all of the following:
-
-**Substance**
-- Is the core claim novel and non-trivial?
-- Is the evidence sufficient to support the claims?
-- Are quantitative results complete, clearly reported, and fairly compared against baselines?
-- Are limitations acknowledged honestly?
-- Are negative results reported rather than suppressed?
-
-**Technical correctness**
-- Are proofs, derivations, and equations correct?
-- Are experimental protocols sound (train/test splits, random seeds, significance tests)?
-- Are hyperparameters and implementation details reproducible?
-
-**Related work**
-- Is prior work cited fairly and completely?
-- Is the positioning of this work relative to prior art accurate?
-
-**Clarity**
-- Is the contribution stated clearly and early?
-- Are all technical terms defined before use?
-- Are figures and tables self-contained with complete captions?
-- Is the abstract an accurate summary of the paper?
-
-**Presentation**
-- Is the paper well-structured and easy to follow?
-- Are there inconsistencies in notation or terminology?
-- Are there obvious English or formatting issues?
-
-### 4. Deliver
-
-Derive a slug from the paper title.
-Save the review to `<output>/<slug>-review.md` using this template:
+Output template:
 
 ```markdown
 ---

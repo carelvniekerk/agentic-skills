@@ -9,7 +9,7 @@ when_to_use: >
   "write up", "draft a report", "write the paper", "produce a writeup", "write the related work",
   "draft the introduction", "write up my results", "turn my notes into a paper".
 argument-hint: <topic-or-slug> [--latex | --markdown]
-allowed-tools: WebSearch WebFetch Read Write Bash(find *) Bash(mkdir *)
+allowed-tools: WebSearch WebFetch Read Write Bash(find *) Bash(mkdir *) Agent
 disable-model-invocation: true
 ---
 
@@ -58,36 +58,38 @@ Standard section structure (adapt as appropriate for the paper type):
 
 ### 4. Draft
 
-Follow these writing rules throughout:
-
-- Keep each sentence on its own line in the source (semantic line breaks — clean diffs, identical rendering).
-- State claims precisely; flag tentative results as tentative.
-- Remove unsupported numerics — if a number has no source, remove it.
-- Include LaTeX math (`$inline$` / `$$display$$`) wherever equations materially help, regardless of output format.
-- Define all variables immediately after each equation is introduced.
-
-**If writing Markdown:**
-Read [references/output-format.md](references/output-format.md) and follow the standard document template exactly.
-Save to `<output>/<slug>.md`.
-
-**If writing LaTeX:**
-Read [references/latex-article-template.tex](references/latex-article-template.tex) for the bundled template structure.
-Check `CLAUDE.md` first — if `latex_template` is defined, open that file and insert the drafted content into the appropriate sections instead of creating a new file.
-Save to `<output>/<slug>.tex` (or alongside the project template if inserting).
+Spawn a **`writer`** agent.
+Include in its brief:
+- Paths to all source material identified in step 2 (research files, wiki articles, prior drafts, user-provided data).
+- The outline from step 3.
+- Output format (Markdown or LaTeX) and the corresponding template:
+  - **Markdown:** the full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly.
+  - **LaTeX:** the full contents of [references/latex-article-template.tex](references/latex-article-template.tex), OR, if `CLAUDE.md` defines a `latex_template:` path, the contents of that project template. The writer must insert content into the appropriate sections rather than creating a parallel file.
+- Draft save path: `<scratch>/.drafts/<slug>-draft.md` (or `.tex`).
+- These writing rules (all mandatory):
+  - Keep each sentence on its own line in the source (semantic line breaks — clean diffs, identical rendering).
+  - State claims precisely; flag tentative results as tentative.
+  - Remove unsupported numerics — if a number has no source, remove it.
+  - Include LaTeX math (`$inline$` / `$$display$$`) wherever equations materially help, regardless of output format.
+  - Define all variables immediately after each equation is introduced.
+- Reminder: do NOT add inline citations or a Sources/Bibliography section — the verifier handles that.
 
 ### 5. Verify and Cite
 
-Sweep the full draft before delivery:
-
-- Every factual claim must have a citation.
-- No claim should be stronger than its supporting evidence.
-- Mark limitations and open questions explicitly — do not smooth them away.
-
-**Markdown:** use markdown footnote citations `[^N]` inline and `[^N]: [Title](url) — note` in the Sources section.
-**LaTeX:** use `\cite{key}` throughout and populate the `.bib` file or bibliography section.
+Spawn a **`verifier`** agent.
+Include in its brief:
+- Draft path: `<scratch>/.drafts/<slug>-draft.md` (or `.tex`) — the file extension drives the citation track.
+- All source material paths (as the authoritative source pool).
+- Final output path:
+  - **Markdown:** `<output>/<slug>.md`.
+  - **LaTeX:** `<output>/<slug>.tex`, OR the project template path if `latex_template:` is defined in `CLAUDE.md` (verifier inserts citations into the existing template).
+- For LaTeX: check whether the project already has a `.bib` file; if so, add new entries there. If not, create `references.bib` alongside the `.tex` file.
+- Reminders for the verifier:
+  - Every factual claim must be anchored to a source from the supplied pool.
+  - No claim should be stronger than its supporting evidence — weaken or remove rather than fabricate.
+  - Mark limitations and open questions explicitly — do not smooth them away.
 
 ### 6. Deliver
 
-Confirm the output path with the user before saving if the file is new.
-Save the draft.
-Summarise: what was written, which source materials were used, what gaps or open questions remain.
+The verifier writes the final output directly to the path determined in step 5.
+Summarise to the user: what was written, which source materials were used, and what gaps or open questions remain.
