@@ -8,7 +8,7 @@ when_to_use: >
   Trigger phrases: "deep research", "research this thoroughly", "comprehensive analysis", "multi-source investigation",
   "research brief", "deep dive", "investigate", "what does the literature say about",
   "I want a full picture of", "research and write up", "give me everything on".
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *)
+allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
 disable-model-invocation: false
 ---
 
@@ -43,63 +43,58 @@ Present the plan to the user, then continue automatically.
 
 ### 3. Gather Evidence
 
-- For narrow questions: search directly, 8–15 tool calls minimum.
-- For broad surveys: break into 3–6 disjoint research dimensions; search each dimension separately.
-- Target **≥12 sources** for a deep research brief; fewer than 8 is insufficient.
-- Write research files to `<scratch>/<slug>-research-*.md`.
+Spawn a **`researcher`** agent.
+Include in its brief:
+- The full research plan from step 2 (all questions, dimensions, acceptance criteria).
+- Instruction to target **≥12 sources**; fewer than 8 is insufficient.
+- For broad surveys: cover each research dimension in a separate output file.
+- Output file naming: `<scratch>/<slug>-research-<dimension>.md`.
+- Reminder: every claim must have a URL; no fabricated sources.
 
 ### 4. Evaluate and Loop
 
-After gathering, critically assess:
+Read the research files the researcher produced.
+Critically assess:
 
 - Which plan questions remain unanswered?
 - Which answers rest on only one source?
 - Are there contradictions needing resolution?
 - Is any key angle missing entirely?
 
-If gaps are significant, gather more evidence.
+If gaps are significant, spawn a second `researcher` agent targeting the gaps specifically.
 Most topics need 1–2 rounds.
 Stop when additional rounds would not materially change conclusions.
 
 ### 5. Write the Brief
 
-Synthesise findings into a **comprehensive, self-contained reference document** — not a summary.
-A reader must be able to fully understand the topic from the output alone, without consulting any source directly.
-
-**Depth requirements — all mandatory:**
-
-- **Minimum ~2,500 words of body content** (excluding frontmatter, badges, and sources). Longer is better; complex topics may warrant 5,000+ words.
-- **Every major source gets its own named subsection or dedicated paragraph** describing its specific contribution, method, and key results — not just a citation in passing.
-- **Quantitative results must be included** where sources report them (accuracy, speedups, benchmark scores, effect sizes).
-- **Methodology must be explained**, not just named. If a paper proposes a method, describe how it works.
-- **Agreements and disagreements between sources** must be surfaced explicitly — do not present a monolithic narrative if sources conflict.
-- **Results tables are mandatory** where 2+ sources report numbers on the same task, dataset, or benchmark. Reproduce key rows from the papers' own tables. Format: `Method | Dataset | Metric | Score | Source`. Note differing conditions in a footnote below the table.
-- **Mathematics must be reproduced in full**, not summarised. Write loss functions, objectives, and key equations in LaTeX (`$inline$` / `$$display$$`). State theorems and proof sketches. Never replace equations with verbal descriptions. Define all variables immediately after each equation.
-
-Save the draft to `<scratch>/.drafts/<slug>-draft.md`.
+Spawn a **`writer`** agent.
+Include in its brief:
+- Paths to all research files in `<scratch>/`.
+- The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly (frontmatter, badge row, Prerequisites, Key Takeaways, section headings, Open Questions, Related Articles, Sources placeholder).
+- The draft save path: `<scratch>/.drafts/<slug>-draft.md`.
+- These depth requirements (all mandatory):
+  - Minimum ~2,500 words of body content (excluding frontmatter, badges, sources); complex topics may warrant 5,000+.
+  - Every major source gets its own named subsection or dedicated paragraph with specific contribution, method, and key results — not just a citation in passing.
+  - Quantitative results must be included where sources report them.
+  - Methodology must be explained, not just named.
+  - Agreements and disagreements between sources must be surfaced explicitly.
+  - Results tables are mandatory where 2+ sources report numbers on the same task or benchmark. Format: `Method | Dataset | Metric | Score | Source`.
+  - Mathematics must be reproduced in full using LaTeX (`$inline$` / `$$display$$`). Never replace equations with verbal descriptions. Define all variables immediately after each equation.
+- Reminder: do NOT add inline citations or a Sources section — the verifier handles that.
 
 ### 6. Verify and Cite
 
-- Add **markdown footnote citations** `[^N]` after each factual claim.
-- In the Sources section, use footnote-definition syntax: `[^N]: [Title](url) — note`.
-- **Never use HTML anchors** (`<a id="ref-N">`) or bracketed anchor links (`[[N]](#ref-N)`) — these break in Obsidian and similar renderers.
-- Verify every source URL resolves.
-- Remove or soften unsourced claims.
-- Every paragraph of substance needs at least one citation; long paragraphs with multiple claims need multiple citations.
+Spawn a **`verifier`** agent.
+Include in its brief:
+- Draft path: `<scratch>/.drafts/<slug>-draft.md`.
+- All research file paths in `<scratch>/` (as the authoritative source pool).
+- Final output path: `<output>/<slug>.md`.
+- Citation format: markdown footnotes `[^N]` — the output file is `.md`.
+- Obsidian constraint: **never** use HTML anchors (`<a id="ref-N">`) or `[[N]](#ref-N)` — these break rendering. Use only `[^N]` inline and `[^N]: [Title](url) — note` in Sources.
 
 ### 7. Deliver
 
-Read [references/output-format.md](references/output-format.md) for the full template and frontmatter field definitions.
-Save the final output to `<output>/<slug>.md` following that template.
-
-**Linking rules:**
-
-- Inline citations: `[^N]` — markdown footnote reference.
-- Bibliography entries: `[^N]: [Title — Authors (Year)](https://url) — one-line contribution note` under a `## Sources` heading.
-- Links to local knowledge articles: relative paths (e.g. `../wiki/article.md`).
-- Links to external sources: full web URLs.
-- Never link to scratch files — they are transient.
-
+The verifier writes the final output directly to `<output>/<slug>.md`.
 Write a provenance sidecar to `<scratch>/<slug>.provenance.md`:
 
 ```markdown
