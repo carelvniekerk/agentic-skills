@@ -84,7 +84,8 @@ Summarise the *why* and *what was learned*, not just what changed.
 - For straightforward changes with no conversation context, a one-line subject is sufficient.
 - Mention key findings: e.g. what caused a bug, why a particular approach was chosen, what alternatives were ruled out and why.
 - Keep each line under 72 characters.
-- End with: `Co-Authored-By: Claude <noreply@anthropic.com>`
+- End with a platform-specific trailer for the assistant currently performing the work.
+Use `Co-Authored-By: Codex <noreply@openai.com>` in Codex, `Co-Authored-By: Gemini <noreply@google.com>` in Gemini, and the matching platform name/email in other assistants.
 
 **Example with body:**
 
@@ -97,7 +98,7 @@ exactly the boundary were counted twice, inflating aggregated metrics by
 up to 2x under high-frequency data. Switched to exclusive upper bound to
 match the documented contract.
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: Codex <noreply@openai.com>
 ```
 
 ---
@@ -133,7 +134,7 @@ git commit -m "$(cat <<'EOF'
 
 <body if needed>
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: Codex <noreply@openai.com>
 EOF
 )"
 ```

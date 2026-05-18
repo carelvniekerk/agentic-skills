@@ -110,13 +110,15 @@ If the skill needs to **document** a Markdown template that itself contains code
 
 ### Co-authored-by trailers
 
-When a skill's commit-message templates include a `Co-Authored-By` line, keep the model name **agnostic**:
+When a skill's commit-message templates include a `Co-Authored-By` line, keep the model name **platform-specific but model-agnostic**:
 
 ```
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: Codex <noreply@openai.com>
+Co-Authored-By: Gemini <noreply@google.com>
 ```
 
-Do not hard-code a specific model version (`Claude Sonnet 4.6`, `Claude Opus 4.7`).
+Use the assistant platform currently performing the work, such as `Codex`, `Gemini`, or `Claude`, with that platform's no-reply email.
+Do not hard-code a specific model version (`GPT-5.4`, `Gemini 2.5 Pro`, `Claude Sonnet 4.6`).
 The harness rotates models, and stale strings drift away from reality.
 
 ### Strict prohibitions
@@ -141,7 +143,7 @@ These meta-skills are aware of each other.
 When a job needs more than one primitive — e.g. a skill that bundles a hook, an agent with preloaded skills, or a hook scoped to a specific subagent — each skill delegates to its sibling via the `Skill` tool rather than reimplementing the workflow inline.
 The "Companion skills" section near the top of each meta-skill enumerates the common compositions.
 
-Each meta-skill enforces the project conventions documented above (semantic line breaks, model-agnostic Co-Authored-By trailers, prohibitions tables for skills that touch Git or the filesystem), so using them keeps new artefacts consistent with the rest of the repo.
+Each meta-skill enforces the project conventions documented above (semantic line breaks, platform-specific model-agnostic Co-Authored-By trailers, prohibitions tables for skills that touch Git or the filesystem), so using them keeps new artefacts consistent with the rest of the repo.
 
 ---
 

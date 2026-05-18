@@ -16,6 +16,8 @@ This skill produces a reviewed, tested, linted, type-checked pull request on the
 It does **not** force-push, rewrite history, bypass hooks, bypass branch protection (`--admin`), or merge a PR the user has not explicitly approved at Phase 4.
 It stops and surfaces failures — test failures, type errors, merge conflicts, missing approvals — rather than silently working around them.
 Phases 4, 6, and 7 are user-gated and never advance without an explicit "yes".
+When this workflow creates commits, use a platform-specific `Co-Authored-By` trailer for the assistant currently performing the work.
+Use `Co-Authored-By: Codex <noreply@openai.com>` in Codex, `Co-Authored-By: Gemini <noreply@google.com>` in Gemini, and the matching platform name/email in other assistants.
 
 ---
 
@@ -77,7 +79,7 @@ If `.pre-commit-config.yaml` was modified:
    git commit -m "$(cat <<'EOF'
    chore: update pre-commit hook versions
 
-   Co-Authored-By: Claude <noreply@anthropic.com>
+   Co-Authored-By: Codex <noreply@openai.com>
    EOF
    )"
    ```
@@ -96,7 +98,7 @@ git add -u
 git commit -m "$(cat <<'EOF'
 chore: apply ruff autofix and formatting
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: Codex <noreply@openai.com>
 EOF
 )"
 ```
