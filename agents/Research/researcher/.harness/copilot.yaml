@@ -1,2 +1,2 @@
-tools: ["*"]
+tools: "['*']"
 model: claude-3-5-sonnet
