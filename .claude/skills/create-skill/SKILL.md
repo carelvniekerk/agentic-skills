@@ -111,20 +111,32 @@ Wait for confirmation before drafting.
 
 ## Phase 1 — Choose location and structure
 
-### Where the skill lives
+### Where the skill lives (per assistant platform)
 
-| Scope      | Path                                    | Use when                                                                                     |
-| ---------- | --------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Personal   | `~/.claude/skills/<name>/SKILL.md`      | The skill should be available across all your projects.                                      |
-| Project    | `<repo>/.claude/skills/<name>/SKILL.md` | The skill is repo-specific and should be checked into version control.                       |
-| Plugin     | `<plugin>/skills/<name>/SKILL.md`       | Distributing the skill via a plugin. Plugin skills use a `plugin-name:skill-name` namespace. |
-| Enterprise | Managed settings                        | Organisation-wide deployment.                                                                |
+Skills authored against the open Agent Skills spec install into all three assistant platforms (Claude Code, OpenAI Codex, GitHub Copilot).
+Each platform reads from its own filesystem location, but the SKILL.md format is identical.
 
-Precedence when names collide: **enterprise > personal > project**.
+| Scope      | Claude Code                             | OpenAI Codex                            | GitHub Copilot                          | Notes                                                                                            |
+| ---------- | --------------------------------------- | --------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Personal   | `~/.claude/skills/<name>/SKILL.md`      | `~/.agents/skills/<name>/SKILL.md`      | `~/.agents/skills/<name>/SKILL.md`      | Codex and Copilot share `~/.agents/skills/`. Copilot also reads `~/.copilot/` and `~/.claude/`.  |
+| Project    | `<repo>/.claude/skills/<name>/SKILL.md` | `<repo>/.agents/skills/<name>/SKILL.md` | `<repo>/.agents/skills/<name>/SKILL.md` | Codex walks `.agents/skills/` upward to repo root. Copilot also reads `.github/skills/`.         |
+| Plugin     | `<plugin>/skills/<name>/SKILL.md`       | `<plugin>/skills/<name>/SKILL.md`       | n/a                                     | Plugin skills are namespaced `<plugin>:<name>`. Codex uses `<plugin>/.codex-plugin/plugin.json`. |
+| System     | n/a                                     | `/etc/codex/skills/<name>/SKILL.md`     | n/a                                     | Codex-only admin location.                                                                       |
+| Enterprise | Managed settings                        | n/a                                     | n/a                                     | Organisation-wide deployment.                                                                    |
+
+Precedence when names collide (Claude Code): **enterprise > personal > project**.
 Plugin skills are namespaced and never collide.
 A skill takes precedence over a `.claude/commands/` file with the same name.
+Codex does not merge same-named skills — both appear in the selector.
 
 In monorepos, Claude Code automatically discovers skills from nested `.claude/skills/` directories under whichever file you are working on (e.g. `packages/frontend/.claude/skills/`).
+Codex performs a similar upward walk over `.agents/skills/` until it reaches the repo root.
+
+### Multi-harness publishing via SkillShed
+
+In this repository, skills are not copied by hand into each of those paths.
+They live once under `skills/<Category>/<name>/SKILL.md`, and the [SkillShed](https://github.com/carelvniekerk/SkillShed) CLI installs them into whichever assistant's directory layout the user has selected.
+The next phase covers what SkillShed expects of a skill's frontmatter and on-disk layout.
 
 ### Anatomy of a skill
 
@@ -151,12 +163,106 @@ Creating a brand-new top-level skills directory still requires a Claude Code res
 
 ---
 
+## Phase 1.5 — SkillShed packaging
+
+SkillShed reads a single canonical SKILL.md from this repository and writes it into each requested harness's directory layout (see the table in Phase 1).
+The frontmatter you author here is the frontmatter the user's installed copy receives — plus a `metadata:` block SkillShed injects automatically (`author`, `repository`, `path`, `ref`, `sha`) which `skillshed update` reads back to decide skip-vs-write.
+
+### Required frontmatter for SkillShed
+
+Two keys are non-negotiable; they are required by Claude Code, by Codex, and by Copilot.
+
+| Key           | Constraint                                                                                                              |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `name`        | Lowercase letters, digits, and hyphens. No leading/trailing hyphen. No consecutive hyphens. ≤ 64 characters. **Must match the parent directory name.** |
+| `description` | ≤ 1024 characters. Describes both what the skill does and when to use it.                                               |
+
+A skill that violates either constraint fails the open-spec validator (`skills-ref validate ./my-skill` from `github.com/agentskills/agentskills`).
+
+### Portable frontmatter — works on every harness
+
+These keys come from the open Agent Skills spec and are honoured (or harmlessly ignored) by Claude Code, Codex, and Copilot:
+
+- `license` — license name or pointer to a bundled file.
+- `compatibility` — environment requirements, ≤ 500 chars.
+- `metadata` — free-form map (`author`, `version`, custom keys).
+- `allowed-tools` — space-separated tool list. **Experimental** on Codex and Copilot; reliable only on Claude Code.
+
+### Claude-flavoured extras — safe to keep in the canonical SKILL.md
+
+Claude Code recognises a handful of optional keys beyond the open spec.
+Codex ignores them; Copilot ignores them when it doesn't recognise them; the canonical SKILL.md stays portable as long as you don't rely on these doing anything outside Claude Code.
+
+`when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `model`, `effort`, `context`, `agent`, `hooks`, `paths`, `shell`.
+
+Detailed semantics are in the Phase 2 frontmatter table.
+
+### The `.harness/<harness>.yaml` override mechanism
+
+SkillShed supports per-harness frontmatter overrides via a `.harness/<harness-name>.yaml` file inside the skill directory.
+Anything in that file is merged into the installed SKILL.md's frontmatter at install time and the `.harness/` directory itself is not copied to the target.
+
+For skills in this repository, the rule is **deliberately conservative**:
+
+- **Do not author `.harness/copilot.yaml` for skills.**
+  Codex and Copilot share the same install path (`.agents/skills/`).
+  Anything you add via `.harness/copilot.yaml` ends up in the same file Codex reads, defeating the point of per-harness overrides.
+  Keep SKILL.md Claude-style and let Codex / Copilot ignore unknown keys.
+- **Do not author `.harness/codex.yaml` for skills** for the same reason — Codex-side UI / policy / MCP dependencies live in a sibling file instead (see below), not in frontmatter.
+- A `.harness/claude.yaml` is only needed if you want to inject Claude-specific keys *exclusively* into Claude installs — and even that is rarely useful, because Claude-only keys are tolerated on Codex/Copilot too.
+
+### Codex-specific extras live in a sibling YAML, not in frontmatter
+
+Codex looks for an optional `agents/openai.yaml` file inside the skill directory.
+Its keys are entirely outside frontmatter scope:
+
+```yaml
+interface:
+    display_name: "Pretty Name"
+    short_description: "One-line UI blurb"
+    icon_small: "./assets/icon-small.svg"
+    icon_large: "./assets/icon-large.png"
+    brand_color: "#3B82F6"
+    default_prompt: "Wrap the user's task in this preamble."
+policy:
+    allow_implicit_invocation: false
+dependencies:
+    tools:
+        - type: "mcp"
+          value: "your-server"
+          description: "Some MCP server"
+          transport: "streamable_http"
+          url: "https://example.invalid/mcp"
+```
+
+If you want any of these, commit `agents/openai.yaml` as a regular asset **inside** the skill directory (not under `.harness/`).
+SkillShed copies non-`.harness` assets through verbatim, so the file lands beside SKILL.md on every install, and Claude / Copilot simply ignore it.
+
+### Directory layout SkillShed expects
+
+```text
+skills/<Category>/<slug>/
+├── SKILL.md                    (required; name + description in frontmatter)
+├── references/                 (loaded on demand)
+├── scripts/                    (executed, not loaded as text)
+├── assets/                     (templates, fixtures, fonts)
+├── agents/openai.yaml          (optional; Codex UI/policy/MCP — copied verbatim)
+└── .harness/
+    └── claude.yaml             (optional; rarely needed)
+```
+
+The `.harness/` directory is the only one SkillShed treats specially.
+Everything else is shipped as-is.
+
+---
+
 ## Phase 2 — Write the SKILL.md
 
 ### Frontmatter reference
 
 Frontmatter sits between `---` markers at the top of `SKILL.md`.
 All fields are optional except — practically speaking — `description`.
+Most fields below are Claude Code extensions on top of the open Agent Skills spec; see [§ Phase 1.5 — SkillShed packaging](#phase-15--skillshed-packaging) for which fields are portable across Codex and Copilot and which are Claude-only.
 
 | Field                      | Purpose                                                                     | Notes                                                                                                                                                                     |
 | -------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -512,14 +618,27 @@ Skills that pass twenty diverse prompts are usually robust; skills that pass thr
 
 ## Phase 5 — Distribute
 
-Skills propagate at four scopes — pick the narrowest one that works.
+Skills propagate at five scopes — pick the narrowest one that works.
 
-| Scope               | How                                                                                                |
-| ------------------- | -------------------------------------------------------------------------------------------------- |
-| Personal (only you) | `~/.claude/skills/<name>/`. Nothing else to do.                                                    |
-| Project (one repo)  | Commit `.claude/skills/<name>/` to version control.                                                |
-| Plugin (many users) | Place under `<plugin>/skills/<name>/` and ship the plugin. Skills are namespaced as `plugin:name`. |
-| Enterprise          | Deploy via managed settings.                                                                       |
+| Scope                | How                                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Personal (only you)  | `~/.claude/skills/<name>/`. Nothing else to do.                                                                                                              |
+| Project (one repo)   | Commit `.claude/skills/<name>/` to version control.                                                                                                          |
+| **SkillShed** (multi-harness) | Commit under `skills/<Category>/<name>/` in a public GitHub repo. Consumers reference the skill from `.skills.yaml` and run `skillshed install`. |
+| Plugin (many users)  | Place under `<plugin>/skills/<name>/` and ship the plugin. Skills are namespaced as `plugin:name`.                                                           |
+| Enterprise           | Deploy via managed settings.                                                                                                                                 |
+
+The SkillShed path is what this repository uses to publish skills across Claude Code, Codex, and Copilot from one source tree.
+A user adds an entry like:
+
+```yaml
+skills:
+  - repo: carelvniekerk/AgenticSkills
+    path: skills/Git/commit
+    harnesses: [claude, codex, copilot]
+```
+
+…to their `.skills.yaml`, runs `skillshed install`, and SkillShed writes the same skill into `~/.claude/skills/`, `~/.agents/skills/`, etc. — annotating each installed file with the source commit SHA so `skillshed update` can later refresh in place.
 
 For project skills, review `allowed-tools` carefully before checking in — a skill can grant itself broad tool access, and trusting the workspace activates those grants for everyone who clones the repo.
 
@@ -577,12 +696,15 @@ Reference the script via `${CLAUDE_SKILL_DIR}` so paths don't break when the wor
 ## Quick checklist before declaring done
 
 - [ ] `name` matches the directory name and uses lowercase + hyphens only.
-- [ ] `description` includes at least three trigger phrases the user would actually type.
-- [ ] `description` + `when_to_use` together fit comfortably under 1,536 characters.
+- [ ] `name` is ≤ 64 characters with no consecutive or leading/trailing hyphens (open Agent Skills spec).
+- [ ] `description` is ≤ 1,024 characters (open Agent Skills spec) and includes at least three trigger phrases the user would actually type.
+- [ ] `description` + `when_to_use` together fit comfortably under 1,536 characters (Claude Code listing cap).
 - [ ] Body is under 500 lines; long material moved to `references/`.
 - [ ] Any bundled scripts use `uv run` and reference `${CLAUDE_SKILL_DIR}`.
-- [ ] `allowed-tools` lists only what the skill genuinely needs.
+- [ ] `allowed-tools` lists only what the skill genuinely needs (reliable on Claude Code; experimental on Codex/Copilot).
 - [ ] If the skill has side effects, `disable-model-invocation: true` is set.
+- [ ] No `.harness/copilot.yaml` or `.harness/codex.yaml` in the skill directory (Codex / Copilot share an install path; per-harness overrides defeat that).
+- [ ] If the skill needs Codex-specific UI / policy / MCP-server dependencies, `agents/openai.yaml` is committed inside the skill directory as a regular asset.
 - [ ] Trigger tests pass (the skill activates on intended phrases and stays quiet otherwise).
 - [ ] Execution tests pass on at least three prompts.
 - [ ] The skill is committed (project) or saved (personal/plugin) at the intended scope.

@@ -40,6 +40,86 @@ Everything below operationalises that.
 
 ---
 
+## Multi-harness agents (SkillShed)
+
+This repository's agents are published via the SkillShed installer into three assistant platforms.
+Each platform has a different artefact format and install path for subagents — this is the largest source of divergence in the whole skill ecosystem and deserves explicit treatment before you start authoring.
+
+### The three target formats
+
+| Platform           | File format                  | Project path          | Global path             | Notes                                                                                       |
+| ------------------ | ---------------------------- | --------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| Claude Code        | `.md` + YAML frontmatter     | `.claude/agents/`     | `~/.claude/agents/`     | Canonical source format. Everything else is derived from this.                              |
+| OpenAI Codex       | **`.toml`** (not Markdown)   | `.codex/agents/`      | `~/.codex/agents/`      | Body is a TOML string field (`developer_instructions = """..."""`).                         |
+| GitHub Copilot CLI | `.md` + YAML frontmatter     | `.github/agents/`     | `~/.copilot/agents/`    | Plain `.md` is accepted (`.agent.md` is the canonical Copilot suffix but not required).      |
+
+Only `name` and `description` are universally required; the body / instructions are required everywhere too.
+Codex's body lives in `developer_instructions`, the other two use the markdown body.
+
+### Author once, ship three
+
+In this repo, you author the canonical Anthropic-style `.md` and let a bundled transpile step emit the Codex `.toml` sibling.
+The Copilot CLI `.md` is the same file as the Anthropic `.md` — Copilot ignores unknown YAML keys, so `color:` / `permissionMode:` / `disallowedTools:` are tolerated.
+
+The build flow is:
+
+1. Write `agents/<Category>/<slug>/<slug>.md` (or `agents/<Category>/<slug>.md` for a single-file agent).
+   Use Anthropic-style frontmatter and a markdown body.
+2. Add a top-level `codex:` block in the YAML frontmatter for any Codex-only optional fields you want (see [§ Codex TOML schema appendix](#appendix--codex-toml-schema)).
+3. Run the transpile script from this skill's bundled scripts:
+
+   ```bash
+   uv run ${CLAUDE_SKILL_DIR}/scripts/md_to_toml.py agents/<Category>/<slug>/<slug>.md
+   ```
+
+   This writes a sibling `<slug>.toml` next to the `.md`.
+4. Commit both files.
+   SkillShed picks the `.md` for the `claude` and `copilot` harnesses, the `.toml` for the `codex` harness, and writes each to its respective install path.
+
+### Field portability — which keys go where
+
+| Field                       | Claude Code | Codex (TOML)        | Copilot CLI         | Notes                                                                                                |
+| --------------------------- | ----------- | ------------------- | ------------------- | ---------------------------------------------------------------------------------------------------- |
+| `name`                      | required    | required            | optional (filename) | Universal                                                                                            |
+| `description`               | required    | required            | required            | Universal                                                                                            |
+| (body / system prompt)      | markdown    | `developer_instructions` | markdown        | Copilot caps the body at 30,000 chars                                                                |
+| `model`                     | supported   | supported           | supported           | Universal                                                                                            |
+| `tools` (allowlist)         | supported   | **not supported**   | supported           | Codex governs tools via `sandbox_mode` instead; transpile drops `tools:`                             |
+| `disallowedTools`           | supported   | not supported       | not supported       | Anthropic-only                                                                                       |
+| `color`                     | supported   | not supported       | not supported       | Anthropic-only — Copilot tolerates the YAML key, Codex strips it                                     |
+| `permissionMode`            | supported   | not supported       | not supported       | Anthropic-only                                                                                       |
+| `mcpServers`                | supported (camelCase) | n/a       | n/a                 | Anthropic flavour                                                                                    |
+| `mcp_servers`               | n/a         | supported           | n/a                 | Codex flavour (TOML table)                                                                           |
+| `mcp-servers`               | n/a         | n/a                 | supported           | Copilot CLI flavour (kebab-case YAML map)                                                            |
+| `target: vscode\|github-copilot` | n/a    | n/a                 | supported           | Copilot CLI surface gating                                                                           |
+| `disable-model-invocation`  | supported   | n/a                 | supported           | Claude + Copilot                                                                                     |
+| `user-invocable`            | n/a         | n/a                 | supported           | Copilot CLI only                                                                                     |
+| `nickname_candidates`       | n/a         | supported           | n/a                 | Codex-only (list of display nicknames)                                                                |
+| `model_reasoning_effort`    | n/a         | supported (`high`/`medium`/`low`) | n/a   | Codex-only                                                                                            |
+| `sandbox_mode`              | n/a         | supported           | n/a                 | Codex-only — replaces Anthropic's tool allowlist                                                      |
+| `hooks`                     | supported   | n/a                 | n/a                 | Anthropic-only                                                                                       |
+| `memory`, `background`, `isolation`, `maxTurns`, `effort`, `skills`, `initialPrompt` | supported | n/a | n/a | Anthropic-only                                                                                  |
+
+Anything in the right-hand columns marked "n/a" is silently dropped by the transpiler when emitting the Codex `.toml`, and silently ignored by the Copilot CLI when it parses the `.md`.
+
+### SkillShed gaps to be aware of
+
+As of writing, SkillShed has two known limitations on the agent side.
+They do not block authoring — the workarounds below are what this skill assumes.
+
+1. **Copilot CLI project path.**
+   SkillShed currently writes Copilot agents to `.claude/agents/` (project) and `~/.copilot/agents/` (global).
+   Copilot CLI reads from `.github/agents/` (project) and `~/.copilot/agents/` (global).
+   Until SkillShed's harness path is corrected, only the global install path works for Copilot CLI agents.
+   Suggest users run `skillshed install -g` for Copilot agents, or install manually into `.github/agents/`.
+
+2. **No bundled transpilation.**
+   SkillShed installs the `.md` and `.toml` as separate assets — it does not transpile.
+   That means **you commit both files** to the source repo and SkillShed copies each to its harness path.
+   The bundled `scripts/md_to_toml.py` (referenced by this skill) is what produces the `.toml`.
+
+---
+
 ## Source formatting — one sentence per line
 
 Whenever you write markdown in this workflow — the agent frontmatter `description`, the system-prompt body, reference files the agent points to, or any commit/PR text — put each sentence on its own line in the source.
@@ -212,6 +292,9 @@ You are a senior code reviewer. When invoked, run `git diff` first, then ...
 
 Only `name` and `description` are required.
 Every other field has a default that's almost always wrong for a focused agent — narrow them explicitly.
+
+Most fields below are Claude Code specific.
+For which fields survive transpilation to Codex `.toml` or which Copilot CLI also honours, see [§ Multi-harness agents (SkillShed)](#multi-harness-agents-skillshed) at the top of this skill.
 
 | Field             | Required | Description                                                                                                                                                                               |
 | ----------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1036,7 +1119,9 @@ For agents you'll edit frequently, use the `/agents` interactive interface — i
 - [ ] If long-running: consider `background: true`, ensure permissions can be pre-approved.
 - [ ] System-prompt body compels a concise structured summary, not raw output.
 - [ ] If running as main session: `initialPrompt` set if appropriate.
-- [ ] Saved at the right scope (`.claude/agents/`, `~/.claude/agents/`, plugin, or `--agents` JSON).
+- [ ] Saved at the right scope (`.claude/agents/`, `~/.claude/agents/`, plugin, or `--agents` JSON), **or** at `agents/<Category>/<slug>/<slug>.md` for SkillShed publishing.
+- [ ] If publishing via SkillShed: sibling `.toml` emitted by running `uv run ${CLAUDE_SKILL_DIR}/scripts/md_to_toml.py <slug>.md`, and **both files committed**.
+- [ ] If publishing via SkillShed: any Codex-only optional fields declared under a top-level `codex:` block in the canonical `.md` frontmatter (see [§ Appendix — Codex TOML schema](#appendix--codex-toml-schema)).
 - [ ] Tested: `/agents` shows it, delegation triggers correctly, tool scope is respected, return value is useful, plus the don't-trigger negative test.
 - [ ] If using bundled validation scripts, they use `uv run` (Python) or `chmod +x` (Bash).
 
@@ -1307,6 +1392,111 @@ Before checking project agents into a repo, review:
   Plugin agents drop hooks for this reason; project-scoped agents should be reviewed before commit.
 - **Memory directories**: persistent state in `.claude/agent-memory/` is committed to the repo (under `project` scope).
   Make sure the agent isn't writing secrets there.
+
+---
+
+## Appendix — Codex TOML schema
+
+Codex subagents are standalone TOML files, not Markdown.
+This appendix documents the keys the transpiler emits and the optional Codex-only extras you can declare via a top-level `codex:` block in the canonical `.md` frontmatter.
+
+### Required TOML keys
+
+```toml
+name = "reviewer"
+description = "PR reviewer focused on correctness, security, and missing tests."
+developer_instructions = """
+Review code like an owner.
+Prioritise correctness, security, behaviour regressions, and missing test coverage.
+"""
+```
+
+| Key                       | Type   | Source in canonical `.md`     |
+| ------------------------- | ------ | ----------------------------- |
+| `name`                    | string | YAML `name`                   |
+| `description`             | string | YAML `description`            |
+| `developer_instructions`  | string | markdown body (triple-quoted) |
+
+### Optional Codex-only fields (declared via `codex:` in the `.md`)
+
+```yaml
+codex:
+    nickname_candidates: ["scout", "pathfinder"]
+    model_reasoning_effort: high      # one of: high | medium | low
+    sandbox_mode: read-only
+    mcp_servers:
+        my-server:
+            command: "npx"
+            args: ["-y", "@some/mcp"]
+    skills:
+        config:
+            - path: "~/.agents/skills/docs-editor/SKILL.md"
+              enabled: false
+```
+
+The transpiler copies these verbatim under the corresponding top-level TOML keys.
+
+`model` is taken from YAML `model` if present (e.g. `model: claude-sonnet-4-6` in Anthropic terms; substitute the Codex model identifier you want — the transpiler does not translate model names).
+
+### Fields the transpiler drops
+
+`tools`, `disallowedTools`, `color`, `permissionMode`, `mcpServers` (camelCase), `hooks`, `memory`, `background`, `isolation`, `maxTurns`, `effort`, `skills` (top-level Anthropic preloading — distinct from Codex's `skills.config`), `initialPrompt`.
+These have no Codex equivalent.
+If the agent relies on `tools:` for security, model that constraint via `sandbox_mode` in the `codex:` block.
+
+### Invoking the transpiler
+
+```bash
+uv run ${CLAUDE_SKILL_DIR}/scripts/md_to_toml.py agents/<Category>/<slug>/<slug>.md
+```
+
+The output `.toml` lands next to the source `.md`.
+Re-run whenever you edit the `.md` — the transpiler is the canonical source of the `.toml`.
+
+---
+
+## Appendix — Copilot CLI agent schema
+
+Copilot CLI custom agents are markdown with YAML frontmatter, the same artefact shape as Anthropic subagents.
+The canonical `.md` you author for Claude installs directly into Copilot CLI.
+The differences are in which fields each side honours.
+
+### Required frontmatter
+
+| Key           | Constraint                                                                |
+| ------------- | ------------------------------------------------------------------------- |
+| `description` | Required. Drives the LLM-based routing decision.                          |
+| `name`        | Optional — defaults to the filename stem. Author it anyway for clarity.   |
+
+### Optional fields Copilot understands
+
+| Key                          | Type                       | Notes                                                                                                       |
+| ---------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `tools`                      | list **or** comma string   | Accepts `"*"` for "all". Tool names are Copilot's, not Anthropic's — verify the names before relying on it. |
+| `model`                      | string                     | e.g. `claude-3-5-sonnet`                                                                                    |
+| `target`                     | `vscode` \| `github-copilot` | Restricts which Copilot surface uses the agent                                                              |
+| `disable-model-invocation`   | bool (default false)       | Agent must be manually selected                                                                              |
+| `user-invocable`             | bool (default true)        | Hides agent from the `/agent` picker                                                                         |
+| `mcp-servers`                | map                        | Inline MCP server definitions (kebab-case key)                                                              |
+| `metadata`                   | map<string,string>         | Free-form                                                                                                    |
+
+### Fields Copilot does not implement
+
+`color`, `icon`, `permissionMode`, `tools` with Anthropic-style entries like `Bash(git *)`, `disallowedTools`, `hooks`, `memory`, `background`, `isolation`, `maxTurns`, `effort`, `skills`, `initialPrompt`, `mcpServers` (camelCase).
+These are tolerated (parsed as unknown frontmatter, then ignored) but have no effect.
+
+### File extension and install path
+
+Canonical Copilot extension is `.agent.md`, but plain `.md` is accepted.
+SkillShed installs the file with its source extension preserved — so naming the source `<slug>.md` results in `<slug>.md` on disk, which Copilot still loads correctly.
+
+Install paths Copilot CLI actually reads (project / global): `.github/agents/` / `~/.copilot/agents/`.
+The SkillShed copilot project-agent path is currently `.claude/agents/` — see [§ SkillShed gaps to be aware of](#skillshed-gaps-to-be-aware-of) above for the workaround.
+
+### Body cap
+
+Copilot CLI caps the system-prompt body at **30,000 characters**.
+Anthropic has no such cap, but staying under 30k is the portable budget.
 
 ---
 

@@ -196,6 +196,12 @@ Hooks from plugins force-enabled in `enabledPlugins` are exempt — that's how a
 **Edits are usually picked up automatically** — Claude Code watches the settings files and reloads hooks.
 If a change doesn't take effect, restart the session.
 
+### Hooks and SkillShed publishing
+
+If the hook is bundled inside skill or agent frontmatter, it travels with the skill or agent when SkillShed installs them — the frontmatter is preserved verbatim on the installed file.
+Hooks in `settings.json` / `settings.local.json` are **not** part of any SkillShed entity and must be distributed separately (committed to the consumer's repo, or shipped via a plugin).
+For a deterministic rule that should apply only while a particular skill or agent is active, prefer frontmatter hooks over settings hooks for exactly this reason — the skill is self-contained and the hook is portable across harnesses that recognise the frontmatter field (Claude Code does; Codex and Copilot tolerate the `hooks:` key as unknown YAML and ignore it, so no breakage on those platforms either).
+
 ---
 
 ## Phase 3 — Configuration anatomy
