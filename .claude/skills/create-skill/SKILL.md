@@ -204,13 +204,23 @@ Detailed semantics are in the Phase 2 frontmatter table.
 SkillShed supports per-harness frontmatter overrides via a `.harness/<harness-name>.yaml` file inside the skill directory.
 Anything in that file is merged into the installed SKILL.md's frontmatter at install time, and the `.harness/` directory itself is not copied to the target.
 
-For skills in this repository:
+For skills in this repository, all three override files are used:
 
-- **`.harness/claude.yaml` carries all Claude-specific extras.**
-  Always present when a skill has anything beyond `name`/`description`.
-- **`.harness/copilot.yaml` and `.harness/codex.yaml` are forbidden for skills.**
-  Codex and Copilot share the install path (`.agents/skills/`); a `.harness/copilot.yaml` would land in the same file Codex reads.
-  Codex extras instead live in a sibling `agents/openai.yaml` (committed as a regular asset, not under `.harness/`).
+- **`.harness/claude.yaml`** — Claude Code extensions.
+  Carries `allowed-tools` in Anthropic syntax (`Bash(git *)`), plus `when_to_use`, `argument-hint`, `disable-model-invocation`, `model`, `effort`, `paths`, `hooks`, and any other Claude-only field.
+- **`.harness/codex.yaml`** — open Agent Skills spec keys honoured by Codex.
+  Carries `allowed-tools` in spec syntax (`Bash(git:*)`), and optionally `license`, `compatibility`, `metadata`.
+  Codex strips Claude-only fields (`when_to_use`, `argument-hint`, `disable-model-invocation`, `model`, `effort`, `paths`, `hooks`) — don't bother including them here.
+- **`.harness/copilot.yaml`** — open spec keys plus VS Code Copilot extensions.
+  Carries `allowed-tools` in spec syntax, `argument-hint`, `disable-model-invocation`, `user-invocable`, `context` (`fork` / `inline`), and optionally `license`, `compatibility`, `metadata`.
+  Copilot tolerates Claude-only fields as unknown YAML but they have no effect — drop them rather than carry noise.
+
+#### Install-path collision (Codex vs Copilot)
+
+Codex and Copilot share the install path (`.agents/skills/`).
+If a `.skills.yaml` entry lists both `[codex, copilot]` for the same skill, SkillShed processes them in order — the later harness's `.harness/<name>.yaml` overrides whatever the earlier harness wrote.
+This is acceptable because the contents typically overlap (same spec keys), but to be explicit, **prefer one harness per `.skills.yaml` entry**.
+Alternatively, accept the last-listed-wins behaviour and keep the two files broadly equivalent.
 
 ### Codex-specific extras live in a sibling YAML, not in frontmatter
 
@@ -249,7 +259,9 @@ skills/<Category>/<slug>/
 ├── assets/                     (templates, fixtures, fonts)
 ├── agents/openai.yaml          (optional; Codex UI/policy/MCP — copied verbatim)
 └── .harness/
-    └── claude.yaml             (Claude-specific frontmatter; almost always present)
+    ├── claude.yaml             (Claude-specific frontmatter; almost always present)
+    ├── codex.yaml              (open-spec keys honoured by Codex)
+    └── copilot.yaml            (open-spec + VS Code Copilot extensions)
 ```
 
 The `.harness/` directory is the only one SkillShed treats specially — its contents are merged into the installed SKILL.md's frontmatter at install time for the matching harness.
@@ -705,7 +717,8 @@ Reference the script via `${CLAUDE_SKILL_DIR}` so paths don't break when the wor
 - [ ] `allowed-tools` lists only what the skill genuinely needs (reliable on Claude Code; experimental on Codex/Copilot).
 - [ ] If the skill has side effects, `disable-model-invocation: true` is set.
 - [ ] SKILL.md frontmatter contains **only** `name` and `description`; every Claude extension lives in `.harness/claude.yaml`.
-- [ ] No `.harness/copilot.yaml` or `.harness/codex.yaml` in the skill directory (Codex / Copilot share an install path; per-harness overrides defeat that).
+- [ ] `.harness/codex.yaml` carries the open-spec keys Codex understands (`allowed-tools` in `Bash(cmd:*)` form, optionally `license` / `compatibility` / `metadata`).
+- [ ] `.harness/copilot.yaml` carries the open-spec keys plus VS Code Copilot extras (`argument-hint`, `disable-model-invocation`, `user-invocable`, `context`).
 - [ ] If the skill needs Codex-specific UI / policy / MCP-server dependencies, `agents/openai.yaml` is committed inside the skill directory as a regular asset.
 - [ ] Trigger tests pass (the skill activates on intended phrases and stays quiet otherwise).
 - [ ] Execution tests pass on at least three prompts.

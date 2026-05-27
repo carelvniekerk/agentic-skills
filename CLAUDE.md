@@ -114,10 +114,11 @@ Harness-specific frontmatter lives in `.harness/<harness>.yaml` files inside the
 
 - **Skills** (`skills/<Category>/<slug>/`):
   - `SKILL.md` carries **only `name` and `description`** in its frontmatter, plus the body.
-  - `.harness/claude.yaml` carries every Claude Code extension the skill needs (`allowed-tools`, `when_to_use`, `argument-hint`, `disable-model-invocation`, etc.).
-  - **Do not author `.harness/copilot.yaml` or `.harness/codex.yaml` for skills.**
-    Codex and Copilot share the same install path (`.agents/skills/`) and would both receive whatever override you wrote.
-    Codex-specific UI / policy / MCP-server dependencies belong in `agents/openai.yaml` inside the skill directory as a regular asset; SkillShed copies it through verbatim.
+  - `.harness/claude.yaml` — Claude Code extensions: `allowed-tools` in Anthropic syntax (e.g. `Bash(git *)`), `when_to_use`, `argument-hint`, `disable-model-invocation`, `model`, `effort`, `paths`, `hooks`, etc.
+  - `.harness/codex.yaml` — open Agent Skills spec keys the Codex CLI understands: `allowed-tools` in spec syntax (`Bash(git:*)`), `license`, `compatibility`, `metadata`.
+  - `.harness/copilot.yaml` — open spec keys plus VS Code Copilot extensions: `allowed-tools`, `argument-hint`, `disable-model-invocation`, `user-invocable`, `context: fork|inline`.
+  - Codex-specific UI / policy / MCP-server dependencies belong in `agents/openai.yaml` inside the skill directory as a regular asset (not under `.harness/`); SkillShed copies it through verbatim.
+  - Codex and Copilot install to the same path (`.agents/skills/`), so each install overwrites the previous. The contents of `.harness/codex.yaml` and `.harness/copilot.yaml` typically overlap (both inherit from the open spec) and the `.skills.yaml` author should pick one harness per consumer rather than both — or accept that the harness listed *last* wins.
 - **Agents** (`agents/<Category>/<slug>/`):
   - `<slug>.md` carries **only `name` and `description`** in its frontmatter, plus the body (system prompt).
   - `.harness/claude.yaml` carries Claude's agent fields (`tools`, `model`, `permissionMode`, `color`, etc.).
@@ -239,7 +240,7 @@ Each meta-skill enforces the project conventions documented above (semantic line
    For hooks or subagents, invoke `create-hook` or `create-agent` instead — the meta-skills will delegate to each other when a composite artefact is needed.
 5. Draft the body in **semantic line breaks** as you type.
 6. If the skill runs commands, finish with a Strict Prohibitions table.
-7. Verify the directory does **not** contain `.harness/copilot.yaml` or `.harness/codex.yaml` (the SkillShed rule for shared install paths).
+7. Add `.harness/codex.yaml` and `.harness/copilot.yaml` with the spec-acceptable keys each platform understands (see Multi-harness publishing above). Convert Anthropic-style `Bash(cmd *)` to spec-style `Bash(cmd:*)` for those files.
 8. If the skill needs Codex-specific UI / policy / MCP-server config, commit `agents/openai.yaml` inside the skill directory as a regular asset.
 9. Verify the rendered output looks right in your editor's Markdown preview.
 10. Update `README.md` if the category list changed.
@@ -272,9 +273,9 @@ Re-run the transpiler whenever you edit the `.md` body, then re-apply your manua
 - Do not nest `<Category>/<skill>/SKILL.md` inside `~/.claude/skills/`.
   The Claude Code loader only reads the top level of `~/.claude/skills/`.
   SkillShed handles flattening at install time; you do not need to flatten by hand.
-- Do not author `.harness/copilot.yaml` or `.harness/codex.yaml` inside a **skill** directory.
-  Codex and Copilot share the same install path (`.agents/skills/`) and would both end up reading whatever override you wrote.
-  Codex-specific UI / policy / MCP-server config goes in `agents/openai.yaml` instead (a regular asset, not under `.harness/`).
+- For **skills**, `.harness/codex.yaml` and `.harness/copilot.yaml` are now allowed and encouraged. They should carry only spec-acceptable keys (`allowed-tools` in `Bash(cmd:*)` form, `license`, `compatibility`, `metadata` for both; plus `argument-hint`, `disable-model-invocation`, `user-invocable`, `context` for Copilot only).
+  Both harnesses share `.agents/skills/`, so each subsequent install overwrites the previous file — pick one harness per `.skills.yaml` entry, or accept the last-listed-wins behaviour.
+  Codex-specific UI / policy / MCP-server config still goes in `agents/openai.yaml` inside the skill directory (a regular asset, not under `.harness/`).
 - Do not author `.harness/codex.yaml` inside an **agent** directory either.
   Codex agents are shipped as the standalone `.toml` (a separate SkillShed entity), not as harness-overrides on the `.md`.
 - Do not put Claude-specific frontmatter directly into the `.md` for skills or agents.

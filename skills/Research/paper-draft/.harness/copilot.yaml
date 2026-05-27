@@ -1,0 +1,3 @@
+argument-hint: <topic-or-slug> [--latex | --markdown]
+allowed-tools: WebSearch WebFetch Read Write Bash(find:*) Bash(mkdir:*)
+disable-model-invocation: true

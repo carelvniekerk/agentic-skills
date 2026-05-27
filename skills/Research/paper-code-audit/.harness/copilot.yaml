@@ -1,0 +1,3 @@
+argument-hint: <paper-url-or-arXiv-ID> <repo-url>
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir:*)
+disable-model-invocation: true

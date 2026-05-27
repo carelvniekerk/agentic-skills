@@ -1,0 +1,3 @@
+argument-hint: <paper-path, arXiv-ID, or URL>
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir:*)
+disable-model-invocation: false
