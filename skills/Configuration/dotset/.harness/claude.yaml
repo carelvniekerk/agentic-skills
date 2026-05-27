@@ -1,8 +1,1 @@
-allowed-tools:
-    - Read
-    - Edit
-    - Write
-    - Bash(dotset *)
-    - Bash(${CHEZMOI_COMMAND_DIR}/.venv/bin/dotset *)
-    - Bash(/Users/vniekerk/.local/share/chezmoi/.venv/bin/dotset *)
-    - Bash(printf *)
+allowed-tools: Read Edit Write Bash(dotset *) Bash(${CHEZMOI_COMMAND_DIR}/.venv/bin/dotset *) Bash(/Users/vniekerk/.local/share/chezmoi/.venv/bin/dotset *) Bash(printf *)
