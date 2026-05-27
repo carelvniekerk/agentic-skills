@@ -1,0 +1,1 @@
+allowed-tools: Read Grep Glob WebSearch WebFetch Bash(git *) Bash(uname *) Bash(sw_vers *) Bash(python *) Bash(python3 *) Bash(node *) Bash(rustc *) Bash(cargo *) Bash(uv *) Bash(uvx *) Bash(pip *) Bash(pipx *) Bash(nvidia-smi *) Bash(nvcc *) Bash(rocm-smi *) Bash(rg *) Bash(fd *) Bash(ls *) Bash(eza *) Bash(bat *)

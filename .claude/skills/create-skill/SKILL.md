@@ -168,9 +168,12 @@ Creating a brand-new top-level skills directory still requires a Claude Code res
 SkillShed reads a single canonical SKILL.md from this repository and writes it into each requested harness's directory layout (see the table in Phase 1).
 The frontmatter you author here is the frontmatter the user's installed copy receives — plus a `metadata:` block SkillShed injects automatically (`author`, `repository`, `path`, `ref`, `sha`) which `skillshed update` reads back to decide skip-vs-write.
 
-### Required frontmatter for SkillShed
+### The `.md` is global — only `name` and `description`
 
-Two keys are non-negotiable; they are required by Claude Code, by Codex, and by Copilot.
+In this repository, **SKILL.md frontmatter contains only `name` and `description`**.
+Every Claude Code extension (`allowed-tools`, `when_to_use`, `argument-hint`, `disable-model-invocation`, `model`, `effort`, `paths`, `hooks`, etc.) is moved into `.harness/claude.yaml`, which SkillShed merges into the installed file's frontmatter at install time.
+
+Two keys are non-negotiable; they are required by Claude Code, by Codex, and by Copilot:
 
 | Key           | Constraint                                                                                                              |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -179,37 +182,35 @@ Two keys are non-negotiable; they are required by Claude Code, by Codex, and by 
 
 A skill that violates either constraint fails the open-spec validator (`skills-ref validate ./my-skill` from `github.com/agentskills/agentskills`).
 
-### Portable frontmatter — works on every harness
+### Portable spec keys — usable in SKILL.md when truly cross-harness
 
-These keys come from the open Agent Skills spec and are honoured (or harmlessly ignored) by Claude Code, Codex, and Copilot:
+These keys come from the open Agent Skills spec and are honoured (or harmlessly ignored) by Claude Code, Codex, and Copilot.
+If a value applies the same way on every harness, you may keep it in SKILL.md.
+If the value differs between harnesses, move it into `.harness/claude.yaml` instead.
 
-- `license` — license name or pointer to a bundled file.
-- `compatibility` — environment requirements, ≤ 500 chars.
-- `metadata` — free-form map (`author`, `version`, custom keys).
-- `allowed-tools` — space-separated tool list. **Experimental** on Codex and Copilot; reliable only on Claude Code.
+- `license`, `compatibility`, `metadata`, `allowed-tools`.
 
-### Claude-flavoured extras — safe to keep in the canonical SKILL.md
+### Claude-flavoured extras — `.harness/claude.yaml`
 
 Claude Code recognises a handful of optional keys beyond the open spec.
-Codex ignores them; Copilot ignores them when it doesn't recognise them; the canonical SKILL.md stays portable as long as you don't rely on these doing anything outside Claude Code.
+These do **not** belong in SKILL.md; put them in `.harness/claude.yaml` so the canonical SKILL.md stays global:
 
-`when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `model`, `effort`, `context`, `agent`, `hooks`, `paths`, `shell`.
+`when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `model`, `effort`, `context`, `agent`, `hooks`, `paths`, `shell`, and `allowed-tools` if the value is Claude-specific.
 
 Detailed semantics are in the Phase 2 frontmatter table.
 
 ### The `.harness/<harness>.yaml` override mechanism
 
 SkillShed supports per-harness frontmatter overrides via a `.harness/<harness-name>.yaml` file inside the skill directory.
-Anything in that file is merged into the installed SKILL.md's frontmatter at install time and the `.harness/` directory itself is not copied to the target.
+Anything in that file is merged into the installed SKILL.md's frontmatter at install time, and the `.harness/` directory itself is not copied to the target.
 
-For skills in this repository, the rule is **deliberately conservative**:
+For skills in this repository:
 
-- **Do not author `.harness/copilot.yaml` for skills.**
-  Codex and Copilot share the same install path (`.agents/skills/`).
-  Anything you add via `.harness/copilot.yaml` ends up in the same file Codex reads, defeating the point of per-harness overrides.
-  Keep SKILL.md Claude-style and let Codex / Copilot ignore unknown keys.
-- **Do not author `.harness/codex.yaml` for skills** for the same reason — Codex-side UI / policy / MCP dependencies live in a sibling file instead (see below), not in frontmatter.
-- A `.harness/claude.yaml` is only needed if you want to inject Claude-specific keys *exclusively* into Claude installs — and even that is rarely useful, because Claude-only keys are tolerated on Codex/Copilot too.
+- **`.harness/claude.yaml` carries all Claude-specific extras.**
+  Always present when a skill has anything beyond `name`/`description`.
+- **`.harness/copilot.yaml` and `.harness/codex.yaml` are forbidden for skills.**
+  Codex and Copilot share the install path (`.agents/skills/`); a `.harness/copilot.yaml` would land in the same file Codex reads.
+  Codex extras instead live in a sibling `agents/openai.yaml` (committed as a regular asset, not under `.harness/`).
 
 ### Codex-specific extras live in a sibling YAML, not in frontmatter
 
@@ -242,16 +243,16 @@ SkillShed copies non-`.harness` assets through verbatim, so the file lands besid
 
 ```text
 skills/<Category>/<slug>/
-├── SKILL.md                    (required; name + description in frontmatter)
+├── SKILL.md                    (required; name + description ONLY in frontmatter)
 ├── references/                 (loaded on demand)
 ├── scripts/                    (executed, not loaded as text)
 ├── assets/                     (templates, fixtures, fonts)
 ├── agents/openai.yaml          (optional; Codex UI/policy/MCP — copied verbatim)
 └── .harness/
-    └── claude.yaml             (optional; rarely needed)
+    └── claude.yaml             (Claude-specific frontmatter; almost always present)
 ```
 
-The `.harness/` directory is the only one SkillShed treats specially.
+The `.harness/` directory is the only one SkillShed treats specially — its contents are merged into the installed SKILL.md's frontmatter at install time for the matching harness.
 Everything else is shipped as-is.
 
 ---
@@ -703,6 +704,7 @@ Reference the script via `${CLAUDE_SKILL_DIR}` so paths don't break when the wor
 - [ ] Any bundled scripts use `uv run` and reference `${CLAUDE_SKILL_DIR}`.
 - [ ] `allowed-tools` lists only what the skill genuinely needs (reliable on Claude Code; experimental on Codex/Copilot).
 - [ ] If the skill has side effects, `disable-model-invocation: true` is set.
+- [ ] SKILL.md frontmatter contains **only** `name` and `description`; every Claude extension lives in `.harness/claude.yaml`.
 - [ ] No `.harness/copilot.yaml` or `.harness/codex.yaml` in the skill directory (Codex / Copilot share an install path; per-harness overrides defeat that).
 - [ ] If the skill needs Codex-specific UI / policy / MCP-server dependencies, `agents/openai.yaml` is committed inside the skill directory as a regular asset.
 - [ ] Trigger tests pass (the skill activates on intended phrases and stays quiet otherwise).

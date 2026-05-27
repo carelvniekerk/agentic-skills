@@ -3,13 +3,6 @@ name: paper-code-audit
 description: >
   Compare a research paper's claims against its public codebase — identifies mismatches, omissions, undocumented deviations, and reproducibility risks.
   Use this skill whenever the user asks to audit a paper, check code-claim consistency, verify reproducibility, or wants to know whether an implementation actually matches what was published.
-when_to_use: >
-  Trigger phrases: "audit this paper", "check the code", "does the implementation match", "verify reproducibility",
-  "code vs paper", "is the code consistent with the paper", "check the repo against the paper",
-  "reproducibility check", "what deviates from the paper", "does the code do what the paper claims".
-argument-hint: <paper-url-or-arXiv-ID> <repo-url>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
-disable-model-invocation: true
 ---
 
 # Paper–Code Audit

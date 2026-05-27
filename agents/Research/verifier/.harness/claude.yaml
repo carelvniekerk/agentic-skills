@@ -1,0 +1,4 @@
+tools: Read, Write, Edit, WebFetch
+model: sonnet
+permissionMode: acceptEdits
+color: orange

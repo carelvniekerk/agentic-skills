@@ -1,0 +1,8 @@
+when_to_use: >
+  Trigger phrases: "review this paper", "critique this", "peer review", "what would reviewers say",
+  "pre-submission check", "what's wrong with this paper", "give me feedback on this draft",
+  "review my paper", "sanity check before submission", "simulate a reviewer", "what are the weaknesses",
+  "would this pass review", "reviewer 2 this".
+argument-hint: <paper-path, arXiv-ID, or URL>
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
+disable-model-invocation: false

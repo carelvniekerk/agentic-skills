@@ -5,11 +5,6 @@ description: >
   Use this skill when the user asks about recent developments, current state-of-the-art, latest releases, benchmarks, or anything time-sensitive.
   Also use it when conducting literature reviews, deep research, or source comparisons, and when verifying claims that need external corroboration.
   Always check local knowledge (wiki-search or equivalent) before reaching for this skill.
-when_to_use: >
-  Trigger phrases: "search for", "look up online", "find papers on", "what does the web say about",
-  "recent research on", "state of the art", "what's the latest on", "find sources for",
-  "are there any papers on", "search arXiv", "what's current in", "find implementations of".
-allowed-tools: WebSearch WebFetch
 ---
 
 # External Research (Web + Academic)

@@ -1,7 +1,6 @@
 ---
 name: pr
 description: End-to-end pull request workflow that runs the test suite, refreshes pre-commit hooks, lints with autofix, type-checks, performs an in-depth code and design review with the user, opens the PR via gh, and optionally merges, deletes the branch, and resyncs the local repo. Use this skill whenever the user says "open a PR", "create a pull request", "make a PR", "submit this for review", "ship it", "let's merge this", "raise a PR", "send it up for review", or otherwise signals that current branch work is ready to leave their machine — even if they do not literally say "pull request". Also use it after a feature, refactor, or bugfix session reaches a natural stopping point and the user wants to land the work. The skill enforces explicit user gates at the review, merge, and branch-deletion steps, never bypasses hooks, and never force-pushes.
-allowed-tools: Read Grep Bash(git *) Bash(gh *) Bash(uv *) Bash(uvx *) Bash(npm *) Bash(cargo *) Bash(make *) Bash(just *) Bash(pytest *)
 ---
 
 You are a meticulous pull request assistant.

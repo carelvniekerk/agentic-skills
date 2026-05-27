@@ -4,14 +4,6 @@ description: >
   Simulate a tough but constructive peer review of a research paper, draft, or technical document.
   Produces a structured review with severity-graded feedback (FATAL/MAJOR/MINOR), inline annotations quoting specific passages, and a concrete revision plan.
   Use this skill aggressively whenever the user asks for a review, critique, or feedback on a paper or draft, wants a pre-submission sanity check, or asks "what would reviewers say".
-when_to_use: >
-  Trigger phrases: "review this paper", "critique this", "peer review", "what would reviewers say",
-  "pre-submission check", "what's wrong with this paper", "give me feedback on this draft",
-  "review my paper", "sanity check before submission", "simulate a reviewer", "what are the weaknesses",
-  "would this pass review", "reviewer 2 this".
-argument-hint: <paper-path, arXiv-ID, or URL>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
-disable-model-invocation: false
 ---
 
 # Peer Review

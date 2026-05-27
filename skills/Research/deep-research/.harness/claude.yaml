@@ -1,0 +1,6 @@
+when_to_use: >
+  Trigger phrases: "deep research", "research this thoroughly", "comprehensive analysis", "multi-source investigation",
+  "research brief", "deep dive", "investigate", "what does the literature say about",
+  "I want a full picture of", "research and write up", "give me everything on".
+allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
+disable-model-invocation: false

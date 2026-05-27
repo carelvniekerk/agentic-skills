@@ -4,13 +4,6 @@ description: >
   Turn research findings, notes, or evidence into a structured paper-style draft with proper sections, equations, and explicit claims.
   Supports both Markdown output (following the standard research brief format) and LaTeX output (using a project template or the bundled article template).
   Use this skill whenever the user asks to write a paper, draft a report, write up findings, or produce a structured technical document.
-when_to_use: >
-  Trigger phrases: "write a paper", "draft a paper", "write up findings", "turn this into a paper",
-  "write up", "draft a report", "write the paper", "produce a writeup", "write the related work",
-  "draft the introduction", "write up my results", "turn my notes into a paper".
-argument-hint: <topic-or-slug> [--latex | --markdown]
-allowed-tools: WebSearch WebFetch Read Write Bash(find *) Bash(mkdir *) Agent
-disable-model-invocation: true
 ---
 
 # Paper Draft

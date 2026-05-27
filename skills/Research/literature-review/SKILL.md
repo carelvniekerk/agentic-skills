@@ -3,12 +3,6 @@ name: literature-review
 description: >
   Run a structured academic literature review — surveys papers, maps consensus and disagreements, surfaces open questions and trends, and produces a thematically organised review with mandatory results tables and full mathematical notation.
   Use this skill aggressively whenever the user asks for a lit review, paper survey, state of the art, academic landscape summary, related work section, or wants to map a research direction before committing to it.
-when_to_use: >
-  Trigger phrases: "literature review", "lit review", "survey the field", "state of the art", "what papers exist on",
-  "related work", "academic landscape", "map the research", "what has been done on", "survey papers on",
-  "what does the literature say", "who has worked on", "prior work on", "review the papers on".
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
-disable-model-invocation: false
 ---
 
 # Literature Review

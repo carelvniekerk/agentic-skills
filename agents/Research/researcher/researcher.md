@@ -9,10 +9,6 @@ description: >
     Never fabricates sources — every claim must have a URL.
     Trigger phrases: "find sources", "search for evidence", "look this up", "verify this claim",
     "find papers on", "what does the literature say", "gather evidence", "research this externally".
-tools: WebSearch, WebFetch, Read, Write
-model: sonnet
-permissionMode: acceptEdits
-color: blue
 ---
 
 # Researcher Agent

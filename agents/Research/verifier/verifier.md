@@ -10,10 +10,6 @@ description: >
     Never uses the words "verified" or "confirmed" without showing the underlying check.
     Trigger phrases: "verify sources", "check citations", "anchor citations", "verify this draft",
     "add citations", "check the sources", "source verification pass", "citation pass".
-tools: Read, Write, Edit, WebFetch
-model: sonnet
-permissionMode: acceptEdits
-color: orange
 ---
 
 # Verifier Agent

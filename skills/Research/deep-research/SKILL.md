@@ -4,12 +4,6 @@ description: >
   Run a thorough, source-heavy investigation on any topic and produce a comprehensive, self-contained cited research brief with provenance tracking.
   Use this skill aggressively whenever the user asks for "deep research", a comprehensive analysis, a multi-source investigation, or wants a durable citable artifact rather than a conversational answer.
   Also use it when a topic requires 5+ sources and cross-referencing to answer properly.
-when_to_use: >
-  Trigger phrases: "deep research", "research this thoroughly", "comprehensive analysis", "multi-source investigation",
-  "research brief", "deep dive", "investigate", "what does the literature say about",
-  "I want a full picture of", "research and write up", "give me everything on".
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
-disable-model-invocation: false
 ---
 
 # Deep Research

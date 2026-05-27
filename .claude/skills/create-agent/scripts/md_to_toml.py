@@ -6,6 +6,7 @@
 #     "tomli-w",
 # ]
 # ///
+# Note: tomllib is in the stdlib from Python 3.11+; no separate dep needed for reads.
 """Transpile an Anthropic-style agent .md into a Codex agent .toml sibling.
 
 Reads a Markdown agent definition (YAML frontmatter + system-prompt body) and
@@ -18,12 +19,17 @@ Mapping:
     YAML ``model``         → TOML ``model`` (string, if present)
 
 Codex-only fields (``nickname_candidates``, ``model_reasoning_effort``,
-``sandbox_mode``, ``mcp_servers``, ``skills.config``) are read from a top-level
-``codex:`` YAML block in the frontmatter, if present, and copied verbatim into
-the TOML output. Anthropic-only fields (``tools``, ``color``, ``permissionMode``,
-``disallowedTools``, ``mcpServers``, ``hooks``, ``permissionMode``, ``memory``,
-``background``, ``isolation``, ``maxTurns``, ``effort``, ``initialPrompt``,
-``skills``) are dropped — they have no Codex equivalent and would silently fail.
+``sandbox_mode``, ``mcp_servers``, ``model``, ``skills.config``) are authored
+**directly in the existing target ``.toml``** — when this script runs and the
+target already exists, it parses the existing TOML and preserves every key other
+than the three managed fields (``name``, ``description``,
+``developer_instructions``), which are always re-derived from the ``.md``.
+This means hand-added Codex-only fields survive a re-transpile.
+
+The canonical ``.md`` frontmatter in this repo is limited to ``name`` and
+``description`` only — Claude-specific fields (``tools``, ``model``,
+``permissionMode``, ``color``, etc.) live in ``.harness/claude.yaml`` and are
+not consulted when generating the ``.toml``.
 
 Usage:
     uv run md_to_toml.py path/to/agent.md
@@ -32,22 +38,22 @@ Usage:
 
 import argparse
 import sys
+import tomllib
 from pathlib import Path
 
 import frontmatter
 import tomli_w
 
-CODEX_OPTIONAL_KEYS = (
-    "nickname_candidates",
-    "model_reasoning_effort",
-    "sandbox_mode",
-    "mcp_servers",
-    "skills",
-)
+MANAGED_KEYS = ("name", "description", "developer_instructions")
 
 
 def transpile(md_path: Path, toml_path: Path) -> None:
-    """Read ``md_path`` and write a Codex-compatible ``toml_path``."""
+    """Read ``md_path`` and write a Codex-compatible ``toml_path``.
+
+    If ``toml_path`` already exists, every key other than the three managed
+    fields (``name``, ``description``, ``developer_instructions``) is
+    preserved, so hand-added Codex-only fields survive a re-transpile.
+    """
     post = frontmatter.load(md_path)
     meta = post.metadata
     body = post.content.strip()
@@ -59,25 +65,25 @@ def transpile(md_path: Path, toml_path: Path) -> None:
     if not body:
         raise ValueError(f"{md_path} has an empty body; Codex needs developer_instructions")
 
+    existing: dict[str, object] = {}
+    if toml_path.exists():
+        existing = tomllib.loads(toml_path.read_text())
+
     out: dict[str, object] = {
-        "name": str(name),
-        "description": str(description).strip(),
-        "developer_instructions": body,
+        key: value for key, value in existing.items() if key not in MANAGED_KEYS
+    }
+    out["name"] = str(name)
+    out["description"] = str(description).strip()
+    out["developer_instructions"] = body
+
+    ordered: dict[str, object] = {
+        "name": out.pop("name"),
+        "description": out.pop("description"),
+        "developer_instructions": out.pop("developer_instructions"),
+        **out,
     }
 
-    if "model" in meta:
-        out["model"] = str(meta["model"])
-
-    codex_extras = meta.get("codex") or {}
-    if not isinstance(codex_extras, dict):
-        raise TypeError(
-            f"{md_path}: top-level 'codex:' frontmatter must be a mapping, got {type(codex_extras).__name__}"
-        )
-    for key in CODEX_OPTIONAL_KEYS:
-        if key in codex_extras:
-            out[key] = codex_extras[key]
-
-    toml_path.write_bytes(tomli_w.dumps(out).encode())
+    toml_path.write_bytes(tomli_w.dumps(ordered).encode())
 
 
 def parse_args() -> argparse.Namespace:

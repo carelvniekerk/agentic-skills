@@ -3,13 +3,6 @@ name: source-comparison
 description: >
   Compare multiple sources, papers, tools, approaches, frameworks, or methods on a topic and produce a grounded comparison matrix that distinguishes agreement, disagreement, and uncertainty clearly.
   Use this skill aggressively whenever the user asks to compare things, evaluate competing approaches, or asks "X vs Y", "how do these differ", or "which is better".
-when_to_use: >
-  Trigger phrases: "compare", "X vs Y", "how do these differ", "which is better", "evaluate these options",
-  "comparison matrix", "compare papers", "compare tools", "compare frameworks", "compare methods",
-  "what are the trade-offs", "side by side", "how does X stack up against Y".
-argument-hint: <topic or list of things to compare>
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
-disable-model-invocation: false
 ---
 
 # Source Comparison

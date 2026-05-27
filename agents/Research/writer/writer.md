@@ -8,10 +8,6 @@ description: >
     Use proactively after evidence has been gathered and before the verifier pass.
     Trigger phrases: "write this up", "synthesise the research", "turn notes into a draft",
     "write the brief", "structure the findings", "write the article", "draft from these notes".
-tools: Read, Write
-model: sonnet
-permissionMode: acceptEdits
-color: green
 ---
 
 # Writer Agent

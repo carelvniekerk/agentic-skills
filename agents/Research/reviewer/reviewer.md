@@ -8,10 +8,6 @@ description: >
     Trigger phrases: "review this", "critique this", "peer review", "what are the weaknesses",
     "pre-submission check", "quality check", "rigour check", "what would reviewers say",
     "is this ready to publish", "check this draft".
-tools: Read, WebSearch, WebFetch
-model: opus
-permissionMode: plan
-color: red
 ---
 
 # Reviewer Agent

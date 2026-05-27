@@ -28,14 +28,19 @@ AgenticSkills/
 │       └── ...               deep-research, eli5, literature-review, …
 └── agents/                   published subagents (installable via SkillShed)
     └── Research/
-        ├── researcher.md     single-file agent (canonical Anthropic .md)
-        ├── reviewer.md
-        ├── verifier.md
-        └── writer.md
+        ├── researcher/
+        │   ├── researcher.md        (global: name + description + body)
+        │   ├── researcher.toml      (Codex artefact, transpiled + hand-tuned)
+        │   └── .harness/
+        │       ├── claude.yaml      (Claude-specific frontmatter)
+        │       └── copilot.yaml     (Copilot CLI frontmatter)
+        ├── reviewer/...
+        ├── verifier/...
+        └── writer/...
 ```
 
-Each leaf skill directory under `skills/` contains exactly one `SKILL.md` plus optional supporting assets.
-Agents under `agents/` may be either a single file `agents/<Category>/<slug>.md` or a directory `agents/<Category>/<slug>/<slug>.md` with supporting assets; SkillShed handles both.
+Each leaf skill directory under `skills/` contains a `SKILL.md` (only `name` + `description` in frontmatter), a `.harness/claude.yaml` for Claude extras, and optional supporting assets.
+Each leaf agent directory under `agents/` contains a `<slug>.md` (only `name` + `description` in frontmatter), `.harness/claude.yaml` + `.harness/copilot.yaml`, and a Codex `<slug>.toml`.
 The `.claude/skills/` directory is the Claude Code loader's project-scoped location and holds **meta-skills only** — they are not published to the SkillShed-installable library.
 
 ---
@@ -103,19 +108,22 @@ For Copilot agents, prefer `skillshed install -g` until the project-path bug is 
 These rules are how this repo stays portable across all three harnesses.
 The `create-skill` and `create-agent` meta-skills enforce them as part of their workflows.
 
-- **Skills are authored as one canonical SKILL.md** with Claude-style frontmatter.
-  Codex and Copilot read the same file from `.agents/skills/`, so the frontmatter must work for all three at once.
-  `name` and `description` are the only universally required keys; everything else either comes from the open Agent Skills spec (`license`, `compatibility`, `metadata`, `allowed-tools`) or is a Claude extension that Codex / Copilot ignore safely.
-- **Do not author `.harness/copilot.yaml` or `.harness/codex.yaml` for skills.**
-  Those harnesses share the `.agents/skills/` install path; per-harness frontmatter overrides defeat that.
-  Keep SKILL.md Claude-canonical and let the other harnesses skip unknown keys.
-- **Codex-only UI / policy / MCP-server dependencies live in `agents/openai.yaml`** inside the skill directory, committed as a regular asset (not under `.harness/`).
-  SkillShed copies it through verbatim.
-- **Agents are authored as one canonical Anthropic-style `.md`** under `agents/<Category>/` (single file) or `agents/<Category>/<slug>/<slug>.md` (directory).
-  The body is the system prompt.
-  Codex requires a separate `.toml` sibling — the `create-agent` meta-skill bundles `scripts/md_to_toml.py` to generate it from the `.md`.
-  Both files are committed; SkillShed picks the right one per harness.
-- **Codex-only optional agent fields** (`nickname_candidates`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, `skills.config`) are declared via a top-level `codex:` block in the canonical `.md`'s YAML frontmatter; the transpiler lifts them into the emitted `.toml`.
+The core principle: **the `.md` file is global.**
+It contains only `name`, `description`, and the body — nothing harness-specific.
+Harness-specific frontmatter lives in `.harness/<harness>.yaml` files inside the entity directory, which SkillShed merges into the installed file's frontmatter at install time.
+
+- **Skills** (`skills/<Category>/<slug>/`):
+  - `SKILL.md` carries **only `name` and `description`** in its frontmatter, plus the body.
+  - `.harness/claude.yaml` carries every Claude Code extension the skill needs (`allowed-tools`, `when_to_use`, `argument-hint`, `disable-model-invocation`, etc.).
+  - **Do not author `.harness/copilot.yaml` or `.harness/codex.yaml` for skills.**
+    Codex and Copilot share the same install path (`.agents/skills/`) and would both receive whatever override you wrote.
+    Codex-specific UI / policy / MCP-server dependencies belong in `agents/openai.yaml` inside the skill directory as a regular asset; SkillShed copies it through verbatim.
+- **Agents** (`agents/<Category>/<slug>/`):
+  - `<slug>.md` carries **only `name` and `description`** in its frontmatter, plus the body (system prompt).
+  - `.harness/claude.yaml` carries Claude's agent fields (`tools`, `model`, `permissionMode`, `color`, etc.).
+  - `.harness/copilot.yaml` carries the Copilot CLI's agent fields (`tools`, `model`, etc.) — usually `tools: ["*"]` since Copilot's tool namespace differs from Anthropic's; tighten if you've verified Copilot tool names.
+  - `<slug>.toml` (generated by the bundled `scripts/md_to_toml.py`) is the Codex artefact.
+    Codex does **not** use `.harness/codex.yaml`; instead the `.toml` is shipped as a single-file SkillShed entity with everything Codex needs.
 
 ### `.skills.yaml` example
 
@@ -128,16 +136,19 @@ skills:
     harnesses: [claude, codex, copilot]
 
 agents:
+  # Anthropic .md and Copilot CLI .md share the same source directory.
   - repo: carelvniekerk/AgenticSkills
-    path: agents/Research/researcher.md
+    path: agents/Research/researcher
     harnesses: [claude, copilot]
+
+  # Codex pulls the standalone .toml as a single-file entity.
   - repo: carelvniekerk/AgenticSkills
-    path: agents/Research/researcher.toml
+    path: agents/Research/researcher/researcher.toml
     harnesses: [codex]
 ```
 
-The pattern above ships the Anthropic `.md` to Claude and Copilot and the transpiled `.toml` to Codex.
-For skills, one entry covers all three harnesses because the file format is the same.
+For skills, one entry covers all three harnesses — Claude reads `.claude/skills/<name>/SKILL.md` (with `.harness/claude.yaml` merged in), Codex and Copilot read `.agents/skills/<name>/SKILL.md` (no overrides merged, because there is no `.harness/codex.yaml` or `.harness/copilot.yaml`).
+For agents, the `.md` entry covers Claude + Copilot (each with their own harness override), and Codex pulls the `.toml` separately.
 
 ---
 
@@ -221,35 +232,38 @@ Each meta-skill enforces the project conventions documented above (semantic line
 ## Adding a Skill — Checklist
 
 1. Pick (or create) the right category folder under `skills/`.
-2. Create `skills/<Category>/<slug>/SKILL.md`.
-3. Invoke the `create-skill` meta-skill (or `/create-skill`) and let it drive the draft → test → review loop.
-   For hooks or subagents, invoke `create-hook` or `create-agent` instead — and the meta-skills will delegate to each other when a composite artefact is needed.
-4. Write the frontmatter — `name` matches the folder, ≤ 64 chars, lowercase + hyphens; `description` is trigger-rich and ≤ 1,024 chars.
+2. Create `skills/<Category>/<slug>/SKILL.md` with **only** `name` and `description` in the frontmatter, plus the body.
+   `name` matches the folder, ≤ 64 chars, lowercase + hyphens; `description` is trigger-rich and ≤ 1,024 chars.
+3. Create `skills/<Category>/<slug>/.harness/claude.yaml` with every Claude Code extension the skill needs (`allowed-tools`, `when_to_use`, `argument-hint`, `disable-model-invocation`, …).
+4. Invoke the `create-skill` meta-skill (or `/create-skill`) and let it drive the draft → test → review loop.
+   For hooks or subagents, invoke `create-hook` or `create-agent` instead — the meta-skills will delegate to each other when a composite artefact is needed.
 5. Draft the body in **semantic line breaks** as you type.
 6. If the skill runs commands, finish with a Strict Prohibitions table.
-7. Verify there is no `.harness/copilot.yaml` or `.harness/codex.yaml` inside the skill directory (SkillShed rule for shared install paths).
-8. If the skill needs Codex-specific UI / policy / MCP-server config, commit `agents/openai.yaml` inside the skill directory.
+7. Verify the directory does **not** contain `.harness/copilot.yaml` or `.harness/codex.yaml` (the SkillShed rule for shared install paths).
+8. If the skill needs Codex-specific UI / policy / MCP-server config, commit `agents/openai.yaml` inside the skill directory as a regular asset.
 9. Verify the rendered output looks right in your editor's Markdown preview.
 10. Update `README.md` if the category list changed.
 
 ## Adding an Agent — Checklist
 
 1. Pick (or create) the right category folder under `agents/`.
-2. Create `agents/<Category>/<slug>.md` (single-file) or `agents/<Category>/<slug>/<slug>.md` (directory with assets).
-3. Invoke the `create-agent` meta-skill — it covers Anthropic / Codex / Copilot frontmatter conventions and runs the transpile step.
-4. Write the canonical Anthropic-style `.md` with frontmatter (`name`, `description`, `model`, `tools`, etc.) and a system-prompt body.
-5. Declare any Codex-only optional fields under a top-level `codex:` block in the YAML frontmatter.
-6. Run the transpiler to emit a sibling `.toml` for Codex:
+2. Create the agent directory: `agents/<Category>/<slug>/<slug>.md` with **only** `name` and `description` in the frontmatter, plus the body (system prompt).
+3. Create `.harness/claude.yaml` with the Claude-specific fields (`tools`, `model`, `permissionMode`, `color`, …).
+4. Create `.harness/copilot.yaml` with the Copilot CLI fields (`tools`, `model`).
+   Use `tools: ["*"]` unless you've verified Copilot's exact tool names.
+5. Run the transpiler to emit `agents/<Category>/<slug>/<slug>.toml` for Codex:
 
    ```bash
-   uv run .claude/skills/create-agent/scripts/md_to_toml.py agents/<Category>/<slug>.md
+   uv run .claude/skills/create-agent/scripts/md_to_toml.py agents/<Category>/<slug>/<slug>.md
    ```
-7. Commit both the `.md` and the `.toml`.
-   SkillShed picks the right one per harness.
+6. Edit the generated `.toml` to add any Codex-specific fields you want (e.g. `sandbox_mode`, `model_reasoning_effort`, `nickname_candidates`, `mcp_servers`).
+   The `.toml` is the source of truth for Codex installs — there is no `.harness/codex.yaml`.
+7. Invoke the `create-agent` meta-skill if you need help with any of the above.
+8. Commit the `.md`, both `.harness/*.yaml` files, and the `.toml`.
 
 No build step.
-No code is needed to manage the file — keep editing the markdown by hand.
-The transpiler is the only generated artefact; re-run it whenever you edit the `.md`.
+No code is needed to manage the files — keep editing the markdown and YAML by hand.
+Re-run the transpiler whenever you edit the `.md` body, then re-apply your manual Codex-specific edits if needed.
 
 ---
 
@@ -258,11 +272,15 @@ The transpiler is the only generated artefact; re-run it whenever you edit the `
 - Do not nest `<Category>/<skill>/SKILL.md` inside `~/.claude/skills/`.
   The Claude Code loader only reads the top level of `~/.claude/skills/`.
   SkillShed handles flattening at install time; you do not need to flatten by hand.
-- Do not author `.harness/copilot.yaml` or `.harness/codex.yaml` inside a skill directory.
+- Do not author `.harness/copilot.yaml` or `.harness/codex.yaml` inside a **skill** directory.
   Codex and Copilot share the same install path (`.agents/skills/`) and would both end up reading whatever override you wrote.
   Codex-specific UI / policy / MCP-server config goes in `agents/openai.yaml` instead (a regular asset, not under `.harness/`).
-- Do not hand-edit the generated `.toml` for a Codex agent.
-  Re-run `scripts/md_to_toml.py` whenever the canonical `.md` changes; the `.toml` is derived, not authored.
+- Do not author `.harness/codex.yaml` inside an **agent** directory either.
+  Codex agents are shipped as the standalone `.toml` (a separate SkillShed entity), not as harness-overrides on the `.md`.
+- Do not put Claude-specific frontmatter directly into the `.md` for skills or agents.
+  The `.md` is global (`name` + `description` + body only); Claude extras live in `.harness/claude.yaml`.
+- The transpiled `.toml` for a Codex agent **may** be hand-edited to add Codex-only fields (`sandbox_mode`, `model_reasoning_effort`, `mcp_servers`, etc.).
+  But if you change the `.md` body, re-run the transpiler and then re-apply those edits.
 - Do not reflow paragraphs into long single lines in the source.
   Sentence-per-line is the convention; long lines defeat the diff benefit.
 - Do not write a script to enforce semantic line breaks.

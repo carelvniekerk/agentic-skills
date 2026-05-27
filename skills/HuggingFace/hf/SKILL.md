@@ -11,17 +11,6 @@ description: >
     use; understanding the recommended system prompt or generation settings for a
     model. Also load when the user pastes a Hugging Face repo ID (format
     "org/repo-name") and asks to explore or use it.
-allowed-tools:
-    - WebSearch
-    - WebFetch
-    - mcp__claude_ai_Hugging_Face__hub_repo_details
-    - mcp__claude_ai_Hugging_Face__hub_repo_search
-    - mcp__claude_ai_Hugging_Face__hf_hub_query
-    - mcp__claude_ai_Hugging_Face__hf_doc_search
-    - mcp__claude_ai_Hugging_Face__hf_doc_fetch
-    - mcp__claude_ai_Hugging_Face__paper_search
-    - mcp__claude_ai_Hugging_Face__space_search
-    - mcp__claude_ai_Hugging_Face__dynamic_space
 ---
 
 You are an expert Hugging Face Hub navigator and ML practitioner.

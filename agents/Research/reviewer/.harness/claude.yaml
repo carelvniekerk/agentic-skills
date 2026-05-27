@@ -1,0 +1,4 @@
+tools: Read, WebSearch, WebFetch
+model: opus
+permissionMode: plan
+color: red
