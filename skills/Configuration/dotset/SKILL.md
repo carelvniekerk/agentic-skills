@@ -8,12 +8,11 @@ description: Manages project dotfiles (.gitignore, .uvgroups, .envrc, .cleanup, 
 This skill mutates project dotfiles **exclusively through the dotset CLI** — never by hand-editing the managed files unless dotset itself cannot perform the operation.
 Every mutating run is preceded by a `dotset status` and the relevant `show` / `list` query, so the user sees the current state before any change.
 For multi-step init flows, the plan is confirmed with the user before any answers are piped in.
-Direct Read/Edit/Write of dotset-managed files (`.gitignore`, `.uvgroups`, `.envrc`, `.cleanup`, `.skyignore`, `.rsync-exclude`) is reserved for the explicit fallback in the *Fallback* section at the bottom.
+Direct Read/Edit/Write of dotset-managed files (`.gitignore`, `.uvgroups`, `.envrc`, `.cleanup`, `.skyignore`, `.rsync-exclude`) is reserved for the explicit fallback in the _Fallback_ section at the bottom.
 
 ## Binary
 
-Always invoke dotset as `${CHEZMOI_COMMAND_DIR}/.venv/bin/dotset`.
-Fall back to `/Users/vniekerk/.local/share/chezmoi/.venv/bin/dotset` if `CHEZMOI_COMMAND_DIR` is unset.
+Always invoke dotset as `dotset`, if you cannot find it use `uvx dotset`.
 
 Pass `-p <project-path>` to every command.
 Default to cwd if no path is given.
@@ -153,7 +152,7 @@ Let them correct decisions.
 # Example: W&B + Hydra + Skypilot + Rsync + HPC=NOCTUA2, groups=launchers,muon
 # n=MLflow  y=W&B  n=Deepeval  y=Hydra  n=Accelerate  y=Skypilot  y=Rsync  y=HPC  NOCTUA2  launchers,muon  n=Debug  y=Dev  n=Run  y=Proceed
 printf "n\ny\nn\ny\nn\ny\ny\ny\nNOCTUA2\nlaunchers,muon\nn\ny\nn\ny\n" | \
-  ${CHEZMOI_COMMAND_DIR}/.venv/bin/dotset init -p <path>
+  uvx dotset init -p <path>
 ```
 
 Full prompt sequence (adjust for conditionals):
