@@ -1,0 +1,8 @@
+when_to_use: >
+  Trigger phrases: "multi-agent architecture", "should this be multiple agents", "supervisor with subagents",
+  "agent handoffs", "agent router", "swarm of agents", "LangGraph state graph", "deepagents", "split this agent up",
+  "too many tools on one agent", "context overflow in my agent", "cost of a multi-agent system", "architecture decision
+  record for agents", "review my multi-agent design", "debug my LangGraph supervisor".
+argument-hint: <system description, or path to existing LangGraph code>
+allowed-tools: Read Write Grep Glob Bash(mkdir *)
+disable-model-invocation: false
