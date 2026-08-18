@@ -340,9 +340,11 @@ When a job needs more than one primitive — a skill that bundles a hook, an age
 
 1. `mkdir -p plugins/<name>/{.claude-plugin,skills}`.
 2. Write `plugins/<name>/.claude-plugin/plugin.json` — no `version` field.
-3. Add the entry to `.claude-plugin/marketplace.json` with `"source": "./<name>"`.
+3. Add the entry to `.claude-plugin/marketplace.json` with `"source": "./plugins/<name>"` — the path is from the repository root, not from `plugins/`.
 4. Validate both: `claude plugin validate .` and `claude plugin validate plugins/<name>`.
-5. Add a row to the plugin table in this file and in `README.md`.
+5. Confirm it actually installs, because step 4 does not check that the `source` path resolves:
+   `claude plugin marketplace add ./ && claude plugin install <name>@agentic-skills --scope local`.
+6. Add a row to the plugin table in this file and in `README.md`.
 
 No build step.
 No generated files.
