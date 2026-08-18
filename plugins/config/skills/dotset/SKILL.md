@@ -1,7 +1,7 @@
 ---
 name: dotset
 description: Manages project dotfiles (.gitignore, .uvgroups, .envrc, .cleanup, .skyignore, .rsync-exclude) via the dotset CLI. Use when adding/removing ignore patterns, managing UV groups, setting .envrc directives, or initialising project dotfiles.
-allowed-tools: Read Edit Write Bash(dotset *) Bash(dotset *) Bash(printf *)
+allowed-tools: Read Edit Write Bash(dotset *) Bash(printf *)
 ---
 
 ## Contract

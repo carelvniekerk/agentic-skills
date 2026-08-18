@@ -5,10 +5,11 @@ description: >
   Use this skill aggressively whenever the user says "ELI5", "explain simply", "explain this to me", "what does this actually mean", "break this down", "in plain English", or "summarise this for a non-expert".
   Also use it when the user wants to share a dense paper or concept with a broader or non-specialist audience.
 when_to_use: >
-    "Trigger phrases: "ELI5", "explain simply", "plain English", "what does this mean", "break it down",
-    "dumb it down", "explain like I'm five", "summarise this simply", "what's the gist", "what's the big idea",
-    "explain to a non-expert", "what's this paper actually saying"."
+  Trigger phrases: "ELI5", "explain simply", "plain English", "what does this mean", "break it down",
+  "dumb it down", "explain like I'm five", "summarise this simply", "what's the gist", "what's the big idea",
+  "explain to a non-expert", "what's this paper actually saying".
 argument-hint: <topic, paper title, or arXiv ID>
+allowed-tools: WebSearch WebFetch Read Write
 ---
 
 # ELI5 — Explain Like I'm Five
