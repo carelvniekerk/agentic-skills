@@ -28,6 +28,7 @@ Gathers environment and run-condition evidence, reads the code and the full term
 - **`config`** — project dotfile management through the [`dotset`](https://github.com/carelvniekerk/DotSet) CLI: `.gitignore`, `.uvgroups`, `.envrc`, `.cleanup`, `.skyignore`, `.rsync-exclude`.
 
 - **`hf`** — Hugging Face hub assistant: model and dataset profiles, prompt and chat templates, inference providers, licences, linked papers, and search for models suited to agentic or tool-use workloads.
+This is the only plugin here that bundles an MCP server — see [Hugging Face MCP](#hugging-face-mcp) below.
 
 - **`langchain`** — multi-agent architecture selection for LangChain and LangGraph.
 Argues for a single agent first, then maps constraints onto subagents, handoffs, skills, router, or a custom workflow, and delivers an architecture decision record with an explicit call and token cost model.
@@ -44,6 +45,10 @@ Add the marketplace once:
 ```bash
 /plugin marketplace add carelvniekerk/agentic-skills
 ```
+
+This repository is **private**, so that command only resolves for an account with read access.
+Claude Code clones over your existing GitHub credentials — `gh auth status` should show a working login, or an SSH key must be loaded for `git@github.com`.
+Without access the command fails at clone time rather than reporting a missing marketplace.
 
 Then install the plugins you want.
 Scope decides where they apply:
@@ -103,6 +108,37 @@ Most also fire automatically from their `description` — you rarely need to typ
 Two are slash-only by design (`disable-model-invocation: true`): `/research:paper-draft` and `/research:paper-code-audit`.
 
 Agents are namespaced the same way and appear in the `@`-mention typeahead as `research:researcher`, `research:writer`, `research:verifier`, `research:reviewer`.
+
+---
+
+## Hugging Face MCP
+
+The `hf` plugin bundles the official Hugging Face MCP server in `plugins/hf/.mcp.json`, pointed at `https://huggingface.co/mcp`.
+Installing the plugin is therefore enough — there is no separate connector to configure.
+
+Authenticate once, then restart or `/reload-plugins`:
+
+```bash
+claude mcp login huggingface     # or run /mcp inside a session
+```
+
+No token goes in the manifest.
+The entry deliberately carries no `Authorization` header, because a header the server rejects makes Claude Code report the connection as failed instead of falling back to the OAuth flow.
+
+### If you already use the claude.ai Hugging Face connector
+
+Nothing breaks, and nothing is duplicated.
+Plugin servers and claude.ai connectors are matched by endpoint rather than by name, and both point at `https://huggingface.co/mcp`, so Claude Code connects one of them — the plugin copy, which outranks a connector.
+
+The visible consequence is the tool prefix: `mcp__plugin_hf_huggingface__*` when the plugin provides the server, `mcp__claude_ai_Hugging_Face__*` when the connector does.
+The `hf` skill allows both and refers to tools by their unqualified names, so it works either way.
+Run `/mcp` to see which one is live.
+
+### Which tools you get
+
+The HF server exposes a **per-account** tool set, configured at <https://huggingface.co/settings/mcp>.
+Only `hf_fs` is guaranteed; `hub_repo_details`, `hub_repo_search`, `hf_doc_search`, `paper_search`, `space_search`, and the rest are opt-in there.
+The skill degrades to `hf_fs`, then `WebFetch`, then `WebSearch` when a tool is absent, and says which fallback it used rather than inventing metadata.
 
 ---
 
