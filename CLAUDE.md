@@ -167,7 +167,7 @@ A plugin may ship an MCP server in `<plugin>/.mcp.json` at the plugin root.
 ```json
 {
   "mcpServers": {
-    "huggingface": { "type": "http", "url": "https://huggingface.co/mcp" }
+    "huggingface": { "type": "http", "url": "https://huggingface.co/mcp?login" }
   }
 }
 ```

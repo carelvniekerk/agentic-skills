@@ -31,7 +31,7 @@ If a query returns no relevant results, the output says so explicitly rather tha
 
 The Hub tools come from the Hugging Face MCP server, which reaches this session by one of two routes:
 
-- **Bundled with this plugin** — `plugins/hf/.mcp.json` registers `https://huggingface.co/mcp`, and its tools are named `mcp__plugin_hf_huggingface__<tool>`.
+- **Bundled with this plugin** — `plugins/hf/.mcp.json` registers `https://huggingface.co/mcp?login`, and its tools are named `mcp__plugin_hf_huggingface__<tool>`.
 Authenticate once with `/mcp` or `claude mcp login huggingface`.
 - **The claude.ai Hugging Face connector** — enabled on your Anthropic account rather than by this plugin, and its tools are named `mcp__claude_ai_Hugging_Face__<tool>`.
 

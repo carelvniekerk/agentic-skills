@@ -113,7 +113,8 @@ Agents are namespaced the same way and appear in the `@`-mention typeahead as `r
 
 ## Hugging Face MCP
 
-The `hf` plugin bundles the official Hugging Face MCP server in `plugins/hf/.mcp.json`, pointed at `https://huggingface.co/mcp`.
+The `hf` plugin bundles the official Hugging Face MCP server in `plugins/hf/.mcp.json`, pointed at `https://huggingface.co/mcp?login`.
+The `?login` parameter is what Hugging Face's own Claude Code install command uses; it makes the server drive the authentication flow rather than answering unauthenticated.
 Installing the plugin is therefore enough — there is no separate connector to configure.
 
 Authenticate once, then restart or `/reload-plugins`:
@@ -128,7 +129,7 @@ The entry deliberately carries no `Authorization` header, because a header the s
 ### If you already use the claude.ai Hugging Face connector
 
 Nothing breaks, and nothing is duplicated.
-Plugin servers and claude.ai connectors are matched by endpoint rather than by name, and both point at `https://huggingface.co/mcp`, so Claude Code connects one of them — the plugin copy, which outranks a connector.
+Plugin servers and claude.ai connectors are matched by endpoint rather than by name, and both resolve to the same Hugging Face endpoint, so Claude Code connects one of them — the plugin copy, which outranks a connector.
 
 The visible consequence is the tool prefix: `mcp__plugin_hf_huggingface__*` when the plugin provides the server, `mcp__claude_ai_Hugging_Face__*` when the connector does.
 The `hf` skill allows both and refers to tools by their unqualified names, so it works either way.
