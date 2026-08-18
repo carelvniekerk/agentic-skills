@@ -1,155 +1,183 @@
 # CLAUDE.md
 
-> Conventions for authoring and organising the skills and agents in this repository.
+> Conventions for authoring and organising the skills, agents, and plugins in this repository.
 
-This repo is a personal library of agentic skills and subagents, grouped into category folders and published across Claude Code, OpenAI Codex, and GitHub Copilot via the [SkillShed](https://github.com/carelvniekerk/SkillShed) installer.
+This repo is a personal library of Claude Code skills and subagents, grouped into installable **plugins** and published through a **plugin marketplace** hosted from this same repository.
 
 ---
 
 ## Repository Layout
 
 ```text
-AgenticSkills/
+agentic-skills/
+├── .claude-plugin/
+│   └── marketplace.json      the marketplace catalogue — one entry per plugin
 ├── .claude/skills/           authoring meta-skills (project-scoped; not published)
-│   ├── create-skill/         author skills (multi-harness aware)
+│   ├── create-skill/         author skills
 │   ├── create-hook/          author hooks
-│   └── create-agent/         author subagents; bundles md_to_toml.py for Codex
-├── skills/                   published skills (installable via SkillShed)
-│   ├── Configuration/
-│   │   └── dotset/
-│   ├── Debugging/
-│   │   └── bug-discovery/
-│   ├── Git/
-│   │   ├── commit/
-│   │   └── pr/
-│   ├── HuggingFace/
-│   │   └── hf/
-│   └── Research/
-│       └── ...               deep-research, eli5, literature-review, …
-└── agents/                   published subagents (installable via SkillShed)
-    └── Research/
-        ├── researcher/
-        │   ├── researcher.md        (global: name + description + body)
-        │   ├── researcher.toml      (Codex artefact, transpiled + hand-tuned)
-        │   └── .harness/
-        │       ├── claude.yaml      (Claude-specific frontmatter)
-        │       └── copilot.yaml     (Copilot CLI frontmatter)
-        ├── reviewer/...
-        ├── verifier/...
-        └── writer/...
+│   └── create-agent/         author subagents
+└── plugins/                  every published plugin
+    ├── git/
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/
+    │       ├── commit/SKILL.md
+    │       └── pr/SKILL.md
+    ├── debug/
+    ├── config/
+    ├── hf/
+    ├── langchain/
+    └── research/
+        ├── .claude-plugin/plugin.json
+        ├── skills/           deep-research, literature-review, peer-review, …
+        └── agents/           researcher.md, reviewer.md, verifier.md, writer.md
 ```
 
-Each leaf skill directory under `skills/` contains a `SKILL.md` (only `name` + `description` in frontmatter), a `.harness/claude.yaml` for Claude extras, and optional supporting assets.
-Each leaf agent directory under `agents/` contains a `<slug>.md` (only `name` + `description` in frontmatter), `.harness/claude.yaml` + `.harness/copilot.yaml`, and a Codex `<slug>.toml`.
-The `.claude/skills/` directory is the Claude Code loader's project-scoped location and holds **meta-skills only** — they are not published to the SkillShed-installable library.
+Every plugin directory is self-contained.
+Its manifest lives at `<plugin>/.claude-plugin/plugin.json`, and **only** the manifest goes in that directory.
+`skills/`, `agents/`, `hooks/`, and `.mcp.json` all sit at the plugin root, never inside `.claude-plugin/`.
+
+The `.claude/skills/` directory is the Claude Code loader's project-scoped location and holds **meta-skills only**.
+They are not published, and they load only when Claude Code runs from this repository.
+
+---
+
+## The Six Plugins
+
+| Plugin      | Contains                                                                                                                   | Invoked as                     |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `git`       | commit, pr                                                                                                                 | `/git:commit`                  |
+| `debug`     | bug-discovery                                                                                                              | `/debug:bug-discovery`         |
+| `config`    | dotset                                                                                                                     | `/config:dotset`               |
+| `hf`        | hf                                                                                                                         | `/hf:hf`                       |
+| `langchain` | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
+| `research`  | deep-research, external-research, literature-review, source-comparison, eli5, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
+
+Plugin skills are **always** namespaced by the plugin name.
+The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.
 
 ---
 
 ## Where New Skills and Agents Go
 
-Place a new skill under `skills/<Category>/`, or a new subagent under `agents/<Category>/`, picking the category that matches its **primary function** — not the language ecosystem it touches.
+Add a new skill to the plugin that matches its **primary function**, not the language ecosystem it touches.
+A skill about Python dotfiles belongs in `config`, not a new `python` plugin.
 
-| Category         | Belongs here                                                            |
-| ---------------- | ----------------------------------------------------------------------- |
-| `Git/`           | Anything driven by `git` or `gh` — commits, PRs, branches               |
-| `Configuration/` | Project setup, dotfiles, environment management                         |
-| `Debugging/`     | Diagnosis, root-cause analysis, evidence gathering                      |
-| `HuggingFace/`   | HF hub, models, datasets, inference providers                           |
-| `Research/`      | Literature search, deep research, peer review, paper-code audits, ELI5  |
+Create a new plugin only when no existing one fits, and only when you would want to install it independently of the others.
+A plugin is the unit of installation and of context cost — every enabled plugin's skill descriptions load on every turn.
+Two skills that are always wanted together belong in one plugin; a skill you would want in only one project belongs in its own.
 
-Create a new top-level category folder only when no existing one fits.
-A skill that touches Python tooling but is fundamentally about configuration belongs under `Configuration/`, not a new `Python/` folder.
+When you add a plugin you must also add its entry to `.claude-plugin/marketplace.json`, or it will not be installable.
 
 ---
 
 ## Skill File Structure
 
-A skill is a single Markdown file with YAML frontmatter:
+A skill is a directory under `<plugin>/skills/` containing a `SKILL.md` with YAML frontmatter:
 
 ```markdown
 ---
 name: <slug>
-description: <one or two sentences with trigger words the loader will match on>
+description: <one or two sentences with the trigger words the loader will match on>
+allowed-tools: Read Grep Bash(git *)
 ---
 
 <skill body — instructions, phases, references>
 ```
 
-Required frontmatter:
+Frontmatter rules:
 
-- `name` — the slug Claude Code uses to invoke the skill (matches the directory name).
+- `name` — the slug, matching the directory name.
   Must be ≤ 64 characters, lowercase letters / digits / hyphens, no leading or trailing hyphen, no consecutive hyphens.
+  Always set it explicitly; without it the invocation name falls back to the install directory name, which is unstable across updates.
 - `description` — drives auto-loading.
-  Pack it with the verbs and nouns a user would actually say when the skill should fire.
-  Must be ≤ 1,024 characters (open Agent Skills spec cap).
-  Long, trigger-rich descriptions are fine when the skill is meant to load aggressively.
+  Pack it with the verbs and nouns you would actually say when the skill should fire.
+  Must be ≤ 1,024 characters.
+- `allowed-tools` — Anthropic syntax, space-separated: `Bash(git *)`, not `Bash(git:*)`.
+- `when_to_use`, `argument-hint`, `disable-model-invocation`, `model`, `effort`, `paths`, `hooks` — all optional, all inline.
+
+Everything goes in the one file.
+There is no `.harness/` split any more; Claude Code reads `SKILL.md` frontmatter directly and performs no merge.
+
+Supporting assets — `references/`, `scripts/`, `assets/` — sit beside `SKILL.md` inside the skill directory and travel with it.
+Reference bundled files from the skill body with `${CLAUDE_PLUGIN_ROOT}` when a command needs an absolute path.
 
 ---
 
-## Multi-harness publishing (SkillShed)
+## Agent File Structure
 
-The skills and agents in this repo are installed into three assistant platforms by the [SkillShed](https://github.com/carelvniekerk/SkillShed) CLI: Claude Code, OpenAI Codex, and GitHub Copilot.
-SkillShed reads each entity's `SKILL.md` / `.md` from this repo, merges in optional per-harness overrides, injects a `metadata:` block recording the source commit SHA, and writes the result into the harness's expected directory.
+An agent is a single Markdown file directly under `<plugin>/agents/`:
 
-### Install paths SkillShed writes to
+```markdown
+---
+name: researcher
+description: <what it does, when to use it proactively, and its trigger phrases>
+tools: WebSearch, WebFetch, Read, Write
+model: sonnet
+permissionMode: acceptEdits
+color: blue
+---
 
-| Harness  | Skills (project)         | Skills (global)         | Agents (project)    | Agents (global)         |
-| -------- | ------------------------ | ----------------------- | ------------------- | ----------------------- |
-| claude   | `.claude/skills/`        | `~/.claude/skills/`     | `.claude/agents/`   | `~/.claude/agents/`     |
-| codex    | `.agents/skills/`        | `~/.agents/skills/`     | `.codex/agents/`    | `~/.codex/agents/`      |
-| copilot  | `.agents/skills/`        | `~/.agents/skills/`     | `.claude/agents/` * | `~/.copilot/agents/`    |
-
-\* SkillShed's Copilot agent project path is currently `.claude/agents/`; Copilot CLI actually reads from `.github/agents/`.
-The global path (`~/.copilot/agents/`) is correct.
-For Copilot agents, prefer `skillshed install -g` until the project-path bug is fixed.
-
-### Authoring rules
-
-These rules are how this repo stays portable across all three harnesses.
-The `create-skill` and `create-agent` meta-skills enforce them as part of their workflows.
-
-The core principle: **the `.md` file is global.**
-It contains only `name`, `description`, and the body — nothing harness-specific.
-Harness-specific frontmatter lives in `.harness/<harness>.yaml` files inside the entity directory, which SkillShed merges into the installed file's frontmatter at install time.
-
-- **Skills** (`skills/<Category>/<slug>/`):
-  - `SKILL.md` carries **only `name` and `description`** in its frontmatter, plus the body.
-  - `.harness/claude.yaml` — Claude Code extensions: `allowed-tools` in Anthropic syntax (e.g. `Bash(git *)`), `when_to_use`, `argument-hint`, `disable-model-invocation`, `model`, `effort`, `paths`, `hooks`, etc.
-  - `.harness/codex.yaml` — open Agent Skills spec keys the Codex CLI understands: `allowed-tools` in spec syntax (`Bash(git:*)`), `license`, `compatibility`, `metadata`.
-  - `.harness/copilot.yaml` — open spec keys plus VS Code Copilot extensions: `allowed-tools`, `argument-hint`, `disable-model-invocation`, `user-invocable`, `context: fork|inline`.
-  - Codex-specific UI / policy / MCP-server dependencies belong in `agents/openai.yaml` inside the skill directory as a regular asset (not under `.harness/`); SkillShed copies it through verbatim.
-  - Codex and Copilot install to the same path (`.agents/skills/`), so each install overwrites the previous. The contents of `.harness/codex.yaml` and `.harness/copilot.yaml` typically overlap (both inherit from the open spec) and the `.skills.yaml` author should pick one harness per consumer rather than both — or accept that the harness listed *last* wins.
-- **Agents** (`agents/<Category>/<slug>/`):
-  - `<slug>.md` carries **only `name` and `description`** in its frontmatter, plus the body (system prompt).
-  - `.harness/claude.yaml` carries Claude's agent fields (`tools`, `model`, `permissionMode`, `color`, etc.).
-  - `.harness/copilot.yaml` carries the Copilot CLI's agent fields (`tools`, `model`, etc.) — usually `tools: ["*"]` since Copilot's tool namespace differs from Anthropic's; tighten if you've verified Copilot tool names.
-  - `<slug>.toml` (generated by the bundled `scripts/md_to_toml.py`) is the Codex artefact.
-    Codex does **not** use `.harness/codex.yaml`; instead the `.toml` is shipped as a single-file SkillShed entity with everything Codex needs.
-
-### `.skills.yaml` example
-
-A consumer adds something like this to their `.skills.yaml` and runs `skillshed install`:
-
-```yaml
-skills:
-  - repo: carelvniekerk/AgenticSkills
-    path: skills/Git/commit
-    harnesses: [claude, codex, copilot]
-
-agents:
-  # Anthropic .md and Copilot CLI .md share the same source directory.
-  - repo: carelvniekerk/AgenticSkills
-    path: agents/Research/researcher
-    harnesses: [claude, copilot]
-
-  # Codex pulls the standalone .toml as a single-file entity.
-  - repo: carelvniekerk/AgenticSkills
-    path: agents/Research/researcher/researcher.toml
-    harnesses: [codex]
+<system prompt>
 ```
 
-For skills, one entry covers all three harnesses — Claude reads `.claude/skills/<name>/SKILL.md` (with `.harness/claude.yaml` merged in), Codex and Copilot read `.agents/skills/<name>/SKILL.md` (no overrides merged, because there is no `.harness/codex.yaml` or `.harness/copilot.yaml`).
-For agents, the `.md` entry covers Claude + Copilot (each with their own harness override), and Codex pulls the `.toml` separately.
+Agents are namespaced like skills — the file above is `research:researcher` in the `@`-mention typeahead.
+`tools` is comma-separated here, unlike a skill's space-separated `allowed-tools`.
+
+---
+
+## Plugin Manifest
+
+Each plugin needs `<plugin>/.claude-plugin/plugin.json`:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "git",
+  "description": "Thorough Git workflows — …",
+  "author": { "name": "Carel van Niekerk", "email": "code@carelvanniekerk.com" },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["git", "commit", "pull-request"]
+}
+```
+
+`name` must match the directory name and the marketplace entry.
+The `skills/` and `agents/` directories are discovered automatically — do not list them unless they live somewhere non-standard.
+
+**`version` is deliberately omitted.**
+With no version set, Claude Code falls back to the git commit SHA, so every push propagates to installed copies on the next update.
+Adding an explicit `version` pins the plugin to that string and installs stop updating until you bump it.
+`claude plugin validate` warns about the missing field; that warning is expected and intentional here.
+
+---
+
+## Marketplace Catalogue
+
+`.claude-plugin/marketplace.json` at the repo root lists every plugin.
+`metadata.pluginRoot` is set to `./plugins`, so each `source` is written relative to that:
+
+```json
+{
+  "name": "agentic-skills",
+  "owner": { "name": "Carel van Niekerk" },
+  "metadata": { "pluginRoot": "./plugins" },
+  "plugins": [
+    { "name": "git", "source": "./git", "category": "workflow", "tags": ["git", "commit"] }
+  ]
+}
+```
+
+Relative sources keep every plugin inside this one repository.
+That is what makes the marketplace work from a private repo and avoids a second repository per plugin.
+
+Run both validators before committing:
+
+```bash
+claude plugin validate .                 # the marketplace manifest
+claude plugin validate plugins/<name>    # a plugin manifest
+claude plugin validate plugins/<name>/skills   # the skill files themselves
+```
 
 ---
 
@@ -193,16 +221,14 @@ If the skill needs to **document** a Markdown template that itself contains code
 
 ### Co-authored-by trailers
 
-When a skill's commit-message templates include a `Co-Authored-By` line, keep the model name **platform-specific but model-agnostic**:
+When a skill's commit-message templates include a `Co-Authored-By` line, keep it **model-agnostic**:
 
 ```
-Co-Authored-By: Codex <noreply@openai.com>
-Co-Authored-By: Gemini <noreply@google.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-Use the assistant platform currently performing the work, such as `Codex`, `Gemini`, or `Claude`, with that platform's no-reply email.
-Do not hard-code a specific model version (`GPT-5.4`, `Gemini 2.5 Pro`, `Claude Sonnet 4.6`).
-The harness rotates models, and stale strings drift away from reality.
+Name the assistant platform, never a specific model version (`Claude Sonnet 4.6`, `Opus 5`).
+The harness rotates models, and a hard-coded string drifts away from reality within weeks.
 
 ### Strict prohibitions
 
@@ -216,72 +242,65 @@ This is the safety contract.
 Three skills under `.claude/skills/` automate the authoring of new Claude Code primitives.
 Use them whenever you create or refine the corresponding artefact instead of writing the file from scratch:
 
-| Skill          | For authoring                                                                                                                                                                                                                       |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create-skill` | A new `SKILL.md` — any leaf skill under `skills/` in this repo, or a skill bundled inside a plugin or agent. Aware of the SkillShed multi-harness install rules above.                                                              |
-| `create-hook`  | A hook entry — `settings.json`, plugin `hooks/hooks.json`, or skill/agent frontmatter `hooks:` field. Notes which hooks travel with SkillShed-installed entities.                                                                    |
-| `create-agent` | A subagent definition — Anthropic-style `.md` under `agents/<Category>/` plus a transpiled Codex `.toml` sibling (via the bundled `scripts/md_to_toml.py`). Documents Copilot CLI compatibility and the SkillShed install paths.    |
+| Skill          | For authoring                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| `create-skill` | A new `SKILL.md` — any skill under `plugins/<plugin>/skills/`, or a skill bundled inside a plugin.     |
+| `create-hook`  | A hook entry — `settings.json`, plugin `hooks/hooks.json`, or skill/agent frontmatter `hooks:` field.  |
+| `create-agent` | A subagent definition under `plugins/<plugin>/agents/`.                                                |
 
 These meta-skills are aware of each other.
-When a job needs more than one primitive — e.g. a skill that bundles a hook, an agent with preloaded skills, or a hook scoped to a specific subagent — each skill delegates to its sibling via the `Skill` tool rather than reimplementing the workflow inline.
-The "Companion skills" section near the top of each meta-skill enumerates the common compositions.
-
-Each meta-skill enforces the project conventions documented above (semantic line breaks, platform-specific model-agnostic Co-Authored-By trailers, prohibitions tables for skills that touch Git or the filesystem), so using them keeps new artefacts consistent with the rest of the repo.
+When a job needs more than one primitive — a skill that bundles a hook, an agent with preloaded skills, a hook scoped to a specific subagent — each delegates to its sibling via the `Skill` tool rather than reimplementing the workflow inline.
 
 ---
 
 ## Adding a Skill — Checklist
 
-1. Pick (or create) the right category folder under `skills/`.
-2. Create `skills/<Category>/<slug>/SKILL.md` with **only** `name` and `description` in the frontmatter, plus the body.
-   `name` matches the folder, ≤ 64 chars, lowercase + hyphens; `description` is trigger-rich and ≤ 1,024 chars.
-3. Create `skills/<Category>/<slug>/.harness/claude.yaml` with every Claude Code extension the skill needs (`allowed-tools`, `when_to_use`, `argument-hint`, `disable-model-invocation`, …).
-4. Invoke the `create-skill` meta-skill (or `/create-skill`) and let it drive the draft → test → review loop.
-   For hooks or subagents, invoke `create-hook` or `create-agent` instead — the meta-skills will delegate to each other when a composite artefact is needed.
-5. Draft the body in **semantic line breaks** as you type.
+1. Pick the plugin whose primary function matches, or create a new one (see below).
+2. Create `plugins/<plugin>/skills/<slug>/SKILL.md` with complete frontmatter — `name`, `description`, and whatever Claude extensions the skill needs.
+3. Invoke the `create-skill` meta-skill (or `/create-skill`) and let it drive the draft → test → review loop.
+4. Draft the body in **semantic line breaks** as you type.
+5. Put supporting assets in `references/`, `scripts/`, or `assets/` beside `SKILL.md`.
 6. If the skill runs commands, finish with a Strict Prohibitions table.
-7. Add `.harness/codex.yaml` and `.harness/copilot.yaml` with the spec-acceptable keys each platform understands (see Multi-harness publishing above). Convert Anthropic-style `Bash(cmd *)` to spec-style `Bash(cmd:*)` for those files.
-8. If the skill needs Codex-specific UI / policy / MCP-server config, commit `agents/openai.yaml` inside the skill directory as a regular asset.
-9. Verify the rendered output looks right in your editor's Markdown preview.
-10. Update `README.md` if the category list changed.
+7. Validate: `claude plugin validate plugins/<plugin>/skills`.
+8. Smoke-test it loads: `claude --plugin-dir plugins/<plugin>`, then invoke `/<plugin>:<slug>`.
+9. Update `README.md` if the plugin's contents table changed.
 
 ## Adding an Agent — Checklist
 
-1. Pick (or create) the right category folder under `agents/`.
-2. Create the agent directory: `agents/<Category>/<slug>/<slug>.md` with **only** `name` and `description` in the frontmatter, plus the body (system prompt).
-3. Create `.harness/claude.yaml` with the Claude-specific fields (`tools`, `model`, `permissionMode`, `color`, …).
-4. Create `.harness/copilot.yaml` with the Copilot CLI fields (`tools`, `model`).
-   Use `tools: ["*"]` unless you've verified Copilot's exact tool names.
-5. Run the transpiler to emit `agents/<Category>/<slug>/<slug>.toml` for Codex:
+1. Pick the plugin it belongs to.
+2. Create `plugins/<plugin>/agents/<slug>.md` with full frontmatter — `name`, `description`, `tools`, `model`, `permissionMode`, `color` — plus the system prompt as the body.
+3. Invoke the `create-agent` meta-skill if you need help.
+4. Validate: `claude plugin validate plugins/<plugin>/agents`.
+5. Smoke-test: `claude --plugin-dir plugins/<plugin>`, then check `<plugin>:<slug>` appears in `/context` under Custom Agents.
 
-   ```bash
-   uv run .claude/skills/create-agent/scripts/md_to_toml.py agents/<Category>/<slug>/<slug>.md
-   ```
-6. Edit the generated `.toml` to add any Codex-specific fields you want (e.g. `sandbox_mode`, `model_reasoning_effort`, `nickname_candidates`, `mcp_servers`).
-   The `.toml` is the source of truth for Codex installs — there is no `.harness/codex.yaml`.
-7. Invoke the `create-agent` meta-skill if you need help with any of the above.
-8. Commit the `.md`, both `.harness/*.yaml` files, and the `.toml`.
+## Adding a Plugin — Checklist
+
+1. `mkdir -p plugins/<name>/{.claude-plugin,skills}`.
+2. Write `plugins/<name>/.claude-plugin/plugin.json` — no `version` field.
+3. Add the entry to `.claude-plugin/marketplace.json` with `"source": "./<name>"`.
+4. Validate both: `claude plugin validate .` and `claude plugin validate plugins/<name>`.
+5. Add a row to the plugin table in this file and in `README.md`.
 
 No build step.
-No code is needed to manage the files — keep editing the markdown and YAML by hand.
-Re-run the transpiler whenever you edit the `.md` body, then re-apply your manual Codex-specific edits if needed.
+No generated files.
+Everything is hand-edited markdown and JSON.
 
 ---
 
 ## What Not to Do
 
-- Do not nest `<Category>/<skill>/SKILL.md` inside `~/.claude/skills/`.
-  The Claude Code loader only reads the top level of `~/.claude/skills/`.
-  SkillShed handles flattening at install time; you do not need to flatten by hand.
-- For **skills**, `.harness/codex.yaml` and `.harness/copilot.yaml` are now allowed and encouraged. They should carry only spec-acceptable keys (`allowed-tools` in `Bash(cmd:*)` form, `license`, `compatibility`, `metadata` for both; plus `argument-hint`, `disable-model-invocation`, `user-invocable`, `context` for Copilot only).
-  Both harnesses share `.agents/skills/`, so each subsequent install overwrites the previous file — pick one harness per `.skills.yaml` entry, or accept the last-listed-wins behaviour.
-  Codex-specific UI / policy / MCP-server config still goes in `agents/openai.yaml` inside the skill directory (a regular asset, not under `.harness/`).
-- Do not author `.harness/codex.yaml` inside an **agent** directory either.
-  Codex agents are shipped as the standalone `.toml` (a separate SkillShed entity), not as harness-overrides on the `.md`.
-- Do not put Claude-specific frontmatter directly into the `.md` for skills or agents.
-  The `.md` is global (`name` + `description` + body only); Claude extras live in `.harness/claude.yaml`.
-- The transpiled `.toml` for a Codex agent **may** be hand-edited to add Codex-only fields (`sandbox_mode`, `model_reasoning_effort`, `mcp_servers`, etc.).
-  But if you change the `.md` body, re-run the transpiler and then re-apply those edits.
+- Do not put `skills/`, `agents/`, or `hooks/` inside `.claude-plugin/`.
+  Only `plugin.json` goes there; everything else sits at the plugin root.
+- Do not reintroduce a `.harness/` directory.
+  Claude Code reads `SKILL.md` frontmatter directly and merges nothing.
+  The split existed to serve Codex and Copilot, which this repo no longer targets.
+- Do not add a `version` field to a plugin manifest unless you intend to hand-bump it on every change.
+  The git SHA fallback is what keeps installs current.
+- Do not reference files outside a plugin's own directory with `../`.
+  Installed plugins are copied into `~/.claude/plugins/cache/`, and anything outside the plugin root is left behind.
+  Use symlinks if two plugins genuinely must share a file.
+- Do not create a plugin per skill.
+  Each enabled plugin costs context on every turn; group skills you would install together.
 - Do not reflow paragraphs into long single lines in the source.
   Sentence-per-line is the convention; long lines defeat the diff benefit.
 - Do not write a script to enforce semantic line breaks.

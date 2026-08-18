@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "agentic-skills",
+  "description": "Personal library of Claude Code skills and subagents, grouped into installable plugins.",
+  "owner": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvanniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "git",
+      "source": "./git",
+      "category": "workflow",
+      "tags": ["git", "commit", "pull-request", "code-review"]
+    },
+    {
+      "name": "debug",
+      "source": "./debug",
+      "category": "workflow",
+      "tags": ["debugging", "diagnostics", "root-cause"]
+    },
+    {
+      "name": "config",
+      "source": "./config",
+      "category": "configuration",
+      "tags": ["dotfiles", "dotset", "uv", "direnv"]
+    },
+    {
+      "name": "hf",
+      "source": "./hf",
+      "category": "machine-learning",
+      "tags": ["huggingface", "models", "datasets"]
+    },
+    {
+      "name": "langchain",
+      "source": "./langchain",
+      "category": "machine-learning",
+      "tags": ["langchain", "langgraph", "multi-agent", "architecture"]
+    },
+    {
+      "name": "research",
+      "source": "./research",
+      "category": "research",
+      "tags": ["research", "literature-review", "peer-review", "academic"]
+    }
+  ]
+}

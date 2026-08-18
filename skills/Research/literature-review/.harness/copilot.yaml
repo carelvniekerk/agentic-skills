@@ -1,2 +1,0 @@
-allowed-tools: WebSearch WebFetch Read Write Bash(uv:*) Bash(mkdir:*)
-disable-model-invocation: false

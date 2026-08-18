@@ -1,4 +1,0 @@
-tools: WebSearch, WebFetch, Read, Write
-model: sonnet
-permissionMode: acceptEdits
-color: blue

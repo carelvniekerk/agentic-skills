@@ -1,124 +1,187 @@
 # AgenticSkills
 
-A personal library of [Claude Code](https://docs.claude.com/en/docs/claude-code) skills, organised by category.
-Each skill is a single `SKILL.md` file with YAML frontmatter that the Claude Code skill loader picks up at runtime.
+A personal library of [Claude Code](https://code.claude.com/docs) skills and subagents, packaged as installable **plugins** and served from a **plugin marketplace** hosted in this repository.
 
-For authoring conventions (folder taxonomy, semantic line breaks, frontmatter rules), see [`CLAUDE.md`](./CLAUDE.md).
-
----
-
-## Skills in this repo
-
-| Category         | Skill           | Purpose                                                                                  |
-| ---------------- | --------------- | ---------------------------------------------------------------------------------------- |
-| `Configuration/` | `dotset`        | Manage project dotfiles (`.gitignore`, `.uvgroups`, `.envrc`, …) via the `dotset` CLI    |
-| `Debugging/`     | `bug-discovery` | Diagnostic-first debugging: gather evidence, search exhaustively, write a ranked report  |
-| `Git/`           | `commit`        | Thorough commit workflow with code review, logical grouping, and pre-commit hook respect |
-| `Git/`           | `pr`            | End-to-end pull request workflow: tests, lint, type-check, review, open, merge, resync   |
-| `HuggingFace/`   | `hf`            | Hugging Face hub assistant — model / dataset profiles, prompt templates, agentic search  |
+For authoring conventions (plugin layout, frontmatter rules, semantic line breaks), see [`CLAUDE.md`](./CLAUDE.md).
 
 ---
 
-## Installing into Claude Code
+## Plugins
 
-Claude Code's skill loader reads from a flat directory — it does **not** recurse into category folders.
-The category structure here is for organisation only; on install, each skill is placed directly under the target skills directory.
+| Plugin      | Skills                                                                                                                    | Agents                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `git`       | `commit`, `pr`                                                                                                            | —                                          |
+| `debug`     | `bug-discovery`                                                                                                           | —                                          |
+| `config`    | `dotset`                                                                                                                  | —                                          |
+| `hf`        | `hf`                                                                                                                      | —                                          |
+| `langchain` | `langgraph-multi-agent-architect`                                                                                         | —                                          |
+| `research`  | `deep-research`, `external-research`, `literature-review`, `source-comparison`, `eli5`, `paper-draft`, `peer-review`, `paper-code-audit` | `researcher`, `writer`, `verifier`, `reviewer` |
 
-There are three common scopes:
+### What each one does
 
-| Scope             | Path                                      | Available where                        |
-| ----------------- | ----------------------------------------- | -------------------------------------- |
-| User              | `~/.claude/skills/<name>/SKILL.md`        | Every project on this machine          |
-| Project (skill)   | `<repo>/.claude/skills/<name>/SKILL.md`   | Inside this repo only                  |
-| Project (command) | `<repo>/.claude/commands/<name>.md`       | Inside this repo, invoked as `/<name>` |
+- **`git`** — conversation-aware commits that review every diff and split unrelated changes into separate logical commits, plus an end-to-end pull request flow with tests, lint, type-check, explicit review gates, and merge.
+Never bypasses hooks, never force-pushes.
 
-Pick whichever scope matches how broadly you want the skill available.
+- **`debug`** — diagnostic-first debugging.
+Gathers environment and run-condition evidence, reads the code and the full terminal output, searches issues and PRs exhaustively, then delivers a ranked hypothesis report and stops for discussion before any fix.
 
-### Install with `gh skills`
+- **`config`** — project dotfile management through the [`dotset`](https://github.com/carelvniekerk/DotSet) CLI: `.gitignore`, `.uvgroups`, `.envrc`, `.cleanup`, `.skyignore`, `.rsync-exclude`.
 
-The [`gh skills`](https://docs.github.com/en/copilot/concepts/agents/agent-skills) CLI extension installs skills directly from this GitHub repository (`carelvniekerk/agentic-skills`).
-Pass the skill's path within the repo as the second argument.
+- **`hf`** — Hugging Face hub assistant: model and dataset profiles, prompt and chat templates, inference providers, licences, linked papers, and search for models suited to agentic or tool-use workloads.
+
+- **`langchain`** — multi-agent architecture selection for LangChain and LangGraph.
+Argues for a single agent first, then maps constraints onto subagents, handoffs, skills, router, or a custom workflow, and delivers an architecture decision record with an explicit call and token cost model.
+
+- **`research`** — the full research pipeline: evidence gathering, synthesis, citation anchoring, and critique.
+Ships four subagents (`researcher` → `writer` → `verifier` → `reviewer`) that the skills delegate to.
+
+---
+
+## Install
+
+Add the marketplace once:
 
 ```bash
-# user scope — available in every project on this machine
-gh skill install carelvniekerk/agentic-skills Git/commit/SKILL.md \
-  --agent claude-code --scope user
-
-# project scope — writes to ./.claude/skills/ in the current repo
-gh skill install carelvniekerk/agentic-skills Git/commit/SKILL.md \
-  --agent claude-code --scope project
-
-# project-level slash command — writes to ./.claude/commands/ so it loads as /commit
-gh skill install carelvniekerk/agentic-skills Git/commit/SKILL.md \
-  --dir .claude/commands
+/plugin marketplace add carelvniekerk/agentic-skills
 ```
 
-`--dir` overrides `--agent` and `--scope`, so the third form is exactly how you "install as a project-level command".
-
-To pin a skill to a specific revision, append `@<tag-or-sha>` to the skill argument or pass `--pin <ref>`:
+Then install the plugins you want.
+Scope decides where they apply:
 
 ```bash
-gh skill install carelvniekerk/agentic-skills Git/commit/SKILL.md@v1.0.0 \
-  --agent claude-code --scope user
+# global — available in every project on this machine
+claude plugin install git@agentic-skills
+
+# project — shared with collaborators via .claude/settings.json
+claude plugin install research@agentic-skills --scope project
+
+# local — this repo only, not committed
+claude plugin install debug@agentic-skills --scope local
 ```
 
-To install all skills at once at user scope:
+Inside a session, `/plugin install git@agentic-skills` opens the same flow with a scope picker.
+If the install summary says `Run /reload-plugins to activate.`, run that; otherwise the plugin is already live.
 
-```bash
-for path in \
-    Configuration/dotset/SKILL.md \
-    Debugging/bug-discovery/SKILL.md \
-    Git/commit/SKILL.md \
-    Git/pr/SKILL.md \
-    HuggingFace/hf/SKILL.md; do
-  gh skill install carelvniekerk/agentic-skills "$path" \
-    --agent claude-code --scope user
-done
+### Declarative project setup
+
+To have a project pull the marketplace automatically once collaborators trust the folder, add this to that project's `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "agentic-skills": {
+      "source": { "source": "github", "repo": "carelvniekerk/agentic-skills" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "git@agentic-skills": true,
+    "research@agentic-skills": true
+  }
+}
 ```
+
+Registering the marketplace this way does not fetch the plugins themselves — collaborators still run `claude plugin install` once.
+`enabledPlugins` decides what is switched on afterwards.
 
 ---
 
-## Verifying the install
+## Using the skills
 
-After install, restart Claude Code (or reload the workspace) and confirm the skill is loaded:
+Plugin skills are namespaced by plugin name:
 
-- User-scope skills appear in every session's available skills list.
-- Project-scope skills appear only when Claude Code is launched from the project root.
-- Slash commands appear by their filename: `commit.md` → `/commit`.
-
-If a skill does not appear:
-
-- Confirm `<target>/<name>/SKILL.md` exists (skills) or `<target>/<name>.md` exists (commands).
-- Verify the YAML frontmatter `name:` matches the directory or filename.
-- Reload Claude Code — skills are read at startup.
-
----
-
-## Updating an installed skill
-
-```bash
-gh skill update --agent claude-code
+```text
+/git:commit
+/git:pr
+/debug:bug-discovery
+/research:deep-research
+/research:peer-review
+/langchain:langgraph-multi-agent-architect
 ```
 
-`gh skills install` injects source-tracking metadata into the installed skill's frontmatter, so `gh skill update` knows where each skill came from and can refresh it from the upstream repo.
+Most also fire automatically from their `description` — you rarely need to type them.
+Two are slash-only by design (`disable-model-invocation: true`): `/research:paper-draft` and `/research:paper-code-audit`.
+
+Agents are namespaced the same way and appear in the `@`-mention typeahead as `research:researcher`, `research:writer`, `research:verifier`, `research:reviewer`.
 
 ---
 
-## Uninstalling
+## Updating
+
+No plugin here sets a `version`, so Claude Code uses the git commit SHA as the version.
+Every push to `main` therefore counts as a new version and flows through to installed copies.
+
+Enable background auto-update once per marketplace — third-party marketplaces have it **off** by default:
+
+`/plugin` → **Marketplaces** → `agentic-skills` → **Enable auto-update**
+
+Or set `"autoUpdate": true` on the `extraKnownMarketplaces` entry as shown above.
+
+To update by hand:
 
 ```bash
-# user scope
-rm -rf ~/.claude/skills/<name>
-
-# project scope
-rm -rf ./.claude/skills/<name>
-
-# project-level command
-rm ./.claude/commands/<name>.md
+claude plugin marketplace update            # refresh all marketplace catalogues
+claude plugin update git@agentic-skills     # update one plugin
 ```
+
+There is no built-in "update all plugins" command.
+The JSON output makes one easy:
+
+```bash
+claude plugin list --json | jq -r '.[].id' | xargs -n1 claude plugin update
+```
+
+Updates apply on restart or `/reload-plugins`.
 
 ---
 
-## Contributing a skill
+## Managing
 
-See [`CLAUDE.md`](./CLAUDE.md) for the authoring conventions used in this repo (category placement, frontmatter, semantic line breaks, prohibitions tables).
+```bash
+claude plugin list                          # what's installed, with scope and version
+claude plugin details git                   # component inventory and context cost
+claude plugin disable git@agentic-skills    # keep installed, stop loading
+claude plugin uninstall git@agentic-skills
+```
+
+Installed plugins are cached at `$CLAUDE_CONFIG_DIR/plugins/cache/<marketplace>/<plugin>/<version>/`, and the marketplace clone sits in `$CLAUDE_CONFIG_DIR/plugins/marketplaces/`.
+
+---
+
+## Local development
+
+Test a plugin without installing it:
+
+```bash
+claude --plugin-dir plugins/git --plugin-dir plugins/research
+```
+
+A `--plugin-dir` copy takes precedence over an installed plugin of the same name for that session, so you can iterate on a plugin you already have installed.
+Run `/reload-plugins` to pick up edits without restarting.
+
+Validate before committing:
+
+```bash
+claude plugin validate .                        # marketplace manifest
+claude plugin validate plugins/git              # plugin manifest
+claude plugin validate plugins/git/skills       # the skill files
+```
+
+Plugin manifests here intentionally omit `version`, so `validate` reports one warning per plugin.
+That is expected.
+
+### Loading them without installing at all
+
+Because the plugin directories are already in the right shape, a symlink into your skills directory makes them load automatically as `<name>@skills-dir`, with no marketplace, install, or cache involved:
+
+```bash
+ln -s ~/Projects/AgenticSkills/plugins/git ~/.claude/skills/git
+```
+
+Handy if you keep more than one Claude Code config directory and want them to share a single checkout.
+
+---
+
+## Contributing
+
+See [`CLAUDE.md`](./CLAUDE.md) for the authoring conventions — plugin membership, frontmatter rules, semantic line breaks, and the prohibitions-table requirement for anything that touches Git, the filesystem, or remote services.

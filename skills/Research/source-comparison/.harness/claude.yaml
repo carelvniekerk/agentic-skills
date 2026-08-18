@@ -1,7 +1,0 @@
-when_to_use: >
-  Trigger phrases: "compare", "X vs Y", "how do these differ", "which is better", "evaluate these options",
-  "comparison matrix", "compare papers", "compare tools", "compare frameworks", "compare methods",
-  "what are the trade-offs", "side by side", "how does X stack up against Y".
-argument-hint: <topic or list of things to compare>
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
-disable-model-invocation: false

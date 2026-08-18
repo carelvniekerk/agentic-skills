@@ -1,1 +1,0 @@
-allowed-tools: Read Grep Bash(git:*) Bash(gh:*) Bash(uv:*) Bash(uvx:*) Bash(npm:*) Bash(cargo:*) Bash(make:*) Bash(just:*) Bash(pytest:*)
