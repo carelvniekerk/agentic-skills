@@ -49,7 +49,7 @@ This context must inform both the review in Phase 4 and the PR description in Ph
 Detect the project's test runner and run the full suite:
 
 | Stack | Command |
-|---|---|
+| --- | --- |
 | Python (uv) | `uv run pytest` |
 | Python (no uv) | `pytest` |
 | Node | `npm test` (or `npm run test`) |
@@ -288,7 +288,7 @@ Report the final state to the user:
 ## Strict Prohibitions
 
 | Prohibited | Reason |
-|---|---|
+| --- | --- |
 | `--no-verify` | Bypasses safety hooks |
 | `--no-gpg-sign` / `-c commit.gpgsign=false` | Bypasses signing |
 | `--amend` after a hook failure | Destroys the previous commit |

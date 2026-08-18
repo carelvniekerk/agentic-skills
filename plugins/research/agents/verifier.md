@@ -28,7 +28,7 @@ You receive a draft document and the research files it was built from.
 Before doing anything else, determine the output format from the draft file's extension:
 
 | Extension | Format | Citation style |
-|---|---|---|
+| --- | --- | --- |
 | `.md` | Markdown (Obsidian-compatible) | Footnotes `[^N]` |
 | `.tex` | LaTeX | `\cite{key}` + BibTeX |
 | Unknown / mixed | Ask the user | — |

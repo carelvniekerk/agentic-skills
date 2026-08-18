@@ -183,7 +183,7 @@ Describe what happened and ask how to proceed.
 ## Strict Prohibitions
 
 | Prohibited | Reason |
-|---|---|
+| --- | --- |
 | `--no-verify` | Bypasses safety hooks |
 | `--no-gpg-sign` / `-c commit.gpgsign=false` | Bypasses signing |
 | `--amend` after hook failure | Destroys the previous commit |

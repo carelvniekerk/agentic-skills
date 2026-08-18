@@ -20,7 +20,7 @@ This skill is for **external** evidence gathering only — check local knowledge
 ## Tool Routing
 
 | What you need | Tool to use | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Current topics: products, releases, benchmarks, docs, pricing | `WebSearch` | Always for "latest/current/recent" queries |
 | Academic papers, methods, theoretical results | `WebSearch` → arXiv, Semantic Scholar, Google Scholar | Background literature |
 | Code repositories, implementations | `WebSearch` → GitHub | Reproducibility checks |
