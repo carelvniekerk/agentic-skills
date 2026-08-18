@@ -48,7 +48,7 @@ They are not published, and they load only when Claude Code runs from this repos
 | `git`       | commit, pr                                                                                                                 | `/git:commit`                  |
 | `debug`     | bug-discovery                                                                                                              | `/debug:bug-discovery`         |
 | `config`    | dotset                                                                                                                     | `/config:dotset`               |
-| `hf`        | hf                                                                                                                         | `/hf:hf`                       |
+| `hf`        | hf + bundled Hugging Face MCP server                                                                                       | `/hf:hf`                       |
 | `langchain` | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
 | `research`  | deep-research, external-research, literature-review, source-comparison, eli5, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
 
@@ -113,7 +113,6 @@ name: researcher
 description: <what it does, when to use it proactively, and its trigger phrases>
 tools: WebSearch, WebFetch, Read, Write
 model: sonnet
-permissionMode: acceptEdits
 color: blue
 ---
 
@@ -122,6 +121,14 @@ color: blue
 
 Agents are namespaced like skills — the file above is `research:researcher` in the `@`-mention typeahead.
 `tools` is comma-separated here, unlike a skill's space-separated `allowed-tools`.
+
+Refer to an agent by its **namespaced** name everywhere a skill body tells Claude to spawn it — "Spawn a `research:verifier` agent", never a bare `verifier`.
+The bare slug is what the agents were called before they moved into plugins, and it is not the address any more.
+
+**`hooks`, `mcpServers`, and `permissionMode` are silently ignored on a plugin agent.**
+No validator warns you, because ignored is not the same as invalid.
+Put hooks in `<plugin>/hooks/hooks.json` and MCP servers in `<plugin>/.mcp.json`; for `permissionMode` there is no plugin-level equivalent, so express the restriction through `tools` instead.
+An agent that must not write is one with no write tool in its `tools` list — not one carrying `permissionMode: plan`.
 
 ---
 
@@ -149,6 +156,39 @@ The `skills/` and `agents/` directories are discovered automatically — do not 
 With no version set, Claude Code falls back to the git commit SHA, so every push propagates to installed copies on the next update.
 Adding an explicit `version` pins the plugin to that string and installs stop updating until you bump it.
 `claude plugin validate` warns about the missing field; that warning is expected and intentional here.
+
+---
+
+## Bundled MCP Servers
+
+A plugin may ship an MCP server in `<plugin>/.mcp.json` at the plugin root.
+`hf` is the only one here that does, registering the official Hugging Face server:
+
+```json
+{
+  "mcpServers": {
+    "huggingface": { "type": "http", "url": "https://huggingface.co/mcp" }
+  }
+}
+```
+
+Three things about this are easy to get wrong.
+
+**Tool names carry both the plugin and the server key.**
+The full form is `mcp__plugin_<plugin>_<server>__<tool>` — so `hf_fs` on the server above is `mcp__plugin_hf_huggingface__hf_fs`, not `mcp__huggingface__hf_fs`.
+That is the name a skill's `allowed-tools` must use.
+
+**Omit `Authorization` when the server supports OAuth.**
+A header the server rejects makes Claude Code report the connection as failed rather than falling back to the OAuth flow, so a bundled `Bearer ${SOME_TOKEN}` that is unset or stale is worse than no header at all.
+With no header, `claude mcp login <server>` or `/mcp` runs the browser flow.
+
+**A bundled server can shadow a claude.ai connector.**
+Plugin servers and connectors are matched by *endpoint*, not by name, and plugin servers outrank connectors.
+Bundling a URL a user already has connected through claude.ai therefore replaces it rather than duplicating it — which also changes the tool prefix out from under any skill that hard-codes `mcp__claude_ai_*`.
+A skill that must work either way should list both prefixes in `allowed-tools` and refer to tools by their unqualified names in the body.
+
+Never assume a remote server's tool list is fixed.
+The Hugging Face server, for one, resolves its tool set per account, so write skills to degrade to a documented fallback rather than to fail when a tool is absent.
 
 ---
 

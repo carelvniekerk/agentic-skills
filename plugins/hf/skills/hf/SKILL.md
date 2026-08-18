@@ -11,7 +11,7 @@ description: >
     use; understanding the recommended system prompt or generation settings for a
     model. Also load when the user pastes a Hugging Face repo ID (format
     "org/repo-name") and asks to explore or use it.
-allowed-tools: WebSearch WebFetch mcp__claude_ai_Hugging_Face__hub_repo_details mcp__claude_ai_Hugging_Face__hub_repo_search mcp__claude_ai_Hugging_Face__hf_hub_query mcp__claude_ai_Hugging_Face__hf_doc_search mcp__claude_ai_Hugging_Face__hf_doc_fetch mcp__claude_ai_Hugging_Face__paper_search mcp__claude_ai_Hugging_Face__space_search mcp__claude_ai_Hugging_Face__dynamic_space
+allowed-tools: WebSearch WebFetch mcp__plugin_hf_huggingface__hf_fs mcp__plugin_hf_huggingface__hf_whoami mcp__plugin_hf_huggingface__hub_repo_details mcp__plugin_hf_huggingface__hub_repo_search mcp__plugin_hf_huggingface__hf_hub_query mcp__plugin_hf_huggingface__hf_doc_search mcp__plugin_hf_huggingface__hf_doc_fetch mcp__plugin_hf_huggingface__paper_search mcp__plugin_hf_huggingface__space_search mcp__plugin_hf_huggingface__dynamic_space mcp__claude_ai_Hugging_Face__hf_fs mcp__claude_ai_Hugging_Face__hf_whoami mcp__claude_ai_Hugging_Face__hub_repo_details mcp__claude_ai_Hugging_Face__hub_repo_search mcp__claude_ai_Hugging_Face__hf_hub_query mcp__claude_ai_Hugging_Face__hf_doc_search mcp__claude_ai_Hugging_Face__hf_doc_fetch mcp__claude_ai_Hugging_Face__paper_search mcp__claude_ai_Hugging_Face__space_search mcp__claude_ai_Hugging_Face__dynamic_space
 ---
 
 You are an expert Hugging Face Hub navigator and ML practitioner.
@@ -29,18 +29,45 @@ If a query returns no relevant results, the output says so explicitly rather tha
 
 ## Available Tools
 
-| Tool                                            | When to use                                                            |
-| ----------------------------------------------- | ---------------------------------------------------------------------- |
-| `mcp__claude_ai_Hugging_Face__hub_repo_details` | Deep metadata for 1–10 known repo IDs                                  |
-| `mcp__claude_ai_Hugging_Face__hub_repo_search`  | Keyword + filter search across models / datasets / spaces              |
-| `mcp__claude_ai_Hugging_Face__hf_hub_query`     | Flexible NL navigator: trending, counts, field queries, search helpers |
-| `mcp__claude_ai_Hugging_Face__hf_doc_search`    | Search transformers / diffusers / datasets documentation               |
-| `mcp__claude_ai_Hugging_Face__hf_doc_fetch`     | Fetch a HF or Gradio docs page (URL must be under `/docs/`)            |
-| `mcp__claude_ai_Hugging_Face__paper_search`     | Semantic search for ML research papers on the HF Hub                   |
-| `mcp__claude_ai_Hugging_Face__space_search`     | Semantic search for HF Spaces (demos, MCP servers)                     |
-| `mcp__claude_ai_Hugging_Face__dynamic_space`    | Invoke an MCP-enabled Space as a tool                                  |
-| `WebSearch`                                     | Broad web search: arXiv, GitHub, technical reports, prompt guides      |
-| `WebFetch`                                      | Fetch arXiv abstracts, GitHub READMEs, model homepages                 |
+The Hub tools come from the Hugging Face MCP server, which reaches this session by one of two routes:
+
+- **Bundled with this plugin** — `plugins/hf/.mcp.json` registers `https://huggingface.co/mcp`, and its tools are named `mcp__plugin_hf_huggingface__<tool>`.
+Authenticate once with `/mcp` or `claude mcp login huggingface`.
+- **The claude.ai Hugging Face connector** — enabled on your Anthropic account rather than by this plugin, and its tools are named `mcp__claude_ai_Hugging_Face__<tool>`.
+
+Both point at the same endpoint, so Claude Code treats them as duplicates and connects only one, preferring the plugin-bundled copy.
+The table below therefore names each tool **unqualified**.
+Resolve it against whichever prefix is present in this session, and use the same prefix for every subsequent call.
+
+| Tool               | When to use                                                            |
+| ------------------ | ---------------------------------------------------------------------- |
+| `hf_fs`            | Primary navigator: browse the Hub, semantic search over docs and Spaces |
+| `hub_repo_details` | Deep metadata for 1–10 known repo IDs                                  |
+| `hub_repo_search`  | Keyword + filter search across models / datasets / spaces              |
+| `hf_whoami`        | Confirm which HF account the server is authenticated as                |
+| `hf_hub_query`     | Flexible NL navigator: trending, counts, field queries, search helpers |
+| `hf_doc_search`    | Search transformers / diffusers / datasets documentation               |
+| `hf_doc_fetch`     | Fetch a HF or Gradio docs page (URL must be under `/docs/`)            |
+| `paper_search`     | Semantic search for ML research papers on the HF Hub                   |
+| `space_search`     | Semantic search for HF Spaces (demos, MCP servers)                     |
+| `dynamic_space`    | Invoke an MCP-enabled Space as a tool                                  |
+| `WebSearch`        | Broad web search: arXiv, GitHub, technical reports, prompt guides      |
+| `WebFetch`         | Fetch arXiv abstracts, GitHub READMEs, model homepages                 |
+
+### When a tool in this table is missing
+
+The HF MCP server exposes a **per-account** tool set, configured at <https://huggingface.co/settings/mcp>.
+Only `hf_fs` is guaranteed; everything else in the table is opt-in and may be absent from this session.
+
+Never treat a missing tool as a dead end, and never invent its output.
+Fall back in this order:
+
+1. `hf_fs` — it can navigate to most Hub resources and covers documentation and Space search semantically.
+2. `WebFetch` against the canonical URL (`https://hf.co/<repo_id>`, `https://hf.co/datasets/<repo_id>`, or the raw `resolve/main/<file>` path for `config.json` / `tokenizer_config.json`).
+3. `WebSearch` as a last resort.
+
+If a step of a mode below names a tool that is not available, say which tool was missing and which fallback you used, then continue.
+Suggest enabling it in the user's MCP settings only if the fallback materially degraded the answer.
 
 ---
 
