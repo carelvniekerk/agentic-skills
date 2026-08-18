@@ -96,17 +96,17 @@ Ask the user — in a single batched message — to confirm:
 1. **What action should fire automatically?**
    One sentence, action-oriented (format files, block destructive commands, log every Bash call, inject context after compaction, send a notification).
 2. **At which lifecycle point?**
-   See [§ The lifecycle and event catalogue](#the-lifecycle-and-event-catalogue) below to pick.
+   See [§ The lifecycle and event catalogue](#phase-1--the-lifecycle-and-event-catalogue) below to pick.
    The user often names the wrong event (e.g. wants `PostToolUse` to block — that's `PreToolUse`); always confirm the event matches the intent before drafting.
 3. **What should happen on failure?**
    _Block the action_ (exit 2 or `permissionDecision: "deny"`), _warn but proceed_ (non-zero exit ≠ 2), _give Claude feedback to retry_ (`PostToolUse` with `decision: "block"` and `reason`), or _just log_ (any non-blocking exit).
 4. **Where should the hook live?**
    Personal `~/.claude/settings.json`, project `.claude/settings.json` (committed), project `.claude/settings.local.json` (gitignored), plugin `hooks/hooks.json`, or skill/agent frontmatter.
-   See [§ Hook locations and scope](#hook-locations-and-scope).
+   See [§ Hook locations and scope](#phase-2--hook-locations-and-scope).
 5. **Is this a deterministic rule or a judgement call?**
    Deterministic → command/HTTP/MCP hook.
    Judgement → prompt or agent hook.
-   See [§ Hook handler types](#hook-handler-types).
+   See [§ Hook handler types](#phase-4--hook-handler-types).
 
 Wait for confirmation before drafting.
 
@@ -196,11 +196,17 @@ Hooks from plugins force-enabled in `enabledPlugins` are exempt — that's how a
 **Edits are usually picked up automatically** — Claude Code watches the settings files and reloads hooks.
 If a change doesn't take effect, restart the session.
 
-### Hooks and SkillShed publishing
+### Hooks and plugin publishing
 
-If the hook is bundled inside skill or agent frontmatter, it travels with the skill or agent when SkillShed installs them — the frontmatter is preserved verbatim on the installed file.
-Hooks in `settings.json` / `settings.local.json` are **not** part of any SkillShed entity and must be distributed separately (committed to the consumer's repo, or shipped via a plugin).
-For a deterministic rule that should apply only while a particular skill or agent is active, prefer frontmatter hooks over settings hooks for exactly this reason — the skill is self-contained and the hook is portable across harnesses that recognise the frontmatter field (Claude Code does; Codex and Copilot tolerate the `hooks:` key as unknown YAML and ignore it, so no breakage on those platforms either).
+A hook bundled inside skill or agent frontmatter travels with that skill or agent when the plugin is installed — the frontmatter ships verbatim.
+A hook that should apply whenever the whole plugin is enabled belongs in `plugins/<plugin>/hooks/hooks.json` instead; Claude Code discovers that file automatically at the plugin root.
+
+Hooks in `settings.json` / `settings.local.json` are **not** part of any plugin and must be distributed separately — committed to the consumer's repo, or moved into a plugin.
+
+For a deterministic rule that should apply only while a particular skill or agent is active, prefer frontmatter hooks over settings hooks: the skill stays self-contained and the hook cannot outlive it.
+
+Two plugin-agent restrictions to remember: a **plugin agent's** `hooks` and `mcpServers` frontmatter is silently ignored.
+Put those at the plugin level (`hooks/hooks.json`, `.mcp.json`) rather than in an agent's frontmatter.
 
 ---
 
@@ -252,7 +258,7 @@ How it's evaluated depends on the characters it contains:
 **Critical gotcha:** `mcp__memory` matches _no tool_, because it contains only letters/underscores and is therefore evaluated as an exact string — and no MCP tool is named exactly `mcp__memory`.
 You **must** append `.*` to match all tools from a server: `mcp__memory__.*`.
 
-What each event's matcher actually filters varies — see the [event catalogue](#the-lifecycle-and-event-catalogue) above.
+What each event's matcher actually filters varies — see the [event catalogue](#phase-1--the-lifecycle-and-event-catalogue) above.
 Tool events filter on `tool_name`; `SessionStart` filters on `source` (`startup`/`resume`/`clear`/`compact`); `Notification` on type; `PreCompact`/`PostCompact` on `manual`/`auto`; etc.
 
 These events **don't support matchers** at all (any matcher you set is silently ignored): `UserPromptSubmit`, `PostToolBatch`, `Stop`, `TeammateIdle`, `TaskCreated`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `CwdChanged`.

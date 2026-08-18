@@ -1,7 +1,0 @@
-when_to_use: >
-  Trigger phrases: "audit this paper", "check the code", "does the implementation match", "verify reproducibility",
-  "code vs paper", "is the code consistent with the paper", "check the repo against the paper",
-  "reproducibility check", "what deviates from the paper", "does the code do what the paper claims".
-argument-hint: <paper-url-or-arXiv-ID> <repo-url>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
-disable-model-invocation: true

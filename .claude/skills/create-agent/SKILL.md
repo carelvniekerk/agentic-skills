@@ -1,9 +1,18 @@
 ---
 name: create-agent
-description: Author, edit, and debug Claude Code subagents (Markdown files under `.claude/agents/` or `~/.claude/agents/`, or JSON passed to `--agents`) following the official subagents reference.
-  Use this skill aggressively whenever the user mentions creating, writing, editing, configuring, debugging, or distributing a subagent — even if they only say "make a code-reviewer agent", "build a research subagent", "agent for running tests", "spawn a worker agent", or reference any of the built-in agents (`Explore`, `Plan`, `general-purpose`).
-  Also use it when reviewing existing agent frontmatter, choosing between subagent / fork / skill / agent-team, designing tool restrictions and `permissionMode`, scoping MCP servers, preloading skills, enabling persistent memory, configuring `isolation: worktree`, controlling background vs. foreground execution, designing automatic-delegation descriptions, or setting up `--agent` for whole-session use.
-  The skill enforces a draft → test → review → iterate loop and keeps frontmatter aligned with the current subagents reference.
+description: >-
+  Author, edit, and debug Claude Code subagents (Markdown files under `.claude/agents/`, `~/.claude/agents/`,
+  or `plugins/<plugin>/agents/`, or JSON passed to `--agents`) following the official subagents reference.
+  Use this skill aggressively whenever the user mentions creating, writing, editing, configuring, debugging,
+  or distributing a subagent — even if they only say "make a code-reviewer agent", "build a research subagent",
+  "agent for running tests", "spawn a worker agent", or reference any of the built-in agents
+  (`Explore`, `Plan`, `general-purpose`).
+  Also use it when reviewing existing agent frontmatter, choosing between subagent / fork / skill / agent-team,
+  designing tool restrictions and permission modes, scoping MCP servers, preloading skills, enabling persistent
+  memory, configuring worktree isolation, controlling background vs. foreground execution, designing
+  automatic-delegation descriptions, or setting up `--agent` for whole-session use.
+  The skill enforces a draft → test → review → iterate loop and keeps frontmatter aligned with the current
+  subagents reference.
 allowed-tools: Read Write Edit Glob Grep Bash(mkdir *) Bash(ls *) Bash(cat *) Bash(chmod *) Bash(git *) Bash(claude *) Bash(jq *) Bash(uv *) Bash(echo *)
 ---
 
@@ -40,92 +49,66 @@ Everything below operationalises that.
 
 ---
 
-## Multi-harness agents (SkillShed)
+## Agents in this repository
 
-This repository's agents are published via the SkillShed installer into three assistant platforms.
-Each platform has a different artefact format and install path for subagents — this is the largest source of divergence in the whole skill ecosystem and deserves explicit treatment before you start authoring.
+Agents here ship inside a plugin: `plugins/<plugin>/agents/<slug>.md`.
+Claude Code reads that frontmatter directly and merges nothing, so the file is complete on its own.
 
-### The three target formats
+### Anatomy
 
-| Platform           | File format                  | Project path          | Global path             | Notes                                                                                       |
-| ------------------ | ---------------------------- | --------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
-| Claude Code        | `.md` + YAML frontmatter     | `.claude/agents/`     | `~/.claude/agents/`     | Canonical source format. Everything else is derived from this.                              |
-| OpenAI Codex       | **`.toml`** (not Markdown)   | `.codex/agents/`      | `~/.codex/agents/`      | Body is a TOML string field (`developer_instructions = """..."""`).                         |
-| GitHub Copilot CLI | `.md` + YAML frontmatter     | `.github/agents/`     | `~/.copilot/agents/`    | Plain `.md` is accepted (`.agent.md` is the canonical Copilot suffix but not required).      |
+```markdown
+---
+name: researcher
+description: <what it does, when to use it proactively, and its trigger phrases>
+tools: WebSearch, WebFetch, Read, Write
+model: sonnet
+permissionMode: acceptEdits
+color: blue
+---
 
-Only `name` and `description` are universally required; the body / instructions are required everywhere too.
-Codex's body lives in `developer_instructions`, the other two use the markdown body.
+<system prompt>
+```
 
-### The `.md` is global — only `name` and `description`
+`name` and `description` are required.
+Everything else is optional: `tools`, `disallowedTools`, `model`, `effort`, `permissionMode`, `color`, `mcpServers`, `hooks`, `memory`, `background`, `isolation`, `maxTurns`, `skills`, `initialPrompt`.
 
-In this repository, the agent `.md` carries **only `name` and `description`** in its frontmatter, plus the markdown body (the system prompt).
-Every harness-specific frontmatter field lives in a per-harness override file inside `.harness/`:
+Note the syntax difference from a skill: an agent's `tools` is **comma-separated** (`Read, Write, WebFetch`), while a skill's `allowed-tools` is **space-separated** (`Read Write WebFetch`).
 
-- `.harness/claude.yaml` — Claude Code agent fields (`tools`, `model`, `permissionMode`, `color`, `disallowedTools`, `mcpServers`, `hooks`, `memory`, `background`, `isolation`, `effort`, `initialPrompt`, `skills`, `maxTurns`).
-- `.harness/copilot.yaml` — Copilot CLI agent fields (`tools`, `model`, `target`, `disable-model-invocation`, `user-invocable`, `mcp-servers`, `metadata`).
-- **No `.harness/codex.yaml`** — Codex agents ship as a standalone `.toml` file (separate SkillShed entity), not as a harness-override on the `.md`.
+### Authoring flow
 
-### Author once, ship three
+1. Pick the plugin the agent belongs to — the same one as the skills that will delegate to it.
+2. Write `plugins/<plugin>/agents/<slug>.md` with complete frontmatter plus the system prompt as the body.
+3. Validate: `claude plugin validate plugins/<plugin>/agents`.
+4. Smoke-test: `claude --plugin-dir plugins/<plugin>`, then confirm `<plugin>:<slug>` appears in `/context` under Custom Agents, or `@`-mention it.
 
-The authoring flow is:
+There is no separate manifest entry per agent.
+The `agents/` directory is discovered automatically from the plugin root.
 
-1. Create the agent directory `agents/<Category>/<slug>/`.
-2. Inside it, write `<slug>.md` with frontmatter limited to `name` + `description`, plus the body.
-3. Create `.harness/claude.yaml` with the agent's Claude fields.
-4. Create `.harness/copilot.yaml` with the agent's Copilot CLI fields (use `tools: ["*"]` unless you've verified Copilot's exact tool names).
-5. Run the transpile script from this skill's bundled scripts to emit the Codex `.toml`:
+> **Do not create a `.harness/` directory, and do not write a `.toml` sibling.**
+> Earlier revisions of this repository split agent frontmatter into `.harness/claude.yaml` and shipped a transpiled Codex `.toml` alongside each `.md`.
+> Both mechanisms are gone, along with the Codex and Copilot targets they served.
+> A `.harness/` file today is simply ignored and its keys are silently lost.
 
-   ```bash
-   uv run ${CLAUDE_SKILL_DIR}/scripts/md_to_toml.py agents/<Category>/<slug>/<slug>.md
-   ```
+### Plugin-agent restrictions
 
-   The transpiler writes `<slug>.toml` next to the `.md`.
-6. Hand-edit the `.toml` to add Codex-only fields (`sandbox_mode`, `model_reasoning_effort`, `nickname_candidates`, `mcp_servers`, `model`) — the `.toml` is the source of truth for Codex installs.
-7. Commit the `.md`, both `.harness/*.yaml`, and the `.toml`.
-   In `.skills.yaml`, list the agent twice: the directory entry for `harnesses: [claude, copilot]` (SkillShed merges the matching `.harness/<name>.yaml` into the installed `.md` frontmatter), and the standalone `.toml` for `harnesses: [codex]`.
+Three frontmatter fields are **silently ignored** on a plugin agent:
 
-### Field placement — where each key lives in this repo's layout
+| Field            | Where it must go instead                     |
+| ---------------- | -------------------------------------------- |
+| `hooks`          | `plugins/<plugin>/hooks/hooks.json`          |
+| `mcpServers`     | `plugins/<plugin>/.mcp.json`                 |
+| `permissionMode` | Not available — rely on `tools` scoping       |
 
-| Field                       | Lives in                                       | Notes                                                                                                  |
-| --------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `name`                      | `<slug>.md` frontmatter (and Codex `.toml`)    | Universal. Required everywhere.                                                                        |
-| `description`               | `<slug>.md` frontmatter (and Codex `.toml`)    | Universal. Required everywhere.                                                                        |
-| (body / system prompt)      | `<slug>.md` body (transpiled to `.toml`'s `developer_instructions`) | Copilot CLI caps the body at 30,000 chars.                                            |
-| `model`                     | `.harness/claude.yaml`, `.harness/copilot.yaml`, `.toml` | Each platform may pin a different model identifier.                                          |
-| `tools` (allowlist)         | `.harness/claude.yaml`, `.harness/copilot.yaml`          | Codex has no allowlist concept — uses `sandbox_mode` in the `.toml` instead.                |
-| `disallowedTools`           | `.harness/claude.yaml`                         | Anthropic-only.                                                                                        |
-| `color`                     | `.harness/claude.yaml`                         | Anthropic-only.                                                                                        |
-| `permissionMode`            | `.harness/claude.yaml`                         | Anthropic-only.                                                                                        |
-| `mcpServers` (camelCase)    | `.harness/claude.yaml`                         | Anthropic flavour.                                                                                     |
-| `mcp_servers` (snake_case)  | `.toml`                                        | Codex flavour (TOML table).                                                                            |
-| `mcp-servers` (kebab-case)  | `.harness/copilot.yaml`                        | Copilot CLI flavour (kebab-case YAML map).                                                             |
-| `target: vscode\|github-copilot` | `.harness/copilot.yaml`                   | Copilot CLI surface gating.                                                                            |
-| `disable-model-invocation`  | `.harness/claude.yaml`, `.harness/copilot.yaml` | Both Claude and Copilot recognise it; semantics are equivalent.                                       |
-| `user-invocable`            | `.harness/copilot.yaml`                        | Copilot CLI only.                                                                                      |
-| `nickname_candidates`       | `.toml`                                        | Codex-only.                                                                                            |
-| `model_reasoning_effort`    | `.toml`                                        | Codex-only (`high` / `medium` / `low`).                                                                |
-| `sandbox_mode`              | `.toml`                                        | Codex-only — replaces Anthropic's tool allowlist.                                                      |
-| `hooks`                     | `.harness/claude.yaml`                         | Anthropic-only frontmatter hooks.                                                                      |
-| `memory`, `background`, `isolation`, `maxTurns`, `effort`, `skills`, `initialPrompt` | `.harness/claude.yaml` | Anthropic-only.                                                                          |
+Nothing warns you about this.
+If an agent depends on a hook or an MCP server, move that configuration to the plugin level before you assume the agent is broken.
 
-The `.md` frontmatter itself contains **only** `name` and `description`.
-Anything else moves into the appropriate override file.
+### Namespacing and precedence
 
-### SkillShed gaps to be aware of
+A plugin agent is addressed as `<plugin>:<slug>` — `research:researcher`, `research:verifier`.
 
-As of writing, SkillShed has two known limitations on the agent side.
-They do not block authoring — the workarounds below are what this skill assumes.
-
-1. **Copilot CLI project path.**
-   SkillShed currently writes Copilot agents to `.claude/agents/` (project) and `~/.copilot/agents/` (global).
-   Copilot CLI reads from `.github/agents/` (project) and `~/.copilot/agents/` (global).
-   Until SkillShed's harness path is corrected, only the global install path works for Copilot CLI agents.
-   Suggest users run `skillshed install -g` for Copilot agents, or install manually into `.github/agents/`.
-
-2. **No bundled transpilation.**
-   SkillShed installs the `.md` and `.toml` as separate assets — it does not transpile.
-   That means **you commit both files** to the source repo and SkillShed copies each to its harness path.
-   The bundled `scripts/md_to_toml.py` (referenced by this skill) is what produces the `.toml`.
+A project or user `.claude/agents/` definition **overrides** a same-named plugin agent.
+That differs from skills, where the plugin copy is namespaced and both coexist.
+If you migrate an agent into a plugin, delete the original from `.claude/agents/` or the plugin version will never load.
 
 ---
 
@@ -210,7 +193,7 @@ Wait for confirmation before drafting.
 | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | **Subagent**                                                                              | Verbose output, different tool/permission scope, parallel work, fresh context needed                                  |
 | **[Skill](https://code.claude.com/docs/en/skills)**                                       | Reusable prompt/workflow that runs in the _parent_ context window                                                     |
-| **[Fork](#forked-subagents)**                                                             | One-off side task that needs the _full conversation history_ (no re-explaining), parallel exploration of alternatives |
+| **[Fork](#phase-14--forked-subagents)**                                                             | One-off side task that needs the _full conversation history_ (no re-explaining), parallel exploration of alternatives |
 | **[Hook](https://code.claude.com/docs/en/hooks)**                                         | Deterministic, automatic action at a lifecycle event (not a judgement call)                                           |
 | **[Agent team](https://code.claude.com/docs/en/agent-teams)**                             | Multiple long-running agents coordinating across separate sessions                                                    |
 | **[`/btw`](https://code.claude.com/docs/en/interactive-mode#side-questions-with-%2Fbtw)** | Quick side question about something already in the parent conversation; no tool access; answer is discarded           |
@@ -257,15 +240,11 @@ Plugin agents appear in the typeahead as `<plugin-name>:<agent-name>`, which avo
 **User-level (`~/.claude/agents/`)** is for personal agents available everywhere.
 **`--agents` JSON** is for ephemeral testing and CI scripts.
 
-### Plugin-agent restrictions
+### Plugin agents ignore three fields
 
-For security, plugin-distributed agents **silently ignore** these frontmatter fields:
+For security, plugin-distributed agents silently ignore `hooks`, `mcpServers`, and `permissionMode` — see the table in [§ Plugin-agent restrictions](#plugin-agent-restrictions) above for where each one has to go instead.
 
-- `hooks`
-- `mcpServers`
-- `permissionMode`
-
-If you need them, copy the agent file into `.claude/agents/` or `~/.claude/agents/` instead.
+If an agent genuinely needs all three, copy the file into `.claude/agents/` or `~/.claude/agents/` and distribute it outside the plugin.
 Permission rules can also be added to `permissions.allow` in `settings.json` or `settings.local.json`, but those apply session-wide rather than to one agent.
 
 ### Loading and live edits
@@ -303,12 +282,12 @@ Only `name` and `description` are required.
 Every other field has a default that's almost always wrong for a focused agent — narrow them explicitly.
 
 Most fields below are Claude Code specific.
-For which fields survive transpilation to Codex `.toml` or which Copilot CLI also honours, see [§ Multi-harness agents (SkillShed)](#multi-harness-agents-skillshed) at the top of this skill.
+For which fields a plugin agent silently drops, see [§ Agents in this repository](#agents-in-this-repository) at the top of this skill.
 
 | Field             | Required | Description                                                                                                                                                                               |
 | ----------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`            | **Yes**  | Unique identifier. Lowercase letters and hyphens. Used for `@`-mentions, `/agents` listings, and `Agent(name)` permission rules                                                           |
-| `description`     | **Yes**  | When Claude should delegate. The _only_ signal for automatic delegation. See [§ Writing the description](#writing-the-description)                                                        |
+| `description`     | **Yes**  | When Claude should delegate. The _only_ signal for automatic delegation. See [§ Writing the description](#phase-4--writing-the-description-the-hardest-part)                                                        |
 | `tools`           | No       | Comma-separated allowlist. **Inherits all tools (including MCP) if omitted** — almost never what you want                                                                                 |
 | `disallowedTools` | No       | Denylist. Removes tools from the inherited or allowlisted pool                                                                                                                            |
 | `model`           | No       | `sonnet`, `opus`, `haiku`, full ID (`claude-opus-4-7`), or `inherit`. Defaults to `inherit`                                                                                               |
@@ -788,7 +767,7 @@ This mode honours the agent's frontmatter hooks alongside settings-level hooks, 
 
 ### 5. Forks (experimental)
 
-See [§ Forked subagents](#forked-subagents) below.
+See [§ Forked subagents](#phase-14--forked-subagents) below.
 Forks inherit the _full conversation history_, not just the agent definition — useful when re-explaining context to a subagent would be expensive.
 
 ---
@@ -1128,11 +1107,13 @@ For agents you'll edit frequently, use the `/agents` interactive interface — i
 - [ ] If long-running: consider `background: true`, ensure permissions can be pre-approved.
 - [ ] System-prompt body compels a concise structured summary, not raw output.
 - [ ] If running as main session: `initialPrompt` set if appropriate.
-- [ ] Saved at the right scope (`.claude/agents/`, `~/.claude/agents/`, plugin, or `--agents` JSON), **or** at `agents/<Category>/<slug>/<slug>.md` for SkillShed publishing.
-- [ ] If publishing via SkillShed: `<slug>.md` frontmatter contains **only** `name` and `description`; every Claude field lives in `.harness/claude.yaml`.
-- [ ] If publishing via SkillShed: `.harness/copilot.yaml` exists with `tools` (usually `["*"]`) and `model`.
-- [ ] If publishing via SkillShed: `<slug>.toml` emitted by running `uv run ${CLAUDE_SKILL_DIR}/scripts/md_to_toml.py <slug>.md`, with Codex-only fields (`sandbox_mode`, `model_reasoning_effort`, etc.) added by hand below the three managed keys.
-- [ ] If publishing via SkillShed: no `.harness/codex.yaml` (Codex agents ship as the `.toml`, not as a harness override).
+- [ ] Saved at the right scope: `plugins/<plugin>/agents/<slug>.md` for publishing, or `.claude/agents/` / `~/.claude/agents/` / `--agents` JSON otherwise.
+- [ ] All frontmatter is inline — there is no `.harness/` directory and no `.toml` sibling.
+- [ ] If it is a plugin agent, its frontmatter does not **set** `hooks`, `mcpServers`, or `permissionMode` — those are silently dropped, so leaving one in place documents a guarantee the agent does not have.
+- [ ] A read-only plugin agent enforces that through `tools` (no write tool listed), not through `permissionMode: plan`.
+- [ ] Every skill that delegates to this agent names it as `<plugin>:<slug>`, not by the bare slug.
+- [ ] `claude plugin validate plugins/<plugin>/agents` passes.
+- [ ] Smoke-tested with `claude --plugin-dir plugins/<plugin>` and confirmed as `<plugin>:<slug>` in `/context`.
 - [ ] Tested: `/agents` shows it, delegation triggers correctly, tool scope is respected, return value is useful, plus the don't-trigger negative test.
 - [ ] If using bundled validation scripts, they use `uv run` (Python) or `chmod +x` (Bash).
 
@@ -1403,110 +1384,6 @@ Before checking project agents into a repo, review:
   Plugin agents drop hooks for this reason; project-scoped agents should be reviewed before commit.
 - **Memory directories**: persistent state in `.claude/agent-memory/` is committed to the repo (under `project` scope).
   Make sure the agent isn't writing secrets there.
-
----
-
-## Appendix — Codex TOML schema
-
-Codex subagents are standalone TOML files, not Markdown.
-In this repository the `.toml` is the **source of truth** for Codex installs — it ships as its own single-file SkillShed entity, separate from the `.md` directory.
-The bundled transpiler seeds the `.toml` from the canonical `.md`; you then hand-edit the `.toml` to add Codex-only fields.
-There is no `.harness/codex.yaml`.
-
-### Required TOML keys
-
-```toml
-name = "reviewer"
-description = "PR reviewer focused on correctness, security, and missing tests."
-developer_instructions = """
-Review code like an owner.
-Prioritise correctness, security, behaviour regressions, and missing test coverage.
-"""
-```
-
-| Key                       | Type   | Source                                  |
-| ------------------------- | ------ | --------------------------------------- |
-| `name`                    | string | Transpiled from the `.md`'s `name`      |
-| `description`             | string | Transpiled from the `.md`'s `description` |
-| `developer_instructions`  | string | Transpiled from the `.md` body          |
-
-### Optional Codex-only fields (add by hand to the `.toml`)
-
-```toml
-model = "gpt-5.4"                       # Codex model identifier
-model_reasoning_effort = "high"         # high | medium | low
-sandbox_mode = "read-only"              # or "workspace-write", etc.
-nickname_candidates = ["scout", "pathfinder"]
-
-[mcp_servers.my-server]
-command = "npx"
-args = ["-y", "@some/mcp"]
-
-[[skills.config]]
-path = "~/.agents/skills/docs-editor/SKILL.md"
-enabled = false
-```
-
-Add only the fields the agent actually needs.
-The transpiler will **not overwrite** existing optional fields when re-run — but it does overwrite `name`, `description`, and `developer_instructions`, so put Codex-specific lines below those.
-
-### Fields the transpiler drops from the source `.md`
-
-Since the `.md` frontmatter in this repo is now limited to `name` and `description`, the transpiler simply takes those two plus the body.
-Claude-specific fields (`tools`, `model`, `permissionMode`, `color`, etc.) live in `.harness/claude.yaml` and are not consulted when building the `.toml`.
-
-### Invoking the transpiler
-
-```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/md_to_toml.py agents/<Category>/<slug>/<slug>.md
-```
-
-The output `.toml` lands next to the source `.md`.
-Re-run whenever you edit the `.md` body — but remember to re-apply any hand-added Codex-only fields if the transpiler clobbered them (it overwrites the file).
-
----
-
-## Appendix — Copilot CLI agent schema
-
-Copilot CLI custom agents are markdown with YAML frontmatter, the same artefact shape as Anthropic subagents.
-In this repo, the canonical `<slug>.md` (with `name` + `description` only) installs into Copilot CLI; everything Copilot-specific lives in `.harness/copilot.yaml`, which SkillShed merges into the installed file's frontmatter at install time.
-
-### Required frontmatter on the installed file
-
-| Key           | Constraint                                                                |
-| ------------- | ------------------------------------------------------------------------- |
-| `description` | Required. Drives the LLM-based routing decision. Comes from the `.md`.   |
-| `name`        | Optional in Copilot's spec (defaults to filename stem); always set in this repo via the `.md`. |
-
-### Optional fields — author them in `.harness/copilot.yaml`
-
-| Key                          | Type                       | Notes                                                                                                       |
-| ---------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `tools`                      | list **or** comma string   | Accepts `"*"` for "all". Tool names are Copilot's, not Anthropic's — default to `["*"]` unless verified.    |
-| `model`                      | string                     | e.g. `claude-3-5-sonnet`                                                                                    |
-| `target`                     | `vscode` \| `github-copilot` | Restricts which Copilot surface uses the agent                                                              |
-| `disable-model-invocation`   | bool (default false)       | Agent must be manually selected                                                                              |
-| `user-invocable`             | bool (default true)        | Hides agent from the `/agent` picker                                                                         |
-| `mcp-servers`                | map                        | Inline MCP server definitions (kebab-case key)                                                              |
-| `metadata`                   | map<string,string>         | Free-form                                                                                                    |
-
-### Fields Copilot does not implement
-
-`color`, `icon`, `permissionMode`, `tools` with Anthropic-style entries like `Bash(git *)`, `disallowedTools`, `hooks`, `memory`, `background`, `isolation`, `maxTurns`, `effort`, `skills`, `initialPrompt`, `mcpServers` (camelCase).
-Do not put any of these in `.harness/copilot.yaml` — they belong in `.harness/claude.yaml` and never reach Copilot.
-
-### File extension and install path
-
-Canonical Copilot extension is `.agent.md`, but plain `.md` is accepted.
-SkillShed installs the file with its source extension preserved — so naming the source `<slug>.md` results in `<slug>.md` on disk, which Copilot still loads correctly.
-
-Install paths Copilot CLI actually reads (project / global): `.github/agents/` / `~/.copilot/agents/`.
-The SkillShed copilot project-agent path is currently `.claude/agents/` — see [§ SkillShed gaps to be aware of](#skillshed-gaps-to-be-aware-of) above for the workaround.
-
-### Body cap
-
-Copilot CLI caps the system-prompt body at **30,000 characters**.
-Anthropic has no such cap, but staying under 30k is the portable budget.
 
 ---
 

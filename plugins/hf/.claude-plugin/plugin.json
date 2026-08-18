@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "hf",
+  "description": "Hugging Face hub assistant — model and dataset profiles, prompt and chat templates, inference providers, licences, linked papers, and search for models suited to agentic or tool-use workloads. Bundles the official Hugging Face MCP server, so no separate connector setup is needed.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvanniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["huggingface", "models", "datasets", "inference", "machine-learning", "mcp"]
+}

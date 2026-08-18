@@ -1,0 +1,73 @@
+default_install_hook_types:
+    - pre-commit
+
+repos:
+    # General file checks
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+          - id: trailing-whitespace
+            args: [--markdown-linebreak-ext=md]
+          - id: end-of-file-fixer
+          - id: check-yaml
+          - id: check-json
+          - id: check-added-large-files
+            args: ["--maxkb=2048"]
+          - id: check-merge-conflict
+          - id: check-case-conflict
+          - id: mixed-line-ending
+            args: ["--fix=lf"]
+          - id: detect-private-key
+
+    # Spell-checking prose — skills are mostly English, and a typo in a
+    # description degrades trigger matching rather than failing loudly.
+    - repo: https://github.com/codespell-project/codespell
+      rev: v2.4.3
+      hooks:
+          - id: codespell
+            additional_dependencies: [tomli]
+
+    # Markdown structure — every skill and agent is Markdown, so lint the
+    # bodies for broken tables, bad fences, and malformed links.
+    - repo: https://github.com/DavidAnson/markdownlint-cli2
+      rev: v0.23.2
+      hooks:
+          - id: markdownlint-cli2
+            # The rules left enabled are all safely auto-fixable (insert a blank
+            # line, renumber a list). Anything judgement-based is disabled in
+            # .markdownlint-cli2.jsonc, so --fix never rewrites prose.
+            args: ["--fix"]
+
+    # Claude Code's own validators — the authority on plugin, marketplace,
+    # skill, and agent schemas. These catch what a YAML parser cannot:
+    # unknown frontmatter keys, malformed manifests, missing components.
+    - repo: local
+      hooks:
+          - id: claude-validate-marketplace
+            name: claude plugin validate (marketplace)
+            language: system
+            entry: claude plugin validate .
+            pass_filenames: false
+            files: ^\.claude-plugin/marketplace\.json$
+
+          - id: claude-validate-plugins
+            name: claude plugin validate (plugins)
+            language: system
+            entry: >-
+                bash -c 'status=0;
+                for p in plugins/*/; do
+                  claude plugin validate "$p" >/dev/null 2>&1 || { echo "FAILED: $p"; claude plugin validate "$p"; status=1; };
+                  for c in skills agents; do
+                    [ -d "$p$c" ] && { claude plugin validate "$p$c" >/dev/null 2>&1 || { echo "FAILED: $p$c"; claude plugin validate "$p$c"; status=1; }; };
+                  done;
+                done;
+                exit $status'
+            pass_filenames: false
+            files: ^plugins/
+
+          - id: claude-validate-meta-skills
+            name: claude plugin validate (meta-skills)
+            language: system
+            entry: claude plugin validate .claude/skills
+            pass_filenames: false
+            files: ^\.claude/skills/

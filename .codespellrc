@@ -1,0 +1,4 @@
+[codespell]
+# "retuned" is correct in context — re-tuning a configuration, not a return value.
+ignore-words-list = retuned
+skip = ./.git,./.pre-commit-cache
