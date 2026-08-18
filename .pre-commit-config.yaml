@@ -22,7 +22,7 @@ repos:
     # Spell-checking prose — skills are mostly English, and a typo in a
     # description degrades trigger matching rather than failing loudly.
     - repo: https://github.com/codespell-project/codespell
-      rev: v2.4.1
+      rev: v2.4.3
       hooks:
           - id: codespell
             additional_dependencies: [tomli]
@@ -30,7 +30,7 @@ repos:
     # Markdown structure — every skill and agent is Markdown, so lint the
     # bodies for broken tables, bad fences, and malformed links.
     - repo: https://github.com/DavidAnson/markdownlint-cli2
-      rev: v0.18.1
+      rev: v0.23.2
       hooks:
           - id: markdownlint-cli2
             # The rules left enabled are all safely auto-fixable (insert a blank

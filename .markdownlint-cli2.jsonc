@@ -29,7 +29,14 @@
 
     // A repeated heading under a *different* parent is normal in these long
     // phase-structured skills; a repeat among true siblings is a mistake.
-    "MD024": { "siblings_only": true }
+    "MD024": { "siblings_only": true },
+
+    // New in markdownlint v0.41 (shipped by markdownlint-cli2 v0.23). It wants
+    // every pipe in a table padded into a column-aligned grid. The prohibition
+    // and routing tables here have cells hundreds of characters wide, so
+    // alignment would mean re-padding every row whenever one cell changes —
+    // exactly the re-flow churn the semantic-line-break convention avoids.
+    "MD060": false
 
     // Left enabled deliberately:
     //   MD051 — dead in-document anchor links, which silently break navigation
