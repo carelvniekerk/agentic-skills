@@ -214,10 +214,12 @@ Put a skill you would only ever want in one project into its own plugin so it ca
 Adding a new plugin means adding its entry to `.claude-plugin/marketplace.json` too, or it will not be installable:
 
 ```json
-{ "name": "git", "source": "./git", "category": "workflow", "tags": ["git", "commit"] }
+{ "name": "git", "source": "./plugins/git", "category": "workflow", "tags": ["git", "commit"] }
 ```
 
-Sources are relative to `metadata.pluginRoot` (`./plugins`), which keeps every plugin inside this one repository.
+Sources are paths from the repository root and must start with `./`, so write the `./plugins/` prefix in full.
+Do not set `metadata.pluginRoot` — a source short enough to need it is rejected by the schema, and a valid one ignores it.
+Note that `claude plugin validate` checks the schema but never checks that the path exists, so confirm a new entry with an actual install rather than with the validator.
 
 ### Validate
 
