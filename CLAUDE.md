@@ -195,21 +195,29 @@ The Hugging Face server, for one, resolves its tool set per account, so write sk
 ## Marketplace Catalogue
 
 `.claude-plugin/marketplace.json` at the repo root lists every plugin.
-`metadata.pluginRoot` is set to `./plugins`, so each `source` is written relative to that:
+Each `source` is a path from the **repository root**, so it carries the `./plugins/` prefix in full:
 
 ```json
 {
   "name": "agentic-skills",
   "owner": { "name": "Carel van Niekerk" },
-  "metadata": { "pluginRoot": "./plugins" },
   "plugins": [
-    { "name": "git", "source": "./git", "category": "workflow", "tags": ["git", "commit"] }
+    { "name": "git", "source": "./plugins/git", "category": "workflow", "tags": ["git", "commit"] }
   ]
 }
 ```
 
 Relative sources keep every plugin inside this one repository.
 That is what makes the marketplace work from a private repo and avoids a second repository per plugin.
+
+**Do not set `metadata.pluginRoot`.**
+It is documented as a base directory prepended to relative sources, letting you write `"source": "git"` instead of `"source": "./plugins/git"` — but the manifest schema rejects a source that does not start with `./`, so the abbreviated form it enables is not actually valid.
+Any source that *is* valid resolves against the repository root and ignores `pluginRoot` entirely.
+Setting both is what breaks installs: the catalogue looks right, `claude plugin validate` passes, and every install then fails with `Source path does not exist: …/agentic-skills/git`.
+
+That failure mode is worth remembering: **`claude plugin validate` does not check that a `source` path exists.**
+It validates schema, not resolution, so a catalogue can pass every validator here and still be uninstallable.
+The only real test is an install.
 
 Run both validators before committing:
 

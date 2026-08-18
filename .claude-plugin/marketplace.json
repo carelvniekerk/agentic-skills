@@ -7,43 +7,40 @@
     "email": "code@carelvanniekerk.com",
     "url": "https://github.com/carelvniekerk"
   },
-  "metadata": {
-    "pluginRoot": "./plugins"
-  },
   "plugins": [
     {
       "name": "git",
-      "source": "./git",
+      "source": "./plugins/git",
       "category": "workflow",
       "tags": ["git", "commit", "pull-request", "code-review"]
     },
     {
       "name": "debug",
-      "source": "./debug",
+      "source": "./plugins/debug",
       "category": "workflow",
       "tags": ["debugging", "diagnostics", "root-cause"]
     },
     {
       "name": "config",
-      "source": "./config",
+      "source": "./plugins/config",
       "category": "configuration",
       "tags": ["dotfiles", "dotset", "uv", "direnv"]
     },
     {
       "name": "hf",
-      "source": "./hf",
+      "source": "./plugins/hf",
       "category": "machine-learning",
       "tags": ["huggingface", "models", "datasets"]
     },
     {
       "name": "langchain",
-      "source": "./langchain",
+      "source": "./plugins/langchain",
       "category": "machine-learning",
       "tags": ["langchain", "langgraph", "multi-agent", "architecture"]
     },
     {
       "name": "research",
-      "source": "./research",
+      "source": "./plugins/research",
       "category": "research",
       "tags": ["research", "literature-review", "peer-review", "academic"]
     }
