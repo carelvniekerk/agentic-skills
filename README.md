@@ -170,6 +170,13 @@ claude plugin validate plugins/git/skills       # the skill files
 Plugin manifests here intentionally omit `version`, so `validate` reports one warning per plugin.
 That is expected.
 
+Those validators also run automatically via pre-commit:
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
 ### Loading them without installing at all
 
 Because the plugin directories are already in the right shape, a symlink into your skills directory makes them load automatically as `<name>@skills-dir`, with no marketplace, install, or cache involved:

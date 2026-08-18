@@ -1,0 +1,43 @@
+{
+  // Markdown lint rules for this repository.
+  //
+  // The default rule set assumes prose that soft-wraps at a fixed column and
+  // renders through a strict CommonMark pipeline. Neither holds here: CLAUDE.md
+  // mandates semantic line breaks (one sentence per line, so lines run long by
+  // design), and every file is consumed by Claude Code's skill loader rather
+  // than a static-site generator.
+  //
+  // So the stylistic rules are off, and the ones that catch genuine breakage —
+  // dead anchor links, stray blank lines — stay on.
+  "config": {
+    // Semantic line breaks are the whole point. Long lines are intentional.
+    "MD013": false,
+
+    // Skill bodies open with prose or an H2 after the frontmatter block.
+    // An H1 would duplicate the `name` field.
+    "MD041": false,
+
+    // Stylistic only, and invisible to the skill loader.
+    "MD007": false, // unordered list indent width
+    "MD026": false, // trailing punctuation in headings
+    "MD031": false, // blank lines around fenced code blocks
+    "MD032": false, // blank lines around lists
+    "MD033": false, // inline HTML (used for <details> and callouts)
+    "MD036": false, // emphasis used instead of a heading
+    "MD040": false, // fenced code language tag — many blocks are plain output
+    "MD049": false, // emphasis style (_x_ vs *x*)
+
+    // A repeated heading under a *different* parent is normal in these long
+    // phase-structured skills; a repeat among true siblings is a mistake.
+    "MD024": { "siblings_only": true }
+
+    // Left enabled deliberately:
+    //   MD051 — dead in-document anchor links, which silently break navigation
+    //   MD012 — runs of blank lines that signal a botched edit
+    //   MD022 — a heading with no blank line under it, usually a botched paste
+    //   MD024 — repeated sibling headings
+  },
+  // No "globs" key: pre-commit passes the changed files itself, and setting
+  // globs here would make every invocation re-lint the whole repository.
+  "ignores": ["**/node_modules/**", ".git/**"]
+}

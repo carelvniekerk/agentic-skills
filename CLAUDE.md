@@ -181,6 +181,21 @@ claude plugin validate plugins/<name>/skills   # the skill files themselves
 
 ---
 
+## Pre-commit
+
+`pre-commit install` wires up the hooks in `.pre-commit-config.yaml`.
+They run the three `claude plugin validate` invocations above automatically, alongside whitespace, JSON, and spelling checks.
+
+`markdownlint-cli2` runs with `--fix`, configured by `.markdownlint-cli2.jsonc`.
+Most of its default rule set is switched off, because it assumes soft-wrapped prose and would fight the semantic-line-break convention on every line.
+What stays on catches genuine breakage rather than style: dead in-document anchor links, unbalanced code fences, repeated sibling headings, stray blank lines.
+That is not hypothetical — enabling it surfaced five unbalanced fences in the `hf` skill that had been silently swallowing about 250 lines of its body.
+
+If a rule starts fighting you rather than helping, switch it off in `.markdownlint-cli2.jsonc` with a comment saying why.
+Do not suppress a finding inline unless it is genuinely a one-off false positive.
+
+---
+
 ## Authoring Conventions
 
 ### Semantic line breaks (one sentence per line)
