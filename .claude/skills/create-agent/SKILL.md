@@ -1109,7 +1109,9 @@ For agents you'll edit frequently, use the `/agents` interactive interface — i
 - [ ] If running as main session: `initialPrompt` set if appropriate.
 - [ ] Saved at the right scope: `plugins/<plugin>/agents/<slug>.md` for publishing, or `.claude/agents/` / `~/.claude/agents/` / `--agents` JSON otherwise.
 - [ ] All frontmatter is inline — there is no `.harness/` directory and no `.toml` sibling.
-- [ ] If it is a plugin agent, it does not rely on `hooks`, `mcpServers`, or `permissionMode` in its frontmatter — those are silently dropped.
+- [ ] If it is a plugin agent, its frontmatter does not **set** `hooks`, `mcpServers`, or `permissionMode` — those are silently dropped, so leaving one in place documents a guarantee the agent does not have.
+- [ ] A read-only plugin agent enforces that through `tools` (no write tool listed), not through `permissionMode: plan`.
+- [ ] Every skill that delegates to this agent names it as `<plugin>:<slug>`, not by the bare slug.
 - [ ] `claude plugin validate plugins/<plugin>/agents` passes.
 - [ ] Smoke-tested with `claude --plugin-dir plugins/<plugin>` and confirmed as `<plugin>:<slug>` in `/context`.
 - [ ] Tested: `/agents` shows it, delegation triggers correctly, tool scope is respected, return value is useful, plus the don't-trigger negative test.

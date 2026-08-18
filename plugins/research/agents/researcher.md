@@ -11,7 +11,6 @@ description: >
     "find papers on", "what does the literature say", "gather evidence", "research this externally".
 tools: WebSearch, WebFetch, Read, Write
 model: sonnet
-permissionMode: acceptEdits
 color: blue
 ---
 

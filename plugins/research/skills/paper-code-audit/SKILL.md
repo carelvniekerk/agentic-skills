@@ -33,7 +33,7 @@ If only one was provided, locate the missing one before proceeding.
 
 ### 2. Gather Evidence
 
-Spawn a **`researcher`** agent.
+Spawn a **`research:researcher`** agent.
 Include in its brief:
 - The paper (URL, arXiv ID, or path) and the repo (URL or path).
 - Task: extract from the paper — claimed methods, architectures, algorithms, default hyperparameters, training details, reported metrics, datasets, evaluation protocols, data handling, ablations/variants.
@@ -59,7 +59,7 @@ Save the classified finding list to `<scratch>/<slug>-findings.md`.
 
 ### 4. Write the Audit
 
-Spawn a **`writer`** agent.
+Spawn a **`research:writer`** agent.
 Include in its brief:
 - The findings file from step 3 and both research files from step 2.
 - Draft save path: `<scratch>/.drafts/<slug>-audit-draft.md`.
@@ -127,7 +127,7 @@ Explain which findings drive the verdict and what a practitioner would need to d
 
 ### 5. Verify and Cite
 
-Spawn a **`verifier`** agent.
+Spawn a **`research:verifier`** agent.
 Include in its brief:
 - Draft path: `<scratch>/.drafts/<slug>-audit-draft.md`.
 - Source pool: both research files from step 2 plus the paper URL and repo URL.

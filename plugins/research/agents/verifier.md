@@ -12,7 +12,6 @@ description: >
     "add citations", "check the sources", "source verification pass", "citation pass".
 tools: Read, Write, Edit, WebFetch
 model: sonnet
-permissionMode: acceptEdits
 color: orange
 ---
 

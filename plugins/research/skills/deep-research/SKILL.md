@@ -43,7 +43,7 @@ Present the plan to the user, then continue automatically.
 
 ### 3. Gather Evidence
 
-Spawn a **`researcher`** agent.
+Spawn a **`research:researcher`** agent.
 Include in its brief:
 - The full research plan from step 2 (all questions, dimensions, acceptance criteria).
 - Instruction to target **≥12 sources**; fewer than 8 is insufficient.
@@ -61,13 +61,13 @@ Critically assess:
 - Are there contradictions needing resolution?
 - Is any key angle missing entirely?
 
-If gaps are significant, spawn a second `researcher` agent targeting the gaps specifically.
+If gaps are significant, spawn a second `research:researcher` agent targeting the gaps specifically.
 Most topics need 1–2 rounds.
 Stop when additional rounds would not materially change conclusions.
 
 ### 5. Write the Brief
 
-Spawn a **`writer`** agent.
+Spawn a **`research:writer`** agent.
 Include in its brief:
 - Paths to all research files in `<scratch>/`.
 - The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly (frontmatter, badge row, Prerequisites, Key Takeaways, section headings, Open Questions, Related Articles, Sources placeholder).
@@ -84,7 +84,7 @@ Include in its brief:
 
 ### 6. Verify and Cite
 
-Spawn a **`verifier`** agent.
+Spawn a **`research:verifier`** agent.
 Include in its brief:
 - Draft path: `<scratch>/.drafts/<slug>-draft.md`.
 - All research file paths in `<scratch>/` (as the authoritative source pool).

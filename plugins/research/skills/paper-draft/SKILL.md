@@ -58,7 +58,7 @@ Standard section structure (adapt as appropriate for the paper type):
 
 ### 4. Draft
 
-Spawn a **`writer`** agent.
+Spawn a **`research:writer`** agent.
 Include in its brief:
 - Paths to all source material identified in step 2 (research files, wiki articles, prior drafts, user-provided data).
 - The outline from step 3.
@@ -76,7 +76,7 @@ Include in its brief:
 
 ### 5. Verify and Cite
 
-Spawn a **`verifier`** agent.
+Spawn a **`research:verifier`** agent.
 Include in its brief:
 - Draft path: `<scratch>/.drafts/<slug>-draft.md` (or `.tex`) — the file extension drives the citation track.
 - All source material paths (as the authoritative source pool).

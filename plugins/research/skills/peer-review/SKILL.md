@@ -33,7 +33,7 @@ Determine what is being reviewed from `$ARGUMENTS` or the conversation:
 
 ### 2. Conduct the Review
 
-Spawn a **`reviewer`** agent.
+Spawn a **`research:reviewer`** agent.
 Include in its brief:
 - The artifact location (file path, arXiv ID, URL, or pasted text from the conversation).
 - Permission to search for key cited papers and consult local knowledge if available, to verify claims independently.

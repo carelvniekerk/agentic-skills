@@ -10,7 +10,6 @@ description: >
     "write the brief", "structure the findings", "write the article", "draft from these notes".
 tools: Read, Write
 model: sonnet
-permissionMode: acceptEdits
 color: green
 ---
 

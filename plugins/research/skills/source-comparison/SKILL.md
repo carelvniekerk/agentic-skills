@@ -39,7 +39,7 @@ Write the plan to `<scratch>/.plans/<slug>.md`.
 
 ### 3. Gather
 
-Spawn a **`researcher`** agent.
+Spawn a **`research:researcher`** agent.
 Include in its brief:
 - The plan from step 2 (items to compare, dimensions to evaluate).
 - Requirement: **comparable coverage across all items** — do not let one item have many sources and another have one. If evidence is thin for one item, document that explicitly rather than padding with inference.
@@ -48,7 +48,7 @@ Include in its brief:
 
 ### 4. Build the Comparison
 
-Spawn a **`writer`** agent.
+Spawn a **`research:writer`** agent.
 Include in its brief:
 - Paths to all research files in `<scratch>/`.
 - The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template.
@@ -66,7 +66,7 @@ Include in its brief:
 
 ### 5. Verify and Cite
 
-Spawn a **`verifier`** agent.
+Spawn a **`research:verifier`** agent.
 Include in its brief:
 - Draft path: `<scratch>/.drafts/<slug>-comparison-draft.md`.
 - All research file paths (as the authoritative source pool).

@@ -40,7 +40,7 @@ Write the plan to `<scratch>/.plans/<slug>.md`.
 
 ### 3. Gather
 
-Spawn a **`researcher`** agent.
+Spawn a **`research:researcher`** agent.
 Include in its brief:
 - The plan from step 2 (questions, sources, time period, expected thematic structure).
 - Search strategy: start broad to map the landscape, identify seminal papers, trace citations forward and backward, look for existing survey papers.
@@ -50,7 +50,7 @@ Include in its brief:
 
 ### 4. Synthesise
 
-Spawn a **`writer`** agent.
+Spawn a **`research:writer`** agent.
 Include in its brief:
 - Path to the research file in `<scratch>/`.
 - The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly.
@@ -70,7 +70,7 @@ Include in its brief:
 
 ### 5. Verify and Cite
 
-Spawn a **`verifier`** agent.
+Spawn a **`research:verifier`** agent.
 Include in its brief:
 - Draft path: `<scratch>/.drafts/<slug>-draft.md`.
 - Research file path (as the authoritative source pool).

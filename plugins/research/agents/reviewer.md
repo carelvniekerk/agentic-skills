@@ -10,7 +10,6 @@ description: >
     "is this ready to publish", "check this draft".
 tools: Read, WebSearch, WebFetch
 model: opus
-permissionMode: plan
 color: red
 ---
 
