@@ -43,6 +43,12 @@
       "source": "./plugins/research",
       "category": "research",
       "tags": ["research", "literature-review", "peer-review", "academic"]
+    },
+    {
+      "name": "python-quality",
+      "source": "./plugins/python-quality",
+      "category": "workflow",
+      "tags": ["hooks", "python", "ruff", "ty", "type-checking", "quality-gate", "secrets"]
     }
   ]
 }

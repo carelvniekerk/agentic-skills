@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "python-quality",
+  "description": "Deterministic Python quality gates as hooks — refuses writes containing private keys, auto-fixes formatting and lint after every edit, and blocks the turn until the Python files changed in it pass ruff and ty. Requires jq; ruff, ty and pre-commit-hooks are each resolved from PATH first and fall back to uvx.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvanniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["hooks", "python", "ruff", "ty", "type-checking", "quality-gate", "secrets"]
+}

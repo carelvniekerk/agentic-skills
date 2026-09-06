@@ -8,14 +8,15 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 
 ## Plugins
 
-| Plugin      | Skills                                                                                                                    | Agents                                     |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `git`       | `commit`, `pr`                                                                                                            | —                                          |
-| `debug`     | `bug-discovery`                                                                                                           | —                                          |
-| `config`    | `dotset`                                                                                                                  | —                                          |
-| `hf`        | `hf`                                                                                                                      | —                                          |
-| `langchain` | `langgraph-multi-agent-architect`                                                                                         | —                                          |
-| `research`  | `deep-research`, `external-research`, `literature-review`, `source-comparison`, `eli5`, `paper-draft`, `peer-review`, `paper-code-audit` | `researcher`, `writer`, `verifier`, `reviewer` |
+| Plugin           | Skills                                                                                                                    | Agents                                     | Hooks                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| `git`            | `commit`, `pr`                                                                                                            | —                                          | —                                          |
+| `debug`          | `bug-discovery`                                                                                                           | —                                          | —                                          |
+| `config`         | `dotset`                                                                                                                  | —                                          | —                                          |
+| `hf`             | `hf`                                                                                                                      | —                                          | —                                          |
+| `langchain`      | `langgraph-multi-agent-architect`                                                                                         | —                                          | —                                          |
+| `research`       | `deep-research`, `external-research`, `literature-review`, `source-comparison`, `eli5`, `paper-draft`, `peer-review`, `paper-code-audit` | `researcher`, `writer`, `verifier`, `reviewer` | —                                          |
+| `python-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
 
 ### What each one does
 
@@ -35,6 +36,10 @@ Argues for a single agent first, then maps constraints onto subagents, handoffs,
 
 - **`research`** — the full research pipeline: evidence gathering, synthesis, citation anchoring, and critique.
 Ships four subagents (`researcher` → `writer` → `verifier` → `reviewer`) that the skills delegate to.
+
+- **`python-quality`** — the only plugin here with no skills and no agents.
+It ships three hooks that enforce Python hygiene without asking Claude to remember to.
+See [Python quality hooks](#python-quality-hooks) below.
 
 ---
 
@@ -140,6 +145,59 @@ Run `/mcp` to see which one is live.
 The HF server exposes a **per-account** tool set, configured at <https://huggingface.co/settings/mcp>.
 Only `hf_fs` is guaranteed; `hub_repo_details`, `hub_repo_search`, `hf_doc_search`, `paper_search`, `space_search`, and the rest are opt-in there.
 The skill degrades to `hf_fs`, then `WebFetch`, then `WebSearch` when a tool is absent, and says which fallback it used rather than inventing metadata.
+
+---
+
+## Python quality hooks
+
+The `python-quality` plugin carries no skills and no agents.
+Its three hooks fire on the lifecycle instead, so the rules hold whether or not Claude remembers them.
+
+| Event         | Script             | Does                                                                                          |
+| ------------- | ------------------ | --------------------------------------------------------------------------------------------- |
+| `PreToolUse`  | `secrets-guard.sh` | Denies an `Edit`, `Write`, or `NotebookEdit` to a `.py`/`.pyi` file whose content holds a private key |
+| `PostToolUse` | `fix-on-write.sh`  | Runs `ruff check --fix-only`, `ruff format`, trailing-whitespace and end-of-file fixers, then tells Claude the file on disk changed |
+| `Stop`        | `turn-gate.sh`     | Blocks the turn while the Python files changed in it fail `ruff check`, `ty check`, the docstring-position check, or the private-key check |
+
+Install it like any other plugin:
+
+```bash
+claude plugin install python-quality@agentic-skills
+```
+
+### What it needs on PATH
+
+`jq` is the only hard requirement.
+
+`ruff`, `ty`, and the four `pre-commit-hooks` console scripts (`detect-private-key`, `check-docstring-first`, `trailing-whitespace-fixer`, `end-of-file-fixer`) are each resolved from PATH first and fall back to `uvx`, so the plugin works on a machine with none of them installed.
+The fallback pays uvx's resolution cost on every invocation, and `fix-on-write.sh` calls ruff three times per write, so install them once for the fast path:
+
+```bash
+uv tool install ruff
+uv tool install ty
+uv tool install pre-commit-hooks
+```
+
+The four gate checks run independently: each is clean on exit 0, contributes findings on exit 1, and on anything else is reported to you on stderr without blocking the turn or suppressing the checks that did run.
+When a tool is reachable by neither route the hooks say so on stderr and let the action through, rather than blocking every Python write behind a missing checker or passing every turn because the linter was silently absent.
+
+### Behaviour worth knowing
+
+Nothing is configured in the plugin.
+`ruff` reads your `pyproject.toml`, and the write hook asks `ruff check --force-exclude` whether a path is excluded rather than keeping a second copy of the exclude list, so a vendored directory is skipped by both hooks automatically.
+
+The `Stop` gate re-runs the checks rather than trusting the write hook, because `PostToolUse` only matches `Edit`, `Write`, and `NotebookEdit` — a file written by a shell heredoc bypasses it entirely.
+It blocks at most twice per session before letting the turn end, so a violation Claude cannot satisfy does not ping-pong forever.
+The retry counter lives in `$TMPDIR`, keyed by session id, never in the repository.
+
+One thing to expect from the `ty` check: it reports `unresolved-import` as an error, so a project whose environment is not synced will fail the gate on every third-party import, for reasons unrelated to what was just written.
+`uv sync` fixes it properly.
+Silencing it is a project decision, not the plugin's, so it goes in your own `pyproject.toml`:
+
+```toml
+[tool.ty.rules]
+unresolved-import = "ignore"
+```
 
 ---
 

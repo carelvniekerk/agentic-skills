@@ -26,10 +26,13 @@ agentic-skills/
     ├── config/
     ├── hf/
     ├── langchain/
-    └── research/
+    ├── research/
+    │   ├── .claude-plugin/plugin.json
+    │   ├── skills/           deep-research, literature-review, peer-review, …
+    │   └── agents/           researcher.md, reviewer.md, verifier.md, writer.md
+    └── python-quality/
         ├── .claude-plugin/plugin.json
-        ├── skills/           deep-research, literature-review, peer-review, …
-        └── agents/           researcher.md, reviewer.md, verifier.md, writer.md
+        └── hooks/            hooks.json + the shell scripts it points at
 ```
 
 Every plugin directory is self-contained.
@@ -41,16 +44,17 @@ They are not published, and they load only when Claude Code runs from this repos
 
 ---
 
-## The Six Plugins
+## The Seven Plugins
 
-| Plugin      | Contains                                                                                                                   | Invoked as                     |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `git`       | commit, pr                                                                                                                 | `/git:commit`                  |
-| `debug`     | bug-discovery                                                                                                              | `/debug:bug-discovery`         |
-| `config`    | dotset                                                                                                                     | `/config:dotset`               |
-| `hf`        | hf + bundled Hugging Face MCP server                                                                                       | `/hf:hf`                       |
-| `langchain` | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
-| `research`  | deep-research, external-research, literature-review, source-comparison, eli5, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
+| Plugin           | Contains                                                                                                                   | Invoked as                     |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `git`            | commit, pr                                                                                                                 | `/git:commit`                  |
+| `debug`          | bug-discovery                                                                                                              | `/debug:bug-discovery`         |
+| `config`         | dotset                                                                                                                     | `/config:dotset`               |
+| `hf`             | hf + bundled Hugging Face MCP server                                                                                       | `/hf:hf`                       |
+| `langchain`      | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
+| `research`       | deep-research, external-research, literature-review, source-comparison, eli5, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
+| `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
 
 Plugin skills are **always** namespaced by the plugin name.
 The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.
