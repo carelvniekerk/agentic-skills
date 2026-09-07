@@ -4,7 +4,7 @@
   "description": "Research and academic writing toolkit — deep research, literature review, external evidence gathering, source comparison, ELI5 explanation, paper drafting, peer review, and paper-versus-code audits. Ships researcher, writer, verifier, and reviewer subagents for the gather → synthesise → cite → critique pipeline.",
   "author": {
     "name": "Carel van Niekerk",
-    "email": "code@carelvanniekerk.com",
+    "email": "code@carelvniekerk.com",
     "url": "https://github.com/carelvniekerk"
   },
   "homepage": "https://github.com/carelvniekerk/agentic-skills",

@@ -4,7 +4,7 @@
   "description": "Diagnostic-first debugging. Gathers environment and run-condition evidence, reads the code and full terminal output, searches issues and PRs exhaustively, then delivers a ranked hypothesis report — and stops there for discussion before any fix.",
   "author": {
     "name": "Carel van Niekerk",
-    "email": "code@carelvanniekerk.com",
+    "email": "code@carelvniekerk.com",
     "url": "https://github.com/carelvniekerk"
   },
   "homepage": "https://github.com/carelvniekerk/agentic-skills",

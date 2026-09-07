@@ -4,7 +4,7 @@
   "description": "Thorough Git workflows — conversation-aware commits that split unrelated changes into separate logical commits, and an end-to-end pull request flow with tests, lint, type-check, review gates, and merge. Never bypasses hooks or force-pushes.",
   "author": {
     "name": "Carel van Niekerk",
-    "email": "code@carelvanniekerk.com",
+    "email": "code@carelvniekerk.com",
     "url": "https://github.com/carelvniekerk"
   },
   "homepage": "https://github.com/carelvniekerk/agentic-skills",
