@@ -4,7 +4,7 @@
   "description": "Hugging Face hub assistant — model and dataset profiles, prompt and chat templates, inference providers, licences, linked papers, and search for models suited to agentic or tool-use workloads. Bundles the official Hugging Face MCP server, so no separate connector setup is needed.",
   "author": {
     "name": "Carel van Niekerk",
-    "email": "code@carelvanniekerk.com",
+    "email": "code@carelvniekerk.com",
     "url": "https://github.com/carelvniekerk"
   },
   "homepage": "https://github.com/carelvniekerk/agentic-skills",

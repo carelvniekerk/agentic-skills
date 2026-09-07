@@ -145,7 +145,7 @@ Each plugin needs `<plugin>/.claude-plugin/plugin.json`:
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "git",
   "description": "Thorough Git workflows — …",
-  "author": { "name": "Carel van Niekerk", "email": "code@carelvanniekerk.com" },
+  "author": { "name": "Carel van Niekerk", "email": "code@carelvniekerk.com" },
   "homepage": "https://github.com/carelvniekerk/agentic-skills",
   "repository": "https://github.com/carelvniekerk/agentic-skills",
   "license": "MIT",

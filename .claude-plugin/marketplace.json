@@ -4,7 +4,7 @@
   "description": "Personal library of Claude Code skills and subagents, grouped into installable plugins.",
   "owner": {
     "name": "Carel van Niekerk",
-    "email": "code@carelvanniekerk.com",
+    "email": "code@carelvniekerk.com",
     "url": "https://github.com/carelvniekerk"
   },
   "plugins": [
