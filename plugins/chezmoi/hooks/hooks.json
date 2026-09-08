@@ -1,0 +1,18 @@
+{
+    "description": "Refuses edits to chezmoi-managed destination files and points at the source file instead.",
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/chezmoi-guard.sh",
+                        "timeout": 15,
+                        "statusMessage": "checking chezmoi"
+                    }
+                ]
+            }
+        ]
+    }
+}

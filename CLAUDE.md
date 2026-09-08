@@ -30,9 +30,17 @@ agentic-skills/
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/           deep-research, literature-review, peer-review, …
     │   └── agents/           researcher.md, reviewer.md, verifier.md, writer.md
-    └── python-quality/
+    ├── python-quality/
+    │   ├── .claude-plugin/plugin.json
+    │   └── hooks/            hooks.json + the shell scripts it points at
+    ├── chezmoi/
+    │   ├── .claude-plugin/plugin.json
+    │   ├── hooks/            hooks.json + chezmoi-guard.sh
+    │   └── tests/            acceptance.sh
+    └── uv/
         ├── .claude-plugin/plugin.json
-        └── hooks/            hooks.json + the shell scripts it points at
+        ├── hooks/            hooks.json + uv-redirect.sh
+        └── tests/            acceptance.sh
 ```
 
 Every plugin directory is self-contained.
@@ -44,7 +52,7 @@ They are not published, and they load only when Claude Code runs from this repos
 
 ---
 
-## The Seven Plugins
+## The Nine Plugins
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -55,6 +63,8 @@ They are not published, and they load only when Claude Code runs from this repos
 | `langchain`      | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
 | `research`       | deep-research, external-research, literature-review, source-comparison, eli5, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
 | `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
+| `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |
+| `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
 
 Plugin skills are **always** namespaced by the plugin name.
 The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.

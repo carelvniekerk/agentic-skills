@@ -17,6 +17,8 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `langchain`      | `langgraph-multi-agent-architect`                                                                                         | —                                          | —                                          |
 | `research`       | `deep-research`, `external-research`, `literature-review`, `source-comparison`, `eli5`, `paper-draft`, `peer-review`, `paper-code-audit` | `researcher`, `writer`, `verifier`, `reviewer` | —                                          |
 | `python-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
+| `chezmoi`        | —                                                                                                                         | —                                          | `PreToolUse`                               |
+| `uv`             | —                                                                                                                         | —                                          | `PreToolUse`                               |
 
 ### What each one does
 
@@ -37,9 +39,15 @@ Argues for a single agent first, then maps constraints onto subagents, handoffs,
 - **`research`** — the full research pipeline: evidence gathering, synthesis, citation anchoring, and critique.
 Ships four subagents (`researcher` → `writer` → `verifier` → `reviewer`) that the skills delegate to.
 
-- **`python-quality`** — the only plugin here with no skills and no agents.
+- **`python-quality`** — no skills and no agents.
 It ships three hooks that enforce Python hygiene without asking Claude to remember to.
 See [Python quality hooks](#python-quality-hooks) below.
+
+- **`chezmoi`** — one hook that refuses to edit a chezmoi-managed dotfile in the working tree and names the source file to edit instead.
+See [Guard hooks](#guard-hooks) below.
+
+- **`uv`** — one hook that refuses `pip install` and `pip uninstall` in a Bash command and names the uv equivalent.
+See [Guard hooks](#guard-hooks) below.
 
 ---
 
@@ -197,6 +205,72 @@ Silencing it is a project decision, not the plugin's, so it goes in your own `py
 ```toml
 [tool.ty.rules]
 unresolved-import = "ignore"
+```
+
+---
+
+## Guard hooks
+
+`chezmoi` and `uv` are single-hook plugins.
+Each exists to stop one correction repeating: editing a dotfile that `chezmoi apply` will silently revert, and reaching for pip in a uv project.
+Both are `PreToolUse` deny hooks, both need only `jq`, and both are installed independently:
+
+```bash
+claude plugin install chezmoi@agentic-skills
+claude plugin install uv@agentic-skills
+```
+
+### `chezmoi`
+
+`chezmoi-guard.sh` matches `Edit|Write|NotebookEdit` and denies the write when the target is a chezmoi destination file.
+The refusal names the source path and tells Claude to edit that, then run `chezmoi apply`.
+
+The managed set comes from `chezmoi managed --path-style absolute` and is cached under `$TMPDIR`, keyed by uid, with a 30-minute TTL.
+Without the cache every file edit would spawn chezmoi.
+
+Paths are normalised before comparison, so an absolute path, a path relative to `cwd`, and a path with a leading `~` all resolve to the same target.
+Symlinks in the directory chain are resolved with `cd -P` rather than `realpath`, which macOS does not ship; that is also what makes `/tmp` and `/private/tmp` compare equal.
+Both the resolved and unresolved spellings are checked against the managed set, because chezmoi emits its own destination paths and those may or may not be symlink-resolved.
+
+Anything inside `chezmoi source-path` is allowed unconditionally.
+Editing there is the correct action, so it is checked before the managed-set lookup.
+
+The hook fails open throughout.
+A chezmoi that is absent from PATH, uninitialised, or erroring produces exit 0 and no output, because a broken dotfile manager must not make every file edit fail.
+
+### `uv`
+
+`uv-redirect.sh` matches `Bash` and denies `pip install` and `pip uninstall`, spelled `pip`, `pip3`, `python -m pip` or `python3 -m pip`, with or without a `sudo` prefix, anywhere in a compound command.
+Read-only subcommands pass: `pip list`, `pip show`, `pip --version`.
+
+The refusal follows the context.
+Inside a uv project, meaning a `pyproject.toml` or `uv.lock` at or above `cwd`, it names `uv add` or `uv remove`.
+Outside one it names `uv pip install` or `uv pip uninstall`.
+`uv pip install` is never refused; it is the deliberate escape hatch.
+
+The matcher is a quote-aware tokeniser in pure bash, so the decision costs one `jq` and no other process.
+It drops heredoc bodies, then walks the token stream and considers `pip` only in command position: at the start, after `&&`, `||`, `;`, a pipe or a newline, or after a `sudo` that was itself in command position.
+That is what keeps pip-as-data out of the matcher, and what stops `pipx`, `pipenv` and `pipdeptree` from ever matching.
+
+What it does not catch, by design:
+
+- pip inside a string passed to another shell, such as `bash -c "pip install foo"` or `ssh host 'pip install foo'`.
+The tokeniser sees one quoted argument to `bash`, which is correct at the token level and wrong at the intent level.
+- pip behind an alias, a shell function, a Makefile target, or a script the command invokes.
+Nothing is executed to reach the decision, so only the literal command text is visible.
+- a versioned interpreter, `python3.12 -m pip install`.
+Only the bare `python` and `python3` spellings are matched.
+- pip in a brace group or subshell whose opening brace is glued to the command, as in `{pip install foo;}`.
+`(` and `)` are treated as separators, so `(pip install foo)` is caught, but `{` is not.
+- a second heredoc opened on the same line as the first.
+Only the first delimiter on a line is tracked.
+- `<<` used as an arithmetic left shift outside `$(( ))`, which is read as a heredoc and drops the following lines until a matching delimiter that never arrives.
+
+Both hooks are covered by an acceptance suite that feeds real event JSON on stdin:
+
+```bash
+plugins/chezmoi/tests/acceptance.sh
+plugins/uv/tests/acceptance.sh
 ```
 
 ---
