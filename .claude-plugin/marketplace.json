@@ -49,6 +49,18 @@
       "source": "./plugins/python-quality",
       "category": "workflow",
       "tags": ["hooks", "python", "ruff", "ty", "type-checking", "quality-gate", "secrets"]
+    },
+    {
+      "name": "chezmoi",
+      "source": "./plugins/chezmoi",
+      "category": "configuration",
+      "tags": ["hooks", "chezmoi", "dotfiles", "guard"]
+    },
+    {
+      "name": "uv",
+      "source": "./plugins/uv",
+      "category": "workflow",
+      "tags": ["hooks", "uv", "pip", "python", "packaging"]
     }
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "uv",
+  "description": "Redirects pip to uv as a hook. Refuses a Bash command that runs pip install or pip uninstall, whether spelled pip, pip3, python -m pip or python3 -m pip, with or without sudo, anywhere in a compound command. Read-only pip subcommands, uv pip, pipx, pipenv and pip mentioned inside quotes or a heredoc all pass. The refusal names uv add or uv remove inside a uv project and uv pip outside one. Requires jq.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["hooks", "uv", "pip", "python", "packaging", "pretooluse"]
+}

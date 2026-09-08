@@ -1,0 +1,18 @@
+{
+    "description": "Refuses direct pip install and pip uninstall in Bash commands and points at the uv equivalent.",
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/uv-redirect.sh",
+                        "timeout": 10,
+                        "statusMessage": "checking for pip"
+                    }
+                ]
+            }
+        ]
+    }
+}
