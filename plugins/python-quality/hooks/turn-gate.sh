@@ -5,10 +5,28 @@
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
+cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
+
+# Stop takes no matcher, so this hook fires at the end of every turn in every
+# project, Python or not. Deciding "nothing to check here" used to cost the
+# whole git section below, and `git ls-files --others` walks the entire working
+# tree: seconds in a repo carrying node_modules, datasets or checkpoints.
+#
+# Globs are expanded in-process, so this bails out before a single fork. Depth
+# is capped at the project root and its immediate subdirectories, which is
+# where a Python project always announces itself.
+is_python_project() {
+  local entry
+  [[ -f pyproject.toml || -f requirements.txt ]] && return 0
+  for entry in *.py *.pyi */*.py */*.pyi; do
+    [[ -e "$entry" ]] && return 0
+  done
+  return 1
+}
+is_python_project || exit 0
+
 input=$(cat)
 session=$(jq -r '.session_id // "nosession"' <<<"$input" 2>/dev/null || echo nosession)
-
-cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 
 # A missing ruff is a broken hook, not a clean tree. Say so rather than letting
 # every turn pass silently.
