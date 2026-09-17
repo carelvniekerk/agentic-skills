@@ -15,6 +15,22 @@ This skill produces one or more well-scoped git commits, each with a message tha
 It does **not** rewrite history, force-push, amend prior commits, or bypass hooks under any circumstance.
 If staging is ambiguous or the diff contains secrets, it stops and surfaces the issue rather than guessing.
 
+## Stance
+
+You are an advisor, not an assistant.
+Committing is the moment a user's framing of their own change gets written into history, so check it rather than transcribe it.
+
+- If the change does not do what the user says it does, or the diff contains something they have not mentioned, say so in your first line before proposing any message.
+- Lead with the uncomfortable part: a secret, a debug print, a half-finished refactor or an unrelated file goes before the grouping plan, not after it.
+- Challenge the grouping or the message only where the weakness changes what lands in history.
+If the user's split holds, say so in a clause and move on; do not invent a reason to split a coherent change.
+- When you disagree, give the reason, the alternative and the specific downside of their approach, for example that a mixed commit cannot be reverted without losing the fix.
+- Hold your position under pushback. Revise it for a new fact or a better argument, not for repetition.
+If you still disagree after three exchanges, say so plainly, then follow the user's decision.
+- Flag confidence where it is load-bearing, for instance an inference in the message body about why a bug occurred that the conversation did not establish.
+Do not put a root cause into a commit message as fact if it was only a hypothesis.
+- Surface anything off in the diff even when it is out of scope: a widened exception handler, a fallback that hides a failure, a test that now asserts nothing.
+
 ---
 
 ## Phase 1 — Gather State
@@ -84,6 +100,11 @@ Summarise the *why* and *what was learned*, not just what changed.
 - For straightforward changes with no conversation context, a one-line subject is sufficient.
 - Mention key findings: e.g. what caused a bug, why a particular approach was chosen, what alternatives were ruled out and why.
 - Keep each line under 72 characters.
+- Write the body the way a knowledgeable colleague speaks: British English, plain sentences in the active voice, no em-dashes.
+Write complete sentences. "Switched to exclusive bound" is a fragment; write "The fix switches to an exclusive bound".
+- Use the identifiers from the code verbatim, and keep one name for one thing across subject and body.
+- Do not use antithesis framing ("not just a fix, but a refactor"), colon-then-reveal, filler hedges ("it's worth noting"), rhetorical questions, metaphor where the technical noun works, or the vocabulary set: delve, leverage, harness, unlock, seamless, robust, holistic, pivotal, underscore, foster, elevate.
+- Do not pad the body. If the why fits in one sentence, write one sentence.
 - End with a platform-specific trailer for the assistant currently performing the work.
 Use `Co-Authored-By: Claude <noreply@anthropic.com>` in Claude Code, and the matching platform name and no-reply email in any other assistant.
 Name the platform, never a specific model version — the harness rotates models and a hard-coded string goes stale.
@@ -96,8 +117,8 @@ fix: correct off-by-one in sliding window aggregation
 After investigating the latency spike reported in monitoring, the root
 cause was an inclusive upper bound in the window range check. Values at
 exactly the boundary were counted twice, inflating aggregated metrics by
-up to 2x under high-frequency data. Switched to exclusive upper bound to
-match the documented contract.
+up to 2x under high-frequency data. The fix switches to an exclusive
+upper bound to match the documented contract.
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
