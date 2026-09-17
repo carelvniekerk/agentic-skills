@@ -17,6 +17,9 @@ allowed-tools: WebSearch WebFetch
 Search the open internet and academic literature for evidence not yet available locally.
 This skill is for **external** evidence gathering only — check local knowledge sources first before invoking this.
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing up what you find.
+Its truthfulness and confidence rules govern these notes, and its register and phrasing rules govern the summary you give the user.
+
 ## Tool Routing
 
 | What you need | Tool to use | Notes |
@@ -40,6 +43,14 @@ A claim without a URL is not a finding — it is a guess.
 Before including a source, confirm the page actually loads and contains what you expect.
 - **Prefer primary sources.**
 Vendor docs and original papers beat blog summaries and secondhand writeups.
+- **No vague authority.**
+"Studies show", "experts agree" and "recent work suggests" are banned without a named, linked source.
+- **Separate reading from inference.**
+Mark a note `[Likely]` or `[Guessing]` when it is your inference rather than something the source states, and never tag routine reporting of what you just read.
+- **Report an empty search as a finding.**
+If the evidence does not exist, say so in the first line of your summary. Do not pad the notes with adjacent material to disguise a gap.
+- **Surface anomalies.**
+Flag numbers that look implausible, benchmarks reported on different splits, undated pages, and sources that contradict each other, rather than silently picking one.
 
 ## Evidence Quality Tiers
 

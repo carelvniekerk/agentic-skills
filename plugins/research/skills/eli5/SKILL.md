@@ -16,6 +16,14 @@ allowed-tools: WebSearch WebFetch Read Write
 
 Explain research, papers, or technical ideas in plain English with minimal jargon, concrete analogies, and honest caveats.
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing.
+Its register, phrasing blacklist and punctuation rules apply here in full, with one scoped exception: this skill exists to explain mechanisms, so an analogy that genuinely explains how something works is wanted.
+An analogy that decorates a sentence the plain noun already handles is not.
+
+Plain English is not the same as a breezy register.
+Do not write one-line paragraphs as drum beats, sentence fragments for emphasis, or rhetorical questions the user did not ask.
+The section prompts below name the content each section must cover; answer them in prose rather than reproducing them as questions in the output.
+
 ## Procedure
 
 If the user names a specific paper or arXiv ID, fetch and read it first before explaining.
@@ -50,6 +58,9 @@ Three self-contained bullet points capturing the most important takeaways.
 
 - Use short sentences and concrete words throughout.
 - One strong analogy beats three weak ones — choose carefully.
+The analogy must map onto the actual mechanism; drop it the moment it stops being accurate rather than stretching it.
+- Call the thing by one name throughout. Having picked a term for the method, use that term every time instead of varying it for style.
 - Never smooth away genuine uncertainty; flag it explicitly.
+If the paper's central claim is weaker than its abstract suggests, that belongs in the One-Sentence Summary, not only in What to Be Sceptical Of.
 - Keep the explanation inline in the conversation unless the user asks to save it as a file.
 - If the user asks about a specific arXiv paper, always fetch it rather than relying on training knowledge.

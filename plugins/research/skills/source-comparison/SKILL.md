@@ -19,6 +19,12 @@ Distinguishes agreement, disagreement, and uncertainty clearly — never collaps
 
 Check `CLAUDE.md` for the project's scratch directory (default: `research_scratch/`) and output directory (default: `output/`).
 Read [references/output-format.md](references/output-format.md) for the full output template.
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including the plan and your messages to the user.
+It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+
+Two consequences for how you run this workflow.
+Lead with the recommendation the evidence supports, or with the objection that the items are not comparable on the dimensions the user asked for, and say that before building a matrix nobody can act on.
+A `low` confidence cell is a finding worth stating in the first paragraph, not a footnote.
 
 ## Workflow
 
@@ -52,6 +58,8 @@ Spawn a **`research:writer`** agent.
 Include in its brief:
 - Paths to all research files in `<scratch>/`.
 - The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the writer.
+- Identifier discipline: call each compared item by the same name in every row, table header and paragraph. Do not alternate between the product name, a paraphrase and a category noun.
 - Draft save path: `<scratch>/.drafts/<slug>-comparison-draft.md`.
 - The matrix structure: dimensions on rows, items on columns, one confidence column per cell. Confidence levels:
   - `high` — supported by ≥2 independent primary sources per cell.
@@ -73,3 +81,8 @@ Include in its brief:
 - Final output path: `<output>/<slug>-comparison.md`.
 - Citation format: markdown footnotes `[^N]`.
 - Additional rule: **every cell in the matrix must trace to a source citation**. If any cell rests on a single unverified source, downgrade its confidence label to `low`.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. Any wording the verifier rewrites must still obey the register and punctuation rules.
+
+### 6. Deliver
+
+Report to the user which dimensions the evidence actually decides, which it does not, and the judgement calls you made in choosing dimensions and confidence labels.

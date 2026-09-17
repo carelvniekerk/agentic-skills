@@ -19,6 +19,14 @@ disable-model-invocation: false
 Simulate a rigorous but constructive peer review of a research artifact.
 Produces a structured review with severity-graded feedback and a concrete revision plan.
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including your messages to the user.
+It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+
+Three consequences for how you run this workflow.
+Lead with the uncomfortable part: the recommendation and the blocking weakness go in your first line to the user, before the strengths.
+Hold the verdict under pushback. Revise it for a new fact or a better argument, never for the paper's author repeating a position with more conviction; if you still disagree after three exchanges, say so plainly rather than drifting towards their view.
+Say what you could not judge. If a claim rests on data or code you do not have, name that as a limit of the review instead of grading it as though you had checked it.
+
 Check `CLAUDE.md` for the project's output directory (default: `output/`).
 
 ## Workflow
@@ -46,6 +54,8 @@ Include in its brief:
   - **Clarity**: contribution stated early; all technical terms defined before use; figures/tables self-contained; abstract accurate.
   - **Presentation**: structure, notation consistency, English and formatting.
 - The output template below — the reviewer must wrap its structured-review and inline-annotations output in this template, including the frontmatter and badge row.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the review prose.
+- Identifier discipline: refer to each section, table, figure, method and symbol by the name the paper uses, so the authors can find what you mean.
 
 Output template:
 
@@ -126,3 +136,6 @@ MINOR means the verdict does not change if unresolved.
 - **Separate what is shown from what is claimed.** If a claim exceeds the evidence, say so precisely.
 - **Never smooth away genuine uncertainty.** If the reviewer cannot verify a claim, say so.
 - **Acknowledge strengths genuinely.** A review that only finds faults is not credible.
+Tie every strength to specific evidence in the paper; do not pad the section to soften the verdict.
+- **Write the criticism plainly.** Say what is wrong, why it is wrong, and what would fix it.
+No rhetorical questions the authors did not ask, no metaphor where the technical noun works, and no filler hedges such as "it is worth noting" in front of a genuine objection.

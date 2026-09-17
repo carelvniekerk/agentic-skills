@@ -17,6 +17,13 @@ disable-model-invocation: true
 Compare a research paper's claims against its public codebase.
 Identifies mismatches, omissions, and reproducibility risks.
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including your messages to the user.
+It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+
+Two consequences for how you run this workflow.
+Lead with the worst finding: if a CRITICAL mismatch exists, it goes in the first line of your message to the user and in the opening paragraph of the audit, not in a table halfway down.
+Distinguish what you read from what you inferred. A deviation you confirmed at `file:line` is a finding; a deviation you suspect because a file is absent is labelled `[Likely]` or `[Guessing]` and named as unverified.
+
 Check `CLAUDE.md` for the project's output directory (default: `output/`).
 
 ## Workflow
@@ -65,6 +72,7 @@ Include in its brief:
 - Draft save path: `<scratch>/.drafts/<slug>-audit-draft.md`.
 - The full audit template below — the writer must follow it exactly.
 - Writing rules: each sentence on its own line; preserve `file:line` references verbatim; do not weaken or reorder findings; do not add citations (the verifier handles that).
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the writer. Name each hyperparameter, function and file exactly as the code does, and each symbol exactly as the paper does; never paraphrase an identifier.
 
 Audit template:
 
@@ -134,3 +142,9 @@ Include in its brief:
 - Final output path: `<output>/<slug>-audit.md`.
 - Citation format: markdown footnotes `[^N]`. The paper URL and repo URL must be verified to resolve.
 - Internal `file:line` references must not be modified — they are not external citations and the verifier should leave them in place.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. Any wording the verifier rewrites must still obey the register and punctuation rules.
+
+### 6. Deliver
+
+Report the verdict to the user with the blocking findings first.
+List the judgement calls behind the severity labels, and say explicitly which claims you could not check at all, for instance because the repository omits the code path or because the audited commit does not match the paper's version.
