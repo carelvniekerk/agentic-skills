@@ -19,6 +19,12 @@ Produces a comprehensive, self-contained cited research brief with provenance tr
 
 Check `CLAUDE.md` for the project's scratch directory (default: `research_scratch/`) and output directory (default: `output/`).
 Read [references/output-format.md](references/output-format.md) for the full output template and frontmatter spec — do this before writing the brief.
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including the plan and your messages to the user.
+It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+
+Two consequences for how you run this workflow.
+Open with the answer or with the objection: if the research question is mis-framed, or the topic is too broad to answer in one brief, say so in your first message rather than after six searches.
+Flag confidence where it is load-bearing, and state in the first line of the delivery message if the conclusions rest mostly on inference rather than on read sources.
 
 ## Workflow
 
@@ -71,6 +77,7 @@ Spawn a **`research:writer`** agent.
 Include in its brief:
 - Paths to all research files in `<scratch>/`.
 - The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly (frontmatter, badge row, Prerequisites, Key Takeaways, section headings, Open Questions, Related Articles, Sources placeholder).
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the writer.
 - The draft save path: `<scratch>/.drafts/<slug>-draft.md`.
 - These depth requirements (all mandatory):
   - Minimum ~2,500 words of body content (excluding frontmatter, badges, sources); complex topics may warrant 5,000+.
@@ -91,6 +98,7 @@ Include in its brief:
 - Final output path: `<output>/<slug>.md`.
 - Citation format: markdown footnotes `[^N]` — the output file is `.md`.
 - Obsidian constraint: **never** use HTML anchors (`<a id="ref-N">`) or `[[N]](#ref-N)` — these break rendering. Use only `[^N]` inline and `[^N]: [Title](url) — note` in Sources.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. Where the verifier softens or removes a claim, the replacement wording must still obey the register and punctuation rules.
 
 ### 7. Deliver
 
@@ -108,7 +116,11 @@ Write a provenance sidecar to `<scratch>/<slug>.provenance.md`:
 - **Local knowledge coverage before:** [what was already known]
 - **Plan:** <scratch>/.plans/<slug>.md
 - **Research files:** [list of intermediate files]
+- **Judgement calls:** [scoping decisions, sources excluded and why, contradictions resolved by preferring one source]
+- **Anomalies:** [implausible numbers, metrics that are not comparable, claims that rest on a single source]
 ```
+
+Report the judgement calls and anomalies to the user in the delivery message as well, not only in the sidecar.
 
 ### 8. Optional Knowledge Base Integration
 

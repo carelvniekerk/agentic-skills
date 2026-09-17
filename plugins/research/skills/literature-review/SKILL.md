@@ -18,6 +18,12 @@ Produces a thematically organised review with consensus, disagreements, trends, 
 
 Check `CLAUDE.md` for the project's scratch directory (default: `research_scratch/`) and output directory (default: `output/`).
 Read [references/output-format.md](references/output-format.md) for the full output template — do this before writing the review.
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including the plan and your messages to the user.
+It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+
+Two consequences for how you run this workflow.
+If the field is too broad for one review, or the user's framing assumes a consensus that does not exist, say so in your first message before searching.
+Never let a citation stand in for evidence: "recent work suggests" with no named paper is banned, and a claim resting on one paper is labelled as such rather than asserted.
 
 ## Workflow
 
@@ -54,6 +60,7 @@ Spawn a **`research:writer`** agent.
 Include in its brief:
 - Path to the research file in `<scratch>/`.
 - The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the writer.
 - Draft save path: `<scratch>/.drafts/<slug>-draft.md`.
 - Structural requirement: organise around **themes, not chronology**. Each paper receives substantive individual treatment — method, results, significance — not just a citation in passing.
 - Required content (all mandatory):
@@ -77,9 +84,11 @@ Include in its brief:
 - Final output path: `<output>/<slug>.md`.
 - Citation format: markdown footnotes `[^N]`.
 - Additional rule: every factual paragraph must have at least one citation. Downgrade single-source-critical claims to hedged language rather than asserting them.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. Hedged replacement wording must still obey the register and punctuation rules.
 
 ### 6. Deliver
 
 The verifier writes the final output directly to `<output>/<slug>.md`.
-Write a provenance sidecar to `<scratch>/<slug>.provenance.md`.
+Write a provenance sidecar to `<scratch>/<slug>.provenance.md`, recording the judgement calls you made: papers excluded and why, how you resolved conflicting results, and which comparisons across papers are not strictly like-for-like.
+Report those judgement calls and any anomalies in the evidence to the user in the delivery message as well.
 Check `CLAUDE.md` for knowledge base integration instructions before promoting output to permanent storage — never do this automatically.

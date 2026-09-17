@@ -18,6 +18,13 @@ disable-model-invocation: true
 Turn research findings into a polished paper-style draft.
 Supports Markdown and LaTeX output formats.
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including the outline and your messages to the user.
+It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+
+Two consequences for how you run this workflow.
+If the material does not support a paper, or the contribution the user wants to claim is not what the evidence shows, say so in your first message rather than drafting around the gap.
+Formal and precise is the target register, and it is reached with plain sentences in the active voice: prefer "we train the model on" to "the model was trained on" unless the agent is genuinely irrelevant, and prefer "we evaluate" to "an evaluation is performed".
+
 Check `CLAUDE.md` for:
 - The project's **output directory** (default: `papers/` for paper drafts).
 - The project's **scratch directory** (default: `research_scratch/`).
@@ -66,12 +73,15 @@ Include in its brief:
   - **Markdown:** the full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly.
   - **LaTeX:** the full contents of [references/latex-article-template.tex](references/latex-article-template.tex), OR, if `CLAUDE.md` defines a `latex_template:` path, the contents of that project template. The writer must insert content into the appropriate sections rather than creating a parallel file.
 - Draft save path: `<scratch>/.drafts/<slug>-draft.md` (or `.tex`).
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the writer, in LaTeX as well as Markdown.
 - These writing rules (all mandatory):
   - Keep each sentence on its own line in the source (semantic line breaks — clean diffs, identical rendering).
   - State claims precisely; flag tentative results as tentative.
   - Remove unsupported numerics — if a number has no source, remove it.
   - Include LaTeX math (`$inline$` / `$$display$$`) wherever equations materially help, regardless of output format.
   - Define all variables immediately after each equation is introduced.
+  - Use the paper's own notation and the same term for the same thing throughout. Do not vary the name of a method, dataset or symbol for stylistic relief.
+  - Active voice for anything the authors did. The passive belongs only where the agent is genuinely irrelevant or unknown.
 - Reminder: do NOT add inline citations or a Sources/Bibliography section — the verifier handles that.
 
 ### 5. Verify and Cite
@@ -88,8 +98,10 @@ Include in its brief:
   - Every factual claim must be anchored to a source from the supplied pool.
   - No claim should be stronger than its supporting evidence — weaken or remove rather than fabricate.
   - Mark limitations and open questions explicitly — do not smooth them away.
+  - The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. Weakened or rewritten claims must still obey the register and punctuation rules.
 
 ### 6. Deliver
 
 The verifier writes the final output directly to the path determined in step 5.
 Summarise to the user: what was written, which source materials were used, and what gaps or open questions remain.
+List the judgement calls you made, in particular claims you weakened or cut for lack of support, and flag anything off in the underlying material: implausible numbers, results that are not comparable across sources, or a section resting on a single source.
