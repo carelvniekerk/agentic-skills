@@ -30,7 +30,7 @@ repos:
     # Markdown structure — every skill and agent is Markdown, so lint the
     # bodies for broken tables, bad fences, and malformed links.
     - repo: https://github.com/DavidAnson/markdownlint-cli2
-      rev: v0.23.2
+      rev: v0.23.3
       hooks:
           - id: markdownlint-cli2
             # The rules left enabled are all safely auto-fixable (insert a blank
