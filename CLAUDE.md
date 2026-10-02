@@ -12,10 +12,6 @@ This repo is a personal library of Claude Code skills and subagents, grouped int
 agentic-skills/
 ├── .claude-plugin/
 │   └── marketplace.json      the marketplace catalogue — one entry per plugin
-├── .claude/skills/           authoring meta-skills (project-scoped; not published)
-│   ├── create-skill/         author skills
-│   ├── create-hook/          author hooks
-│   └── create-agent/         author subagents
 └── plugins/                  every published plugin
     ├── git/
     │   ├── .claude-plugin/plugin.json
@@ -37,22 +33,24 @@ agentic-skills/
     │   ├── .claude-plugin/plugin.json
     │   ├── hooks/            hooks.json + chezmoi-guard.sh
     │   └── tests/            acceptance.sh
-    └── uv/
+    ├── uv/
+    │   ├── .claude-plugin/plugin.json
+    │   ├── hooks/            hooks.json + uv-redirect.sh
+    │   └── tests/            acceptance.sh
+    └── meta/
         ├── .claude-plugin/plugin.json
-        ├── hooks/            hooks.json + uv-redirect.sh
-        └── tests/            acceptance.sh
+        └── skills/           create-skill, create-hook, create-agent
 ```
 
 Every plugin directory is self-contained.
 Its manifest lives at `<plugin>/.claude-plugin/plugin.json`, and **only** the manifest goes in that directory.
 `skills/`, `agents/`, `hooks/`, and `.mcp.json` all sit at the plugin root, never inside `.claude-plugin/`.
 
-The `.claude/skills/` directory is the Claude Code loader's project-scoped location and holds **meta-skills only**.
-They are not published, and they load only when Claude Code runs from this repository.
+The authoring meta-skills live in the `meta` plugin like everything else, so they can be installed globally.
 
 ---
 
-## The Nine Plugins
+## The Ten Plugins
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -65,6 +63,7 @@ They are not published, and they load only when Claude Code runs from this repos
 | `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
 | `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |
 | `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
+| `meta`           | create-skill, create-hook, create-agent                                                                                    | `/meta:create-skill`           |
 
 Plugin skills are **always** namespaced by the plugin name.
 The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.
@@ -316,7 +315,7 @@ This is the safety contract.
 
 ## Authoring Meta-Skills
 
-Three skills under `.claude/skills/` automate the authoring of new Claude Code primitives.
+Three skills in the `meta` plugin automate the authoring of new Claude Code primitives.
 Use them whenever you create or refine the corresponding artefact instead of writing the file from scratch:
 
 | Skill          | For authoring                                                                                         |
@@ -327,6 +326,7 @@ Use them whenever you create or refine the corresponding artefact instead of wri
 
 These meta-skills are aware of each other.
 When a job needs more than one primitive — a skill that bundles a hook, an agent with preloaded skills, a hook scoped to a specific subagent — each delegates to its sibling via the `Skill` tool rather than reimplementing the workflow inline.
+Outside a marketplace repository (no `.claude-plugin/marketplace.json` at the root) they default to personal or project scope instead of the `plugins/` layout.
 
 ---
 
@@ -334,7 +334,7 @@ When a job needs more than one primitive — a skill that bundles a hook, an age
 
 1. Pick the plugin whose primary function matches, or create a new one (see below).
 2. Create `plugins/<plugin>/skills/<slug>/SKILL.md` with complete frontmatter — `name`, `description`, and whatever Claude extensions the skill needs.
-3. Invoke the `create-skill` meta-skill (or `/create-skill`) and let it drive the draft → test → review loop.
+3. Invoke the `create-skill` meta-skill (or `/meta:create-skill`) and let it drive the draft → test → review loop.
 4. Draft the body in **semantic line breaks** as you type.
 5. Put supporting assets in `references/`, `scripts/`, or `assets/` beside `SKILL.md`.
 6. If the skill runs commands, finish with a Strict Prohibitions table.
@@ -346,7 +346,7 @@ When a job needs more than one primitive — a skill that bundles a hook, an age
 
 1. Pick the plugin it belongs to.
 2. Create `plugins/<plugin>/agents/<slug>.md` with full frontmatter — `name`, `description`, `tools`, `model`, `permissionMode`, `color` — plus the system prompt as the body.
-3. Invoke the `create-agent` meta-skill if you need help.
+3. Invoke the `create-agent` meta-skill (or `/meta:create-agent`) if you need help.
 4. Validate: `claude plugin validate plugins/<plugin>/agents`.
 5. Smoke-test: `claude --plugin-dir plugins/<plugin>`, then check `<plugin>:<slug>` appears in `/context` under Custom Agents.
 

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "meta",
+  "description": "Authoring workflows for Claude Code primitives: skills, hooks and subagents. Each follows a draft, test, review and iterate loop against the current reference docs, and delegates to its siblings when a job needs more than one primitive.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["claude-code", "skills", "hooks", "subagents", "authoring"]
+}

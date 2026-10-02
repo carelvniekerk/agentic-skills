@@ -49,9 +49,11 @@ Everything below operationalises that.
 
 ---
 
-## Agents in this repository
+## Agents in a plugin marketplace
 
-Agents here ship inside a plugin: `plugins/<plugin>/agents/<slug>.md`.
+When the working repository is a plugin marketplace (it has `.claude-plugin/marketplace.json` at the root), agents ship inside a plugin: `plugins/<plugin>/agents/<slug>.md`.
+Otherwise, save the agent to `.claude/agents/` (project) or `~/.claude/agents/` (personal), use the anatomy below, and skip the plugin validation and smoke-test steps.
+Ask the user which scope they want if the request does not make it clear.
 Claude Code reads that frontmatter directly and merges nothing, so the file is complete on its own.
 
 ### Anatomy
@@ -85,7 +87,7 @@ There is no separate manifest entry per agent.
 The `agents/` directory is discovered automatically from the plugin root.
 
 > **Do not create a `.harness/` directory, and do not write a `.toml` sibling.**
-> Earlier revisions of this repository split agent frontmatter into `.harness/claude.yaml` and shipped a transpiled Codex `.toml` alongside each `.md`.
+> Earlier revisions of the agentic-skills repository split agent frontmatter into `.harness/claude.yaml` and shipped a transpiled Codex `.toml` alongside each `.md`.
 > Both mechanisms are gone, along with the Codex and Copilot targets they served.
 > A `.harness/` file today is simply ignored and its keys are silently lost.
 
@@ -180,7 +182,7 @@ Classify what you are authoring before drafting the body, and include the matchi
 Most agents land in more than one row.
 Weight the blocks by what the agent actually does: a git workflow needs the advisor stance at its review gate and the register for its commit text, but little of the truthfulness block; a research agent needs the truthfulness block in full.
 
-If the agent belongs to the `research` plugin, point it at `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` and have it pass that file's full contents in any agent brief, instead of inlining a new copy.
+In the agentic-skills marketplace, if the agent belongs to the `research` plugin, point it at `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` and have it pass that file's full contents in any agent brief, instead of inlining a new copy.
 If a template or example inside the agent contradicts these rules, for example a sample commit body written as sentence fragments or a PR template that demands exactly three bullets, fix the example or state that it is a maximum rather than a quota.
 Existing instructions that ask for a formal or academic tone with passive voice should be scoped to the rule above, not deleted.
 
@@ -198,6 +200,7 @@ The "Choose the right primitive" table later in this skill helps you decide *whe
 This section is the complement: once you have committed to authoring an agent, what other primitives might you also need?
 
 If the user's request requires a sibling primitive, invoke the sibling skill via the `Skill` tool rather than re-deriving its workflow inline.
+The siblings ship in the same `meta` plugin, so their `Skill`-tool names are `meta:create-skill`, `meta:create-hook` and `meta:create-agent`.
 Hand over the context you have already gathered (the wrapping agent file path, the agent's tool scope, the desired permission mode) so the sibling does not re-ask its own Phase 0 questions.
 
 Common compositions when authoring an agent:
@@ -333,7 +336,7 @@ Only `name` and `description` are required.
 Every other field has a default that's almost always wrong for a focused agent — narrow them explicitly.
 
 Most fields below are Claude Code specific.
-For which fields a plugin agent silently drops, see [§ Agents in this repository](#agents-in-this-repository) at the top of this skill.
+For which fields a plugin agent silently drops, see [§ Agents in a plugin marketplace](#agents-in-a-plugin-marketplace) at the top of this skill.
 
 | Field             | Required | Description                                                                                                                                                                               |
 | ----------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1165,8 +1168,8 @@ For agents you'll edit frequently, use the `/agents` interactive interface — i
 - [ ] If it is a plugin agent, its frontmatter does not **set** `hooks`, `mcpServers`, or `permissionMode` — those are silently dropped, so leaving one in place documents a guarantee the agent does not have.
 - [ ] A read-only plugin agent enforces that through `tools` (no write tool listed), not through `permissionMode: plan`.
 - [ ] Every skill that delegates to this agent names it as `<plugin>:<slug>`, not by the bare slug.
-- [ ] `claude plugin validate plugins/<plugin>/agents` passes.
-- [ ] Smoke-tested with `claude --plugin-dir plugins/<plugin>` and confirmed as `<plugin>:<slug>` in `/context`.
+- [ ] Plugin only: `claude plugin validate plugins/<plugin>/agents` passes.
+- [ ] Plugin only: smoke-tested with `claude --plugin-dir plugins/<plugin>` and confirmed as `<plugin>:<slug>` in `/context`.
 - [ ] Tested: `/agents` shows it, delegation triggers correctly, tool scope is respected, return value is useful, plus the don't-trigger negative test.
 - [ ] If using bundled validation scripts, they use `uv run` (Python) or `chmod +x` (Bash).
 

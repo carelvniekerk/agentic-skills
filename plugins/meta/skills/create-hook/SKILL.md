@@ -106,6 +106,7 @@ This skill is one of three that together cover Claude Code's authoring primitive
 - **`create-agent`** — delegated subagent with its own context window, tool scope, and return-value contract.
 
 If the user's request expands beyond a standalone hook, invoke the sibling skill via the `Skill` tool rather than re-deriving its workflow inline.
+The siblings ship in the same `meta` plugin, so their `Skill`-tool names are `meta:create-skill`, `meta:create-hook` and `meta:create-agent`.
 Hand over the context you have already gathered (the chosen lifecycle event, matcher and `if` filters, decision contract, handler type) so the sibling does not re-ask its own Phase 0 questions.
 
 Common compositions when authoring a hook:
@@ -231,7 +232,7 @@ If a change doesn't take effect, restart the session.
 ### Hooks and plugin publishing
 
 A hook bundled inside skill or agent frontmatter travels with that skill or agent when the plugin is installed — the frontmatter ships verbatim.
-A hook that should apply whenever the whole plugin is enabled belongs in `plugins/<plugin>/hooks/hooks.json` instead; Claude Code discovers that file automatically at the plugin root.
+A hook that should apply whenever the whole plugin is enabled belongs in `<plugin>/hooks/hooks.json` instead; Claude Code discovers that file automatically at the plugin root.
 
 Hooks in `settings.json` / `settings.local.json` are **not** part of any plugin and must be distributed separately — committed to the consumer's repo, or moved into a plugin.
 

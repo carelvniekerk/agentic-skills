@@ -61,6 +61,12 @@
       "source": "./plugins/uv",
       "category": "workflow",
       "tags": ["hooks", "uv", "pip", "python", "packaging"]
+    },
+    {
+      "name": "meta",
+      "source": "./plugins/meta",
+      "category": "development",
+      "tags": ["claude-code", "skills", "hooks", "subagents", "authoring"]
     }
   ]
 }

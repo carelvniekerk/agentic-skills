@@ -19,6 +19,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `python-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
 | `chezmoi`        | —                                                                                                                         | —                                          | `PreToolUse`                               |
 | `uv`             | —                                                                                                                         | —                                          | `PreToolUse`                               |
+| `meta`           | `create-skill`, `create-hook`, `create-agent`                                                                             | —                                          | —                                          |
 
 ### What each one does
 
@@ -47,6 +48,10 @@ See [Python quality hooks](#python-quality-hooks) below.
 See [Guard hooks](#guard-hooks) below.
 
 - **`uv`** — one hook that refuses `pip install` and `pip uninstall` in a Bash command and names the uv equivalent.
+
+- **`meta`** — authoring workflows for Claude Code skills, hooks and subagents.
+Each runs a draft, test, review and iterate loop against the current reference docs and delegates to its siblings when a job needs more than one primitive.
+Inside a plugin marketplace repository they follow the `plugins/<plugin>/` layout; elsewhere they default to personal or project scope.
 See [Guard hooks](#guard-hooks) below.
 
 ---

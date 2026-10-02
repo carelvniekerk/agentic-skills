@@ -64,10 +64,3 @@ repos:
                 exit $status'
             pass_filenames: false
             files: ^plugins/
-
-          - id: claude-validate-meta-skills
-            name: claude plugin validate (meta-skills)
-            language: system
-            entry: claude plugin validate .claude/skills
-            pass_filenames: false
-            files: ^\.claude/skills/

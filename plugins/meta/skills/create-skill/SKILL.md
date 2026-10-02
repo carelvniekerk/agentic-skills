@@ -106,7 +106,7 @@ Classify what you are authoring before drafting the body, and include the matchi
 Most skills land in more than one row.
 Weight the blocks by what the skill actually does: a git workflow needs the advisor stance at its review gate and the register for its commit text, but little of the truthfulness block; a research skill needs the truthfulness block in full.
 
-If the skill belongs to the `research` plugin, point it at `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` and have it pass that file's full contents in any agent brief, instead of inlining a new copy.
+In the agentic-skills marketplace, if the skill belongs to the `research` plugin, point it at `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` and have it pass that file's full contents in any agent brief, instead of inlining a new copy.
 If a template or example inside the skill contradicts these rules, for example a sample commit body written as sentence fragments or a PR template that demands exactly three bullets, fix the example or state that it is a maximum rather than a quota.
 Existing instructions that ask for a formal or academic tone with passive voice should be scoped to the rule above, not deleted.
 
@@ -121,6 +121,7 @@ This skill is one of three that together cover Claude Code's authoring primitive
 - **`create-agent`** — delegated subagent with its own context window, tool scope, and return-value contract.
 
 If the user's request expands beyond a plain skill, invoke the sibling skill via the `Skill` tool rather than re-deriving its workflow inline.
+The siblings ship in the same `meta` plugin, so their `Skill`-tool names are `meta:create-skill`, `meta:create-hook` and `meta:create-agent`.
 Hand over the context you have already gathered (the wrapping file path, the lifecycle event, the desired tool scope) so the sibling does not re-ask its own Phase 0 questions.
 
 Common compositions when authoring a skill:
@@ -168,7 +169,7 @@ Wait for confirmation before drafting.
 | ---------- | ---------------------------------------- | --------------------------------------------------------------------------- |
 | Personal   | `~/.claude/skills/<name>/SKILL.md`       | Available in every project on this machine.                                 |
 | Project    | `<repo>/.claude/skills/<name>/SKILL.md`  | Only when Claude Code runs from that repo.                                   |
-| Plugin     | `<plugin>/skills/<name>/SKILL.md`        | Namespaced `<plugin>:<name>`. **This is what this repository publishes.**    |
+| Plugin     | `<plugin>/skills/<name>/SKILL.md`        | Namespaced `<plugin>:<name>`. **Use this inside a marketplace repo.**         |
 | Enterprise | Managed settings                         | Organisation-wide deployment.                                               |
 
 Precedence when names collide: **enterprise > personal > project**.
@@ -177,9 +178,11 @@ A skill takes precedence over a `.claude/commands/` file with the same name.
 
 In monorepos, Claude Code automatically discovers skills from nested `.claude/skills/` directories under whichever file you are working on (e.g. `packages/frontend/.claude/skills/`).
 
-### Publishing from this repository
+### Publishing from a marketplace repository
 
-Skills here live inside a plugin: `plugins/<plugin>/skills/<name>/SKILL.md`.
+When the working repository is a plugin marketplace (it has `.claude-plugin/marketplace.json` at the root), skills live inside a plugin: `plugins/<plugin>/skills/<name>/SKILL.md`.
+Otherwise, pick the personal or project scope from the table above, skip Phase 1.5, and skip the plugin-only items in the quick checklist.
+Ask the user which scope they want if the request does not make it clear.
 The plugin is the unit of installation, and `.claude-plugin/marketplace.json` at the repo root is what makes it installable.
 The next phase covers the plugin layout and what the frontmatter must carry.
 
@@ -210,7 +213,8 @@ Creating a brand-new top-level skills directory still requires a Claude Code res
 
 ## Phase 1.5 — Plugin packaging
 
-Skills in this repository ship inside a plugin, and the plugin ships through the marketplace at `.claude-plugin/marketplace.json`.
+Apply this phase only in a marketplace repository or when the user asks for a plugin.
+There, skills ship inside a plugin, and the plugin ships through the marketplace at `.claude-plugin/marketplace.json`.
 Claude Code reads `SKILL.md` frontmatter **directly** and merges nothing — whatever you write in the file is exactly what the loader sees.
 
 ### All frontmatter is inline
@@ -231,7 +235,7 @@ Detailed semantics are in the Phase 2 frontmatter table.
 Write `allowed-tools` in Anthropic syntax — `Bash(git *)`, space-separated — not the open-spec `Bash(git:*)` form.
 
 > **Do not create a `.harness/` directory.**
-> Earlier revisions of this repository split Claude-only frontmatter into `.harness/claude.yaml` so a separate installer could merge it per platform.
+> Earlier revisions of the agentic-skills repository split Claude-only frontmatter into `.harness/claude.yaml` so a separate installer could merge it per platform.
 > That mechanism is gone, along with the Codex and Copilot targets it served.
 > A `.harness/` file today is simply ignored, and its keys are silently lost.
 
@@ -280,7 +284,7 @@ claude plugin validate plugins/<plugin>             # plugin manifest
 claude plugin validate plugins/<plugin>/skills      # the skill files themselves
 ```
 
-Plugin manifests here deliberately omit `version` so the git SHA drives updates.
+Plugin manifests in agentic-skills deliberately omit `version` so the git SHA drives updates.
 `validate` emits one warning per plugin about that; it is expected.
 
 ---
@@ -657,7 +661,7 @@ Skills propagate at four scopes — pick the narrowest one that works.
 | **Plugin**          | Place under `plugins/<plugin>/skills/<name>/` and list the plugin in the marketplace. Namespaced `plugin:name`. |
 | Enterprise          | Deploy via managed settings.                                                                              |
 
-The plugin path is what this repository uses.
+Marketplace repositories use the plugin path.
 A consumer adds the marketplace once and installs whichever plugins they want, at whichever scope:
 
 ```bash
@@ -667,7 +671,7 @@ claude plugin install git@agentic-skills                        # global
 claude plugin install research@agentic-skills --scope project   # one repo
 ```
 
-Because no plugin here pins a `version`, Claude Code uses the git commit SHA — so every push to `main` reaches installed copies on the next update.
+Because no agentic-skills plugin pins a `version`, Claude Code uses the git commit SHA — so every push to `main` reaches installed copies on the next update.
 Auto-update is off by default for third-party marketplaces; enable it once under `/plugin` → **Marketplaces**, or set `"autoUpdate": true` on the `extraKnownMarketplaces` entry.
 
 There is a fifth, install-free option worth knowing: a plugin directory symlinked into `~/.claude/skills/<name>/` auto-loads as `<name>@skills-dir`, with no marketplace, install, or cache involved.
@@ -739,11 +743,11 @@ Reference the script via `${CLAUDE_SKILL_DIR}` so paths don't break when the wor
 - [ ] `allowed-tools` lists only what the skill genuinely needs, in Anthropic syntax (`Bash(git *)`).
 - [ ] If the skill has side effects, `disable-model-invocation: true` is set.
 - [ ] All frontmatter is inline in SKILL.md — there is no `.harness/` directory.
-- [ ] The skill sits under `plugins/<plugin>/skills/<name>/`, and that plugin has an entry in `.claude-plugin/marketplace.json`.
-- [ ] `claude plugin validate plugins/<plugin>/skills` passes.
+- [ ] Plugin only: the skill sits under `plugins/<plugin>/skills/<name>/`, and that plugin has an entry in `.claude-plugin/marketplace.json`.
+- [ ] Plugin only: `claude plugin validate plugins/<plugin>/skills` passes.
 - [ ] Trigger tests pass (the skill activates on intended phrases and stays quiet otherwise).
 - [ ] Execution tests pass on at least three prompts.
-- [ ] Smoke-tested with `claude --plugin-dir plugins/<plugin>` and invoked as `/<plugin>:<name>`.
+- [ ] Plugin only: smoke-tested with `claude --plugin-dir plugins/<plugin>` and invoked as `/<plugin>:<name>`.
 - [ ] The skill is committed (project) or saved (personal/plugin) at the intended scope.
 
 ---
