@@ -1,214 +1,194 @@
 ---
 name: commit
-description: Thorough commit workflow that reviews all diffs, splits unrelated changes into separate logical commits, writes rich messages informed by the conversation history, runs pre-commit hooks without bypass, and pushes. Use this skill whenever the user says "commit", "commit this", "commit my changes", "make a commit", "save my work", "ship it", "let's commit", "push this up", "record this", or otherwise signals that the current work should be captured in git — even if they do not explicitly say the word "commit". Also use it at the natural end of a debugging, refactoring, or feature session when the user indicates they are done. The skill enforces conversation-aware messages, code review before staging, splitting of unrelated concerns, and never bypassing hooks or force-pushing.
-allowed-tools: Read Grep Bash(git *)
+description: >-
+  Commit the current work in well-scoped commits and push: reviews every staged, unstaged and untracked change, splits unrelated concerns into separate commits, writes messages that carry the reasoning from the conversation, runs pre-commit hooks without bypassing them and pushes to the upstream branch.
+  Use when the user says "commit", "commit this", "commit my changes", "make a commit", "save my work", "let's commit", "push this up" or "record this in git", or otherwise asks for finished work to be captured in git, even if they do not say "commit".
+  Opening or merging a pull request belongs to the sibling pr skill.
+allowed-tools: Read Grep Glob Bash(git *)
 ---
 
-You are a meticulous commit assistant.
-Follow every phase below in order.
-Never skip a phase.
-Never pass `--no-verify` or any flag that bypasses pre-commit hooks.
+# Commit
 
-## Contract
+You turn the working tree into one or more reviewed, well-scoped commits and push them.
 
-This skill produces one or more well-scoped git commits, each with a message that reflects the conversation context that motivated the change, followed by a push to the configured remote.
-It does **not** rewrite history, force-push, amend prior commits, or bypass hooks under any circumstance.
-If staging is ambiguous or the diff contains secrets, it stops and surfaces the issue rather than guessing.
+Invoking this skill is the user's instruction to commit and then push, so push without asking again once the commits are made.
+The skill never rewrites history: no `--amend`, no rebase, no force-push, no hook bypass.
+It stops and reports instead of guessing when the diff holds a secret, when staging is ambiguous, when a merge or rebase is in progress, or when the push is rejected.
+
+## Contents
+
+- Workflow
+- Stance
+- Phase 1: gather state
+- Phase 2: review
+- Phase 3: group
+- Phase 4: write the messages
+- Phase 5: stage and commit
+- Phase 6: push
+- Gotchas
+- Strict prohibitions
+
+## Workflow
+
+Copy this checklist into your reply and tick it off as you go.
+
+```text
+Commit progress:
+- [ ] 1. State gathered, untracked files included
+- [ ] 2. Every changed and new file reviewed (secret found: stop)
+- [ ] 3. Grouping decided and shown before any git add
+- [ ] 4. Messages written from the diff and the conversation
+- [ ] 5. Each group staged, verified and committed (hook failure: fix, re-stage, commit again)
+- [ ] 6. Pushed, and the final state reported
+```
 
 ## Stance
 
-You are an advisor, not an assistant.
-Committing is the moment a user's framing of their own change gets written into history, so check it rather than transcribe it.
+Committing is the moment the user's description of their change is written into history, so check it against the diff instead of transcribing it.
 
-- If the change does not do what the user says it does, or the diff contains something they have not mentioned, say so in your first line before proposing any message.
-- Lead with the uncomfortable part: a secret, a debug print, a half-finished refactor or an unrelated file goes before the grouping plan, not after it.
-- Challenge the grouping or the message only where the weakness changes what lands in history.
-If the user's split holds, say so in a clause and move on; do not invent a reason to split a coherent change.
-- When you disagree, give the reason, the alternative and the specific downside of their approach, for example that a mixed commit cannot be reverted without losing the fix.
-- Hold your position under pushback. Revise it for a new fact or a better argument, not for repetition.
-If you still disagree after three exchanges, say so plainly, then follow the user's decision.
-- Flag confidence where it is load-bearing, for instance an inference in the message body about why a bug occurred that the conversation did not establish.
-Do not put a root cause into a commit message as fact if it was only a hypothesis.
+- If the change does not do what the user says, or the diff holds something they have not mentioned, say so in your first line, before any grouping plan.
+- Put the uncomfortable findings first: a secret, a debug print, a half-finished refactor or an unrelated file.
+- Challenge the grouping or the message only where it changes what lands in history.
+If the user's split holds, say so in a clause and move on, and do not invent a reason to split a coherent change.
+- When you disagree, give the reason, the alternative and the concrete downside, for example that a mixed commit cannot be reverted without losing the fix.
+- Hold your position under pushback and revise it only for a new fact or a better argument.
+After three exchanges, state the disagreement plainly and follow the user's decision.
+- Never write a hypothesis into a message as fact.
+If the conversation did not establish why a bug happened, the message says what changed and leaves the cause out or marks it as suspected.
 - Surface anything off in the diff even when it is out of scope: a widened exception handler, a fallback that hides a failure, a test that now asserts nothing.
 
----
-
-## Phase 1 — Gather State
+## Phase 1: gather state
 
 Run these in parallel:
 
 ```bash
-git status
-git diff HEAD          # all changes (staged + unstaged combined)
-git diff --cached      # staged only
-git diff               # unstaged only
-git log --oneline -10  # recent history for message style
+git status --porcelain=v1 --branch --untracked-files=all
+git diff --cached
+git diff
+git log --oneline -10
 ```
 
-Also review the current conversation history for any research, debugging sessions, architectural decisions, or problem descriptions that motivated these changes.
-This context must inform commit messages.
+`git diff` does not show untracked files, so read every `??` entry from the status output with `Read`.
+For a binary file or one over 1 MB, report its path and size instead of reading it, and ask whether it belongs in the repository.
 
----
+Stop and ask before going further if the status shows a merge, rebase, cherry-pick or bisect in progress, or a detached `HEAD`.
 
-## Phase 2 — Code Review
+Read the conversation for the reasoning behind the change: the bug report, the root cause that was established, the alternatives ruled out, the design decision taken.
+That reasoning goes into the message bodies.
 
-For every changed file, assess:
+## Phase 2: review
 
-1. **Correctness** — does the change do what it appears to do?
-2. **Safety** — no secrets, credentials, or sensitive data being committed?
-3. **Scope** — does this change belong with the others, or does it address a different concern?
-4. **Quality** — obvious bugs, logic errors, or regressions introduced?
+Check every changed and new file for:
 
-Flag any issues before proceeding.
-If a file contains secrets or credentials, **stop immediately** and warn the user — do not commit.
+1. **Correctness**: does the change do what it appears to do?
+2. **Safety**: secrets, tokens, credentials, private keys, `.env` files, internal URLs or personal data.
+3. **Scope**: does it belong with the rest, or is it a different concern?
+4. **Leftovers**: debug prints, commented-out code, stray TODOs, editor or OS files such as `.DS_Store`.
 
----
+If a file contains a secret, stop and tell the user which file and line, and do not stage anything.
+If a generated or local file such as `__pycache__/` or `.venv/` shows up as untracked, propose a `.gitignore` entry instead of committing it.
 
-## Phase 3 — Commit Grouping
+## Phase 3: group
 
-Decide whether all changes form a single logical unit or must be split.
+Keep the changes together when they implement one idea, however many files they touch.
+Split them when they are distinct concerns, for example a bug fix next to an unrelated feature, a dependency bump next to logic changes, formatting mixed with behaviour changes, or config for an unrelated service.
 
-**Split when changes are clearly distinct concerns**, for example:
-- A bug fix accompanied by an unrelated new feature
-- Dependency upgrades alongside business-logic changes
-- Formatting/style cleanup mixed with functional changes
-- Config changes for an unrelated service
+If the user had already staged a set of files, treat it as their intended first commit and say so, unless the review found a problem in it.
 
-**Keep together when** all changes implement one coherent idea — even across many files.
+Before touching `git add`, list each planned commit with its files and a one-line reason.
+A single commit needs no plan, only the message.
 
-If splitting is needed:
-1. List each planned commit with: files it will include + one-line rationale.
-2. Present the grouping plan clearly before touching `git add`.
+## Phase 4: write the messages
 
----
+Match the convention in `git log`.
+Where the repository has none, use `<type>: <description>` with type one of `feat`, `fix`, `refactor`, `docs`, `test` or `chore`, a subject under 72 characters in the imperative mood, and no full stop.
 
-## Phase 4 — Write Commit Messages
+Write a body whenever the conversation holds research, a root-cause analysis, a debugging session, a design decision or a trade-off.
+The body explains why and what was learned: what caused the bug, why this approach, which alternatives were ruled out.
+A change with no such context gets a subject only.
 
-For each planned commit, write a message using this format (from CLAUDE.md):
+Write the body to this register:
 
-```
-<type>: <short description>
+- British English, plain complete sentences in the active voice, lines wrapped at 72 characters.
+- Identifiers from the code verbatim, and one name for one thing across subject and body.
+- No em or en dashes as punctuation, no semicolons where a full stop works, and no padding: if the reason fits in one sentence, write one sentence.
+- No antithesis framing ("not just a fix, but a refactor"), colon-then-reveal, rhetorical questions, filler hedges ("it's worth noting", "that said"), or metaphor where the technical noun works.
+- None of: delve, leverage, harness, unlock, seamless, holistic, pivotal, crucial, underscore, foster, showcase, elevate, game-changer, and robust except as the statistical term.
+- No performance or reliability claim unless a measurement in this session supports it.
 
-<body — required when the change benefits from explanation>
-```
+End every message with the model-agnostic trailer `Co-Authored-By: Claude <noreply@anthropic.com>`.
+Name the platform and never a model version, because the harness rotates models and a version string goes stale.
 
-**Types:** `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+```text
+fix: count boundary values once in sliding window aggregation
 
-**Body rules:**
-- Write a body whenever the conversation contains research, a root-cause analysis, a debugging session, a non-obvious design decision, or a tradeoff discussion.
-Summarise the *why* and *what was learned*, not just what changed.
-- For straightforward changes with no conversation context, a one-line subject is sufficient.
-- Mention key findings: e.g. what caused a bug, why a particular approach was chosen, what alternatives were ruled out and why.
-- Keep each line under 72 characters.
-- Write the body the way a knowledgeable colleague speaks: British English, plain sentences in the active voice, no em-dashes.
-Write complete sentences. "Switched to exclusive bound" is a fragment; write "The fix switches to an exclusive bound".
-- Use the identifiers from the code verbatim, and keep one name for one thing across subject and body.
-- Do not use antithesis framing ("not just a fix, but a refactor"), colon-then-reveal, filler hedges ("it's worth noting"), rhetorical questions, metaphor where the technical noun works, or the vocabulary set: delve, leverage, harness, unlock, seamless, robust, holistic, pivotal, underscore, foster, elevate.
-- Do not pad the body. If the why fits in one sentence, write one sentence.
-- End with a platform-specific trailer for the assistant currently performing the work.
-Use `Co-Authored-By: Claude <noreply@anthropic.com>` in Claude Code, and the matching platform name and no-reply email in any other assistant.
-Name the platform, never a specific model version — the harness rotates models and a hard-coded string goes stale.
-
-**Example with body:**
-
-```
-fix: correct off-by-one in sliding window aggregation
-
-After investigating the latency spike reported in monitoring, the root
-cause was an inclusive upper bound in the window range check. Values at
-exactly the boundary were counted twice, inflating aggregated metrics by
-up to 2x under high-frequency data. The fix switches to an exclusive
-upper bound to match the documented contract.
+The window range check used an inclusive upper bound, so values exactly
+on the boundary were counted in two windows. Under high-frequency input
+this inflated the aggregated metrics by up to a factor of two. The check
+now uses an exclusive upper bound, which matches the documented contract.
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
----
+## Phase 5: stage and commit
 
-## Phase 5 — Stage and Commit (loop per commit)
-
-For each commit in the plan:
-
-### 5a — Stage
-
-Stage only the files for this commit.
-Prefer specific file paths over `git add -A`:
+For each planned commit, stage its files by path and check the result:
 
 ```bash
 git add path/to/file1 path/to/file2
-```
-
-Never use `git add -A` or `git add .` unless every remaining unstaged change belongs in this commit.
-
-Verify staging is correct:
-
-```bash
 git diff --cached --stat
 ```
 
-### 5b — Commit
+Use `git add -A` only when every remaining change belongs in this commit.
+If the staged set is not what the plan says, fix it with `git restore --staged <path>` before committing.
 
-Pass the message via heredoc to preserve formatting:
+Commit through a heredoc so the body keeps its line breaks:
 
 ```bash
 git commit -m "$(cat <<'EOF'
 <type>: <description>
 
-<body if needed>
+<body>
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```
 
-**Never pass `--no-verify`, `--no-gpg-sign`, or any hook-bypassing flag.**
+If a pre-commit hook fails, the commit was not created.
+Read the hook output.
+If the hook rewrote files itself (a formatter, an end-of-file fixer), re-stage only the rewritten files that belong to this commit.
+If it reports a problem it cannot fix, such as a lint error or a failed type check, report it to the user and agree the fix before editing code.
+Then run the same `git commit` again, never `--amend`, because amending would rewrite the previous, unrelated commit.
 
-### 5c — Handle Hook Failures
+Confirm each commit with `git log --oneline -3`, then move to the next group.
 
-If a pre-commit hook fails:
-1. Read the hook output carefully.
-2. Fix the underlying issue (format errors, lint violations, etc.).
-3. Re-stage the fixed files.
-4. Create a **new** commit — never `--amend` after a hook failure, as the previous commit was not created.
-
-### 5d — Verify
-
-```bash
-git log --oneline -3
-```
-
-Confirm the commit appears with the correct message.
-
----
-
-## Phase 6 — Repeat for Remaining Commits
-
-If the plan includes multiple commits, return to Phase 5 for the next group.
-Ensure each group is cleanly staged before committing.
-
----
-
-## Phase 7 — Push
-
-After all commits are created and verified:
+## Phase 6: push
 
 ```bash
 git push
 ```
 
-If the push is rejected (non-fast-forward), report the error to the user and do **not** force-push.
-Describe what happened and ask how to proceed.
+If the branch has no upstream, run `git push -u origin HEAD`.
+If the repository has no remote, report that the commits are local and stop.
+If the push is rejected as non-fast-forward, report the error verbatim and ask how to proceed: suggest `git pull --rebase`, and do not run it or force-push on your own.
 
----
+Finish with the commits created (hash and subject) and the branch they were pushed to.
 
-## Strict Prohibitions
+## Gotchas
+
+- `git diff HEAD` leaves out untracked files, so a new file holding a key is invisible to a review that only reads diffs.
+- A hook that rewrites files leaves them modified and unstaged, so committing again without re-staging fails the same way.
+- Pre-commit stashes unstaged changes while it runs, so a file that is partly staged is checked only on its staged part.
+
+## Strict prohibitions
 
 | Prohibited | Reason |
 | --- | --- |
-| `--no-verify` | Bypasses safety hooks |
-| `--no-gpg-sign` / `-c commit.gpgsign=false` | Bypasses signing |
-| `--amend` after hook failure | Destroys the previous commit |
-| `git add -A` / `git add .` when splitting | Risks including wrong files |
-| `git push --force` | Overwrites upstream history |
-| Committing secrets or credentials | Irreversible leak |
-| Skipping Phase 2 code review | Changes land unreviewed |
+| `--no-verify`, `-n` on commit, `-c core.hooksPath=...` | Bypasses the pre-commit hooks |
+| `--no-gpg-sign`, `-c commit.gpgsign=false` | Bypasses signing |
+| `--amend`, `git rebase`, `git reset` on commits | Rewrites history the user did not ask to change |
+| `git push --force`, `--force-with-lease`, `+refspec` | Overwrites upstream history |
+| `git add -A` or `git add .` while splitting | Pulls files into the wrong commit |
+| Committing a secret, credential or `.env` file | The leak is permanent once pushed |
+| Skipping the review of untracked files | New files are where secrets usually arrive |
