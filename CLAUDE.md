@@ -138,7 +138,7 @@ Agents are namespaced like skills — the file above is `research:researcher` in
 Refer to an agent by its **namespaced** name everywhere a skill body tells Claude to spawn it — "Spawn a `research:verifier` agent", never a bare `verifier`.
 The bare slug is what the agents were called before they moved into plugins, and it is not the address any more.
 
-**`hooks`, `mcpServers`, and `permissionMode` are silently ignored on a plugin agent.**
+**`hooks`, `mcpServers`, `permissionMode` and `initialPrompt` are silently ignored on a plugin agent.**
 No validator warns you, because ignored is not the same as invalid.
 Put hooks in `<plugin>/hooks/hooks.json` and MCP servers in `<plugin>/.mcp.json`; for `permissionMode` there is no plugin-level equivalent, so express the restriction through `tools` instead.
 An agent that must not write is one with no write tool in its `tools` list — not one carrying `permissionMode: plan`.
@@ -344,11 +344,15 @@ Outside a marketplace repository (no `.claude-plugin/marketplace.json` at the ro
 
 ## Adding an Agent — Checklist
 
-1. Pick the plugin it belongs to.
-2. Create `plugins/<plugin>/agents/<slug>.md` with full frontmatter — `name`, `description`, `tools`, `model`, `permissionMode`, `color` — plus the system prompt as the body.
-3. Invoke the `create-agent` meta-skill (or `/meta:create-agent`) if you need help.
+1. Pick the plugin it belongs to, the same one as the skills that will delegate to it.
+2. Create `plugins/<plugin>/agents/<slug>.md` with `name`, `description`, an explicit `tools` list, `model` and optionally `color`, plus the system prompt as the body.
+The body states what the agent returns and what it leaves out.
+Do not set `hooks`, `mcpServers`, `permissionMode` or `initialPrompt`, because a plugin agent ignores all four.
+3. Invoke the `create-agent` meta-skill (or `/meta:create-agent`) and let it drive the draft, evaluate and iterate loop.
 4. Validate: `claude plugin validate plugins/<plugin>/agents`.
-5. Smoke-test: `claude --plugin-dir plugins/<plugin>`, then check `<plugin>:<slug>` appears in `/context` under Custom Agents.
+5. Smoke-test: `claude --plugin-dir plugins/<plugin>`, check that `<plugin>:<slug>` appears in the `@` typeahead, then give a realistic prompt that does not name the agent and confirm Claude delegates to it.
+6. Measure delegation with `claude plugin eval`: list `Agent` in the case's `allowed_tools`, grade with a `tool_used` grader on `Agent` whose `input_match` matches `"subagent_type"`, and add one near-miss case that must not delegate.
+7. Refer to the agent as `<plugin>:<slug>` in every skill that delegates to it.
 
 ## Adding a Plugin — Checklist
 
