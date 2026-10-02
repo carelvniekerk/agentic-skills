@@ -64,7 +64,8 @@ TKIND=()
 # Quote-aware split into words and separators. Not a shell parser: it tracks
 # quoting and backslash escapes so a separator inside a quoted string does not
 # start a new command, which is what keeps `echo "a && pip install b"` out of
-# the matcher.
+# the matcher. The cost is that a substitution inside double quotes, as in
+# echo "$(pip install b)", is also treated as data.
 tokenise() {
   local text="$1" n=${#1} i=0 c cur="" have=0 quote=""
   TOKENS=()
@@ -94,7 +95,7 @@ tokenise() {
           have=0
         fi
         ;;
-      '&' | '|' | ';' | '(' | ')' | $'\n')
+      '&' | '|' | ';' | '(' | ')' | '`' | $'\n')
         if ((have)); then
           TOKENS+=("$cur")
           TKIND+=(w)
@@ -117,56 +118,124 @@ tokenise() {
   fi
 }
 
-# The offending subcommand, set by scan_tokens on a match.
+# The offending subcommand, set by pip_sub_at and scan_tokens on a match.
 PIP_SUB=""
 
+# pip's global options that take a separate value. Without this list,
+# `pip --proxy http://host install x` would read the URL as the subcommand.
+is_pip_valued_option() {
+  case "$1" in
+    --proxy | --log | --log-file | --cache-dir | --python | --retries | \
+      --timeout | --exists-action | --trusted-host | --cert | --client-cert | \
+      --keyring-provider | --use-feature | --use-deprecated | --src | -r)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+# Given the index of the first word after pip, skip pip's global options and
+# check whether the subcommand is one that changes an environment.
+pip_sub_at() {
+  local j=$1 n=${#TOKENS[@]} tok
+  for (( ; j < n; j++)); do
+    [[ ${TKIND[j]} == w ]] || return 1
+    tok=${TOKENS[j]}
+    case "$tok" in
+      install | uninstall)
+        PIP_SUB=$tok
+        return 0
+        ;;
+      -*)
+        is_pip_valued_option "$tok" && ((j++))
+        ;;
+      *)
+        return 1
+        ;;
+    esac
+  done
+  return 1
+}
+
+# Given the index of the first word after a python interpreter, look for
+# `-m pip` or `-mpip` among the interpreter options. The first plain word is a
+# script path, and everything after it belongs to the script.
+python_m_pip_at() {
+  local j=$1 n=${#TOKENS[@]} tok
+  for (( ; j < n; j++)); do
+    [[ ${TKIND[j]} == w ]] || return 1
+    tok=${TOKENS[j]}
+    case "$tok" in
+      -mpip)
+        pip_sub_at $((j + 1))
+        return
+        ;;
+      -m)
+        [[ ${TKIND[j + 1]:-s} == w && ${TOKENS[j + 1]} == pip ]] || return 1
+        pip_sub_at $((j + 2))
+        return
+        ;;
+      -c) return 1 ;; # the rest is a code string, not a module run
+      -X | -W) ((j++)) ;;
+      -*) ;;
+      *) return 1 ;;
+    esac
+  done
+  return 1
+}
+
+# Options of the command wrappers below that consume the following word, so
+# that word is not mistaken for the wrapped command.
+wrapper_option_takes_value() {
+  local wrapper="$1" opt="$2"
+  case "$wrapper:$opt" in
+    sudo:-u | sudo:-g | sudo:-C | sudo:-D | sudo:-h | sudo:-p | sudo:-U | \
+      sudo:-r | sudo:-t | sudo:-T | nice:-n | env:-u | env:-C | \
+      xargs:-n | xargs:-I | xargs:-L | xargs:-P | xargs:-d | xargs:-E | \
+      xargs:-s | xargs:-a)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
 # Walk the token stream and look for pip in command position only. A token is
-# in command position at the start of the stream, after a separator, or after a
-# sudo that was itself in command position. Everything else is an argument,
+# in command position at the start of the stream, after a separator, after a
+# leading VAR=value assignment, after a shell keyword, or after a command
+# wrapper such as sudo or env and its options. Everything else is an argument,
 # which is what keeps `grep -r "pip install" docs/` out of the matcher.
 scan_tokens() {
-  local n=${#TOKENS[@]} i j cmdpos=1 tok
+  local n=${#TOKENS[@]} i cmdpos=1 wrapper="" tok base
   PIP_SUB=""
   for ((i = 0; i < n; i++)); do
     if [[ ${TKIND[i]} == s ]]; then
       cmdpos=1
+      wrapper=""
       continue
     fi
     ((cmdpos)) || continue
     tok=${TOKENS[i]}
-    case "$tok" in
-      sudo)
-        continue # the next word is still the command
+    if [[ -n "$wrapper" && "$tok" == -* ]]; then
+      wrapper_option_takes_value "$wrapper" "$tok" && ((i++))
+      continue
+    fi
+    if [[ "$tok" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+      continue
+    fi
+    # Match on the basename so .venv/bin/pip and /usr/bin/python3 count.
+    base=${tok##*/}
+    case "$base" in
+      sudo | env | command | time | nice | nohup | exec | xargs)
+        wrapper=$base
         ;;
-      pip | pip3)
+      '{' | '!' | if | then | else | elif | do | while | until) ;;
+      pip | pip[0-9]*)
+        pip_sub_at $((i + 1)) && return 0
         cmdpos=0
-        if [[ ${TKIND[i + 1]:-s} == w ]]; then
-          case "${TOKENS[i + 1]}" in
-            install | uninstall)
-              PIP_SUB=${TOKENS[i + 1]}
-              return 0
-              ;;
-          esac
-        fi
         ;;
-      python | python3)
+      python | python[0-9]*)
+        python_m_pip_at $((i + 1)) && return 0
         cmdpos=0
-        # Scan the rest of this command for `-m pip <subcommand>`, so
-        # interpreter flags before -m do not hide the invocation.
-        for ((j = i + 1; j < n; j++)); do
-          [[ ${TKIND[j]} == w ]] || break
-          [[ ${TOKENS[j]} == "-m" ]] || continue
-          [[ ${TKIND[j + 1]:-s} == w && ${TOKENS[j + 1]} == "pip" ]] || break
-          if [[ ${TKIND[j + 2]:-s} == w ]]; then
-            case "${TOKENS[j + 2]}" in
-              install | uninstall)
-                PIP_SUB=${TOKENS[j + 2]}
-                return 0
-                ;;
-            esac
-          fi
-          break
-        done
         ;;
       *)
         cmdpos=0
@@ -176,21 +245,54 @@ scan_tokens() {
   return 1
 }
 
-# A uv project is one with a pyproject.toml or uv.lock at or above cwd.
-# Builtin tests only, so this costs no process.
-in_uv_project() {
-  local dir="$1"
-  [[ -n "$dir" ]] || return 1
-  while [[ -n "$dir" && "$dir" != "/" ]]; do
-    [[ -f "$dir/pyproject.toml" || -f "$dir/uv.lock" ]] && return 0
+# Classify the nearest Python project at or above cwd. Sets PROJECT_KIND to
+# "uv", "other" or "none", and PROJECT_LOCK to the foreign lockfile for
+# "other". A pyproject.toml beside poetry.lock or pdm.lock belongs to that
+# tool, so suggesting uv add there would be wrong. Builtin tests only, so this
+# costs no process.
+PROJECT_KIND="none"
+PROJECT_LOCK=""
+classify_project() {
+  local dir="$1" lock
+  PROJECT_KIND="none"
+  PROJECT_LOCK=""
+  [[ -n "$dir" ]] || return
+  while :; do
+    if [[ -f "$dir/uv.lock" ]]; then
+      PROJECT_KIND="uv"
+      return
+    fi
+    if [[ -f "$dir/pyproject.toml" ]]; then
+      for lock in poetry.lock pdm.lock; do
+        if [[ -f "$dir/$lock" ]]; then
+          PROJECT_KIND="other"
+          PROJECT_LOCK="$dir/$lock"
+          return
+        fi
+      done
+      PROJECT_KIND="uv"
+      return
+    fi
+    [[ -z "$dir" || "$dir" == "/" ]] && return
     dir=${dir%/*}
+    [[ -n "$dir" ]] || dir="/"
   done
-  [[ -f /pyproject.toml || -f /uv.lock ]]
 }
+
+# Without jq the hook cannot read the event. Exit 1 is a non-blocking error:
+# the call proceeds, but the transcript shows the guard is not running rather
+# than letting it pass silently.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "uv-redirect: jq not found, so the pip guard is disabled" >&2
+  exit 1
+fi
 
 # One jq invocation for both fields: cwd on the first line, the command from
 # the second line onwards so its own newlines survive intact.
-payload=$(jq -r '(.cwd // ""), (.tool_input.command // "")')
+if ! payload=$(jq -r '(.cwd // ""), (.tool_input.command // "")'); then
+  echo "uv-redirect: could not parse the hook input, so the pip guard was skipped" >&2
+  exit 1
+fi
 if [[ "$payload" == *$'\n'* ]]; then
   cwd=${payload%%$'\n'*}
   cmd=${payload#*$'\n'}
@@ -204,15 +306,22 @@ strip_heredocs "$cmd"
 tokenise "$STRIPPED"
 scan_tokens || exit 0
 
-if in_uv_project "$cwd"; then
-  if [[ "$PIP_SUB" == install ]]; then
-    reason="pip installs into whichever environment happens to be active and leaves uv.lock untouched, so this uv project would fall out of sync. Add the dependency with \`uv add <package>\` instead, which updates pyproject.toml and the lockfile together. If the package genuinely must stay out of the manifest, \`uv pip install\` is the deliberate escape hatch."
-  else
-    reason="pip uninstalls from whichever environment happens to be active and leaves uv.lock untouched, so this uv project would fall out of sync. Drop the dependency with \`uv remove <package>\` instead, which updates pyproject.toml and the lockfile together. If the package was never in the manifest, \`uv pip uninstall\` is the deliberate escape hatch."
-  fi
-else
-  reason="pip acts on whichever interpreter happens to be first on PATH, which is rarely the intended one. Use \`uv pip $PIP_SUB\` instead, which resolves against the active virtual environment explicitly. There is no pyproject.toml or uv.lock at or above $cwd, so \`uv add\` does not apply here."
-fi
+classify_project "$cwd"
+case "$PROJECT_KIND" in
+  uv)
+    if [[ "$PIP_SUB" == install ]]; then
+      reason="pip installs into an environment without touching uv.lock, so this uv project would fall out of sync. Add the dependency with \`uv add <package>\` instead, which updates pyproject.toml and the lockfile together. If the package genuinely must stay out of the manifest, \`uv pip install\` is the deliberate escape hatch."
+    else
+      reason="pip uninstalls from an environment without touching uv.lock, so this uv project would fall out of sync. Drop the dependency with \`uv remove <package>\` instead, which updates pyproject.toml and the lockfile together. If the package was never in the manifest, \`uv pip uninstall\` is the deliberate escape hatch."
+    fi
+    ;;
+  other)
+    reason="pip changes an environment without recording the change in the project. This project is locked by $PROJECT_LOCK, so change its dependencies through the tool that owns that lockfile. For a one-off outside the manifest, use \`uv pip $PIP_SUB\`."
+    ;;
+  *)
+    reason="pip changes an environment without recording the change anywhere, and a bare pip often targets an interpreter other than the intended one. Use \`uv pip $PIP_SUB\` instead, which acts on the active virtual environment and refuses the system interpreter unless given --system. There is no pyproject.toml or uv.lock at or above $cwd, so \`uv add\` does not apply here."
+    ;;
+esac
 
 jq -n --arg r "$reason" '{
   hookSpecificOutput: {

@@ -7,7 +7,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/uv-redirect.sh",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/uv-redirect.sh",
                         "timeout": 10,
                         "statusMessage": "checking for pip"
                     }

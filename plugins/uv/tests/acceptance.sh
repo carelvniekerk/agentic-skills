@@ -54,8 +54,11 @@ event() {
 
 PROJECT=$(mktemp -d "${TMPDIR:-/tmp}/uv-redirect-proj.XXXXXX")
 BARE=$(mktemp -d "${TMPDIR:-/tmp}/uv-redirect-bare.XXXXXX")
-trap 'rm -rf "$PROJECT" "$BARE"' EXIT
+POETRY=$(mktemp -d "${TMPDIR:-/tmp}/uv-redirect-poetry.XXXXXX")
+trap 'rm -rf "$PROJECT" "$BARE" "$POETRY"' EXIT
 printf '[project]\nname = "acceptance"\n' >"$PROJECT/pyproject.toml"
+printf '[tool.poetry]\nname = "acceptance"\n' >"$POETRY/pyproject.toml"
+: >"$POETRY/poetry.lock"
 
 deny_cases=(
   'pip install requests'
@@ -65,6 +68,28 @@ deny_cases=(
   'cd /tmp && pip install foo'
   'pip uninstall numpy'
   'ruff check . && python3 -m pip install black'
+  '/usr/bin/pip install x'
+  '.venv/bin/pip install x'
+  '.venv/bin/python -m pip install x'
+  'python3.12 -m pip install x'
+  'python -I -X dev -m pip install x'
+  'pip3.12 install x'
+  'PIP_INDEX_URL=https://example.org pip install y'
+  'env PIP_NO_CACHE_DIR=1 pip install x'
+  'command pip install x'
+  'time pip install x'
+  'nice -n 10 pip install x'
+  'sudo -H pip install x'
+  'sudo -u root pip install x'
+  'xargs -n 1 pip install < reqs.txt'
+  'pip -q install x'
+  'pip --disable-pip-version-check install x'
+  'pip --proxy http://proxy:3128 install x'
+  'python -mpip install x'
+  'echo `pip install x`'
+  'echo $(pip install x)'
+  '{ pip install x; }'
+  'if true; then pip install x; fi'
 )
 
 allow_cases=(
@@ -78,6 +103,13 @@ allow_cases=(
   'pipdeptree'
   'grep -r "pip install" docs/'
   'echo "run pip install foo first"'
+  'uv run python -m pip list'
+  'pip download x'
+  'pip --proxy http://proxy:3128 list'
+  'python script.py -m pip install x'
+  'python -c "import pip" install'
+  'sudo -u pip ls'
+  'env PIPX_HOME=/tmp pipx install ruff'
 )
 
 for c in "${deny_cases[@]}"; do
@@ -102,6 +134,19 @@ check "pip uninstall inside a uv project names uv remove" deny \
 
 check "pip install outside a project names uv pip install" deny \
   "$(run_hook "$(event 'pip install requests' "$BARE")")" 'uv pip install'
+
+check "pip install in a Poetry project names its lockfile" deny \
+  "$(run_hook "$(event 'pip install requests' "$POETRY")")" 'poetry.lock'
+
+printf '\n--- failure modes are visible, not silent ---\n\n'
+
+rc=0
+printf 'not json' | "$HOOK" >/dev/null 2>&1 || rc=$?
+check "malformed input exits non-zero" error "$( ((rc == 1)) && echo error || echo "allow:rc=$rc")"
+
+rc=0
+printf '%s' "$(event 'pip install x' "$PROJECT")" | PATH=/nonexistent /bin/bash "$HOOK" >/dev/null 2>&1 || rc=$?
+check "missing jq exits non-zero" error "$( ((rc == 1)) && echo error || echo "allow:rc=$rc")"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 ((fail == 0))
