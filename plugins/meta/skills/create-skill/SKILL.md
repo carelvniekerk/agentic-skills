@@ -1,10 +1,10 @@
 ---
 name: create-skill
-description:
-    Author, edit, and iteratively improve Claude Code skills (SKILL.md files under .claude/skills/ or ~/.claude/skills/) following the official Agent Skills specification.
-    Use this skill aggressively whenever the user mentions creating, writing, editing, refining, optimising, debugging, packaging, or distributing a skill — even if they only say "write a SKILL.md", "add a skill for X", "this should be a skill", "turn this workflow into a skill", or reference any path under .claude/skills/.
-    Also use it when reviewing existing SKILL.md frontmatter, fixing skills that fail to trigger or trigger too often, designing supporting files (references/, scripts/, assets/), wiring up dynamic context injection, choosing between inline and forked-subagent execution, or distributing skills via plugins.
-    The skill enforces a draft → test → review → iterate loop and keeps frontmatter aligned with the current Agent Skills spec.
+description: >-
+    Author, review, evaluate and improve Claude Code skills: SKILL.md files, their references/ and scripts/, and the plugins and marketplace entries that ship them.
+    Use when the user wants to write, edit or review a SKILL.md or a skill, turn a workflow into a skill, says "add a skill for X", or has a skill that triggers too often or not at all.
+    Also use for skill frontmatter (allowed-tools, disable-model-invocation, context fork, paths), skillOverrides and the skill listing budget, dynamic context injection, skill instructions lost after compaction, packaging skills in a plugin (plugin.json, marketplace.json, plugin names, claude plugin validate), and testing skills with claude plugin eval cases, graders or skill-creator, even if the user does not say "skill".
+    Hooks and subagents on their own belong to the sibling create-hook and create-agent skills.
 allowed-tools: Read Write Edit Glob Grep Bash(mkdir *) Bash(ls *) Bash(cat *) Bash(git *) Bash(claude *) Bash(uv *)
 ---
 
