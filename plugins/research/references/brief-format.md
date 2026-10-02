@@ -1,15 +1,23 @@
-# Output Format — Research Brief
+# Research brief format
 
-Full template and frontmatter specification for deep-research output documents.
-Use this when writing the final brief in step 7 of the deep-research workflow.
+The template and frontmatter specification for Markdown documents written by the research skills: deep-research briefs, literature reviews, comparisons and Markdown paper drafts.
+The calling skill passes this file in full to the `research:writer` and `research:verifier` agents.
+
+## Contents
+
+- Frontmatter fields
+- Full document template
+- Badge reference
+- Citation rules
+- Section emoji conventions
 
 ---
 
-## Frontmatter Fields
+## Frontmatter fields
 
 ```yaml
 ---
-tags: [tag1, tag2, tag3]          # lowercase, hyphenated; 3–6 tags
+tags: [tag1, tag2, tag3]          # lowercase, hyphenated; 3-6 tags
 type: notes                        # or paper-summary, concept, discussion, etc.
 date_added: YYYY-MM-DD
 date_updated: YYYY-MM-DD
@@ -20,7 +28,7 @@ source_type: technical             # technical | discussion | experiment | meeti
 
 ---
 
-## Full Document Template
+## Full document template
 
 ```markdown
 ---
@@ -40,17 +48,17 @@ One or two paragraphs introducing the topic, its significance, and how this brie
 
 ## 🔗 Prerequisites
 
-- [Related article or resource](./relative/path-or-url.md) — what concept is needed and why
+- [Related article or resource](./relative/path-or-url.md): what concept is needed and why
 
 ## 🎯 Key Takeaways
 
-- 5–8 bullet points capturing the most important findings.
-Each should be substantive and self-contained — a reader skimming takeaways gets the core message.
+- 5-8 bullet points capturing the most important findings.
+Each should be substantive and self-contained, so a reader skimming the takeaways gets the core message.
 Include quantitative results where available.
 
 ## [Section 1: Themed Heading]
 
-Detailed exposition — multiple paragraphs per section.
+Detailed exposition in several paragraphs per section.
 Every factual claim carries a footnote citation [^N].
 Explain methods, not just names.
 Include numbers.
@@ -71,7 +79,7 @@ Do not paraphrase numbers into prose when a table is clearer.
 | Method B | [^2] | Benchmark X | Accuracy | 87.1 |
 | Baseline | [^3] | Benchmark X | Accuracy | 79.0 |
 
-*Note: [^1] reports on test split; [^2] reports on validation split — direct comparison is approximate.*
+*Note: [^1] reports on test split; [^2] reports on validation split, so the comparison is approximate.*
 
 ## 🔮 Open Questions
 
@@ -91,7 +99,7 @@ Do not paraphrase numbers into prose when a table is clearer.
 
 ---
 
-## Badge Reference
+## Badge reference
 
 **Mandatory badge row** (immediately after the title paragraph):
 
@@ -118,15 +126,15 @@ For an arXiv paper summary (add the arXiv badge first):
 
 ---
 
-## Citation Rules
+## Citation rules
 
-- **Inline:** `[^N]` — markdown footnote reference. Renders as a superscript link in Obsidian with round-trip navigation.
-- **Bibliography:** `[^N]: [Title — Authors (Year)](https://url) — one-line contribution note` — one per line under `## Sources`.
-- **Never use** `<a id="ref-N">` (HTML anchor — Obsidian ignores it) or `[[N]](#ref-N)` (parsed as a wikilink, creates a phantom file named `N`).
+- **Inline:** `[^N]`, a Markdown footnote reference. It renders as a superscript link in Obsidian with round-trip navigation.
+- **Bibliography:** `[^N]: [Title — Authors (Year)](https://url) — one-line contribution note`, one per line under `## Sources`.
+- **Never use** `<a id="ref-N">` (an HTML anchor, which Obsidian ignores) or `[[N]](#ref-N)` (parsed as a wikilink, creates a phantom file named `N`).
 
 ---
 
-## Section Emoji Conventions
+## Section emoji conventions
 
 | Section | Emoji |
 | ------- | ----- |

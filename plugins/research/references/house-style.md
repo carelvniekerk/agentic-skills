@@ -35,6 +35,8 @@ The research deliverables in this plugin live or die on this section.
 - Flag confidence where it is load-bearing, in prose or as `[Likely]` and `[Guessing]` tags: an inference about why a method behaves a certain way, a claim about a paper you have not read in full, a performance or cost estimate.
 Do not tag routine reporting of what you just read or fetched.
 If a conclusion is mostly guesswork, say so in the first line.
+- A `WebFetch` result is a model's answer about the page, not the page itself.
+Treat a quote, number or line reference as read only when the fetch asked for the verbatim passage and returned it, and label anything else as a paraphrase.
 - Never fabricate a quote, statistic, DOI, author list, venue or year.
 If you cannot find a citation, state that the claim is uncited rather than attaching a plausible-looking reference.
 - List the judgement calls you made.
@@ -86,9 +88,10 @@ Avoid:
 
 ## Formatting and punctuation
 
-- Never use em-dashes, in English or German.
-En dashes only for numeric ranges (2019-2024) and in LaTeX where typography requires them.
+- Never use em dashes or en dashes as sentence punctuation, in English or German.
 Use commas, full stops, colons or brackets instead.
+Use hyphens for numeric ranges (2019-2024), and `--` in LaTeX only where typography requires it.
+The field separator in a bibliography entry of a template in this plugin is not sentence punctuation and stays as the template writes it.
 - British English throughout.
 - Sentence case for headings, not Title Case.
 This does not override a document template in this plugin that specifies its own heading text.

@@ -1,128 +1,132 @@
 ---
 name: deep-research
-description: >
-  Run a thorough, source-heavy investigation on any topic and produce a comprehensive, self-contained cited research brief with provenance tracking.
-  Use this skill aggressively whenever the user asks for "deep research", a comprehensive analysis, a multi-source investigation, or wants a durable citable artifact rather than a conversational answer.
-  Also use it when a topic requires 5+ sources and cross-referencing to answer properly.
-when_to_use: >
-  Trigger phrases: "deep research", "research this thoroughly", "comprehensive analysis", "multi-source investigation",
-  "research brief", "deep dive", "investigate", "what does the literature say about",
-  "I want a full picture of", "research and write up", "give me everything on".
-allowed-tools: WebSearch WebFetch Read Write Bash(uv run kb-search *) Bash(mkdir *) Agent
-disable-model-invocation: false
+description: >-
+  Run a multi-source investigation of a research topic and produce a self-contained, cited research brief with a provenance record, using the research:researcher, research:writer and research:verifier agents.
+  Use when the user asks for deep research, a research brief, a thorough multi-source investigation or everything known on a topic, or wants a durable cited document rather than a chat answer, even if they do not say "research".
+when_to_use: >-
+  Trigger phrases: "deep research", "research this thoroughly", "write me a research brief on", "multi-source investigation", "I want a full picture of", "research and write up", "give me everything on".
+  A survey of academic papers belongs to literature-review, a comparison of named options to source-comparison, and a quick lookup to external-research.
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
 ---
 
-# Deep Research
+# Deep research
 
-Run a thorough, source-heavy investigation on any topic.
-Produces a comprehensive, self-contained cited research brief with provenance tracking.
+You run a multi-source investigation and deliver a cited research brief at `<output>/<slug>.md`, with a provenance sidecar in the scratch directory.
+Research files, plan and draft stay in the scratch directory; only the verified brief goes to the output directory.
+The skill does not add the brief to the knowledge base unless the user asks.
 
-Check `CLAUDE.md` for the project's scratch directory (default: `research_scratch/`) and output directory (default: `output/`).
-Read [references/output-format.md](references/output-format.md) for the full output template and frontmatter spec — do this before writing the brief.
-Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including the plan and your messages to the user.
-It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+Take the scratch directory (default `research_scratch/`) and the output directory (default `output/`) from the project's `CLAUDE.md`.
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, the plan and your messages included.
+It carries the advisor stance, the truthfulness rules and the register that bind every artefact here, and every agent brief below includes its full contents.
 
-Two consequences for how you run this workflow.
-Open with the answer or with the objection: if the research question is mis-framed, or the topic is too broad to answer in one brief, say so in your first message rather than after six searches.
-Flag confidence where it is load-bearing, and state in the first line of the delivery message if the conclusions rest mostly on inference rather than on read sources.
+If the question is mis-framed or too broad for one brief, say so in your first message, before any search.
+If the conclusions rest mostly on inference rather than on sources read, say so in the first line of the delivery message.
+
+## Contents
+
+- Workflow
+- 1. Check local knowledge
+- 1. Plan
+- 1. Gather evidence
+- 1. Evaluate and loop
+- 1. Write the brief
+- 1. Verify and cite
+- 1. Deliver
+- Strict prohibitions
 
 ## Workflow
 
-### 1. Check Local Knowledge First
+Copy this checklist into your reply and tick it off as you go.
 
-Search the local knowledge base (use `wiki-search` or equivalent skill if available) for existing coverage.
-Note what is already known and what gaps need filling.
-If no local knowledge skill is configured, proceed to step 2.
-
-### 2. Plan
-
-Analyse the research question and develop a research strategy:
-
-- Key questions that must be answered.
-- Evidence types needed (papers, web, repos, docs).
-- Source types and time periods that matter.
-- Acceptance criteria: what evidence would make the answer "sufficient".
-
-Derive a short slug from the topic (lowercase, hyphens, no filler words, ≤5 words).
-Write the plan to `<scratch>/.plans/<slug>.md`.
-Present the plan to the user, then continue automatically.
-
-### 3. Gather Evidence
-
-Spawn a **`research:researcher`** agent.
-Include in its brief:
-- The full research plan from step 2 (all questions, dimensions, acceptance criteria).
-- Instruction to target **≥12 sources**; fewer than 8 is insufficient.
-- For broad surveys: cover each research dimension in a separate output file.
-- Output file naming: `<scratch>/<slug>-research-<dimension>.md`.
-- Reminder: every claim must have a URL; no fabricated sources.
-
-### 4. Evaluate and Loop
-
-Read the research files the researcher produced.
-Critically assess:
-
-- Which plan questions remain unanswered?
-- Which answers rest on only one source?
-- Are there contradictions needing resolution?
-- Is any key angle missing entirely?
-
-If gaps are significant, spawn a second `research:researcher` agent targeting the gaps specifically.
-Most topics need 1–2 rounds.
-Stop when additional rounds would not materially change conclusions.
-
-### 5. Write the Brief
-
-Spawn a **`research:writer`** agent.
-Include in its brief:
-- Paths to all research files in `<scratch>/`.
-- The full contents of [references/output-format.md](references/output-format.md) — the writer must follow this template exactly (frontmatter, badge row, Prerequisites, Key Takeaways, section headings, Open Questions, Related Articles, Sources placeholder).
-- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the writer.
-- The draft save path: `<scratch>/.drafts/<slug>-draft.md`.
-- These depth requirements (all mandatory):
-  - Minimum ~2,500 words of body content (excluding frontmatter, badges, sources); complex topics may warrant 5,000+.
-  - Every major source gets its own named subsection or dedicated paragraph with specific contribution, method, and key results — not just a citation in passing.
-  - Quantitative results must be included where sources report them.
-  - Methodology must be explained, not just named.
-  - Agreements and disagreements between sources must be surfaced explicitly.
-  - Results tables are mandatory where 2+ sources report numbers on the same task or benchmark. Format: `Method | Dataset | Metric | Score | Source`.
-  - Mathematics must be reproduced in full using LaTeX (`$inline$` / `$$display$$`). Never replace equations with verbal descriptions. Define all variables immediately after each equation.
-- Reminder: do NOT add inline citations or a Sources section — the verifier handles that.
-
-### 6. Verify and Cite
-
-Spawn a **`research:verifier`** agent.
-Include in its brief:
-- Draft path: `<scratch>/.drafts/<slug>-draft.md`.
-- All research file paths in `<scratch>/` (as the authoritative source pool).
-- Final output path: `<output>/<slug>.md`.
-- Citation format: markdown footnotes `[^N]` — the output file is `.md`.
-- Obsidian constraint: **never** use HTML anchors (`<a id="ref-N">`) or `[[N]](#ref-N)` — these break rendering. Use only `[^N]` inline and `[^N]: [Title](url) — note` in Sources.
-- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. Where the verifier softens or removes a claim, the replacement wording must still obey the register and punctuation rules.
-
-### 7. Deliver
-
-The verifier writes the final output directly to `<output>/<slug>.md`.
-Write a provenance sidecar to `<scratch>/<slug>.provenance.md`:
-
-```markdown
-# Provenance: [topic]
-
-- **Date:** [date]
-- **Rounds:** [number of evidence-gathering rounds]
-- **Sources consulted:** [total unique sources]
-- **Sources accepted:** [sources that survived verification]
-- **Sources rejected:** [dead links, unverifiable, or removed]
-- **Local knowledge coverage before:** [what was already known]
-- **Plan:** <scratch>/.plans/<slug>.md
-- **Research files:** [list of intermediate files]
-- **Judgement calls:** [scoping decisions, sources excluded and why, contradictions resolved by preferring one source]
-- **Anomalies:** [implausible numbers, metrics that are not comparable, claims that rest on a single source]
+```text
+Deep research progress:
+- [ ] 1. Local knowledge checked
+- [ ] 2. Plan written and shown
+- [ ] 3. Evidence gathered by research:researcher
+- [ ] 4. Gaps assessed (significant gaps: return to 3, at most two extra rounds)
+- [ ] 5. Draft written by research:writer
+- [ ] 6. Draft verified and cited by research:verifier
+- [ ] 7. Provenance written, judgement calls and anomalies reported
 ```
 
-Report the judgement calls and anomalies to the user in the delivery message as well, not only in the sidecar.
+## 1. Check local knowledge
 
-### 8. Optional Knowledge Base Integration
+Search the knowledge base with the `kb-query:wiki` skill and note what is already covered and what is missing.
+If that skill is not available, say so in one line and continue.
 
-If findings are substantial and durable enough for permanent storage, check `CLAUDE.md` for the project's knowledge base integration instructions.
-Do **not** integrate automatically — only when the user asks or the content clearly warrants it.
+## 2. Plan
+
+Write down the key questions, the evidence types needed (papers, web, repositories, docs), the time period that matters and the acceptance criteria that would make the answer sufficient.
+Derive a slug of at most five lowercase hyphenated words from the topic.
+Save the plan to `<scratch>/.plans/<slug>.md`, show it to the user, then continue without waiting.
+
+## 3. Gather evidence
+
+Spawn a `research:researcher` agent with:
+
+- The full plan from step 2.
+- A target of at least 12 sources, and the rule that fewer than 8 is insufficient.
+- For a broad topic, one output file per research dimension, named `<scratch>/<slug>-research-<dimension>.md`.
+- The full contents of `house-style.md`.
+
+## 4. Evaluate and loop
+
+Read the research files and check which plan questions remain unanswered, which answers rest on one source, which sources contradict each other and which angle is missing.
+If a gap would change the conclusions, spawn another `research:researcher` aimed at that gap.
+Stop when another round would not change the conclusions, and after at most two extra rounds.
+
+## 5. Write the brief
+
+Spawn a `research:writer` agent with:
+
+- The paths of all research files.
+- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/brief-format.md`, which the writer follows exactly.
+- The full contents of `house-style.md`.
+- The draft path `<scratch>/.drafts/<slug>-draft.md`.
+- These depth requirements:
+  - At least about 2,500 words of body text, and 5,000 or more for a complex topic.
+  - Each major source gets its own subsection or paragraph covering its contribution, method and key results.
+  - Quantitative results where the sources report them, and methods explained rather than named.
+  - Agreements and disagreements between sources stated explicitly.
+  - A results table (`Method | Dataset | Metric | Score | Source`) wherever two or more sources report numbers on the same task.
+  - Equations reproduced in LaTeX (`$inline$`, `$$display$$`), each variable defined straight after the equation.
+- The instruction to add no citations and no Sources section, because the verifier adds them.
+
+## 6. Verify and cite
+
+Spawn a `research:verifier` agent with:
+
+- The draft path and every research file path, as the authoritative source pool.
+- The final path `<output>/<slug>.md`.
+- Citation format: Markdown footnotes `[^N]`, never HTML anchors or `[[N]](#ref-N)`, which break Obsidian rendering.
+- The full contents of `house-style.md`, which binds any wording the verifier rewrites.
+
+## 7. Deliver
+
+Write the provenance sidecar to `<scratch>/<slug>.provenance.md`:
+
+```markdown
+# Provenance: <topic>
+
+- **Date:** YYYY-MM-DD
+- **Rounds:** <evidence-gathering rounds>
+- **Sources consulted:** <unique sources>
+- **Sources accepted:** <sources that survived verification>
+- **Sources rejected:** <dead links, unverifiable or removed>
+- **Local knowledge before:** <what the wiki already covered>
+- **Plan:** <scratch>/.plans/<slug>.md
+- **Research files:** <intermediate files>
+- **Judgement calls:** <scoping decisions, exclusions, contradictions resolved by preferring one source>
+- **Anomalies:** <implausible numbers, metrics that are not comparable, claims resting on one source>
+```
+
+In the delivery message, give the brief's path, then the judgement calls and anomalies, and the claims the verifier weakened or removed.
+
+## Strict prohibitions
+
+| Prohibited | Reason |
+| --- | --- |
+| A source, quote, number or bibliographic field the research files do not contain | The brief is only as good as its provenance |
+| Citing or describing a source nobody fetched | A title is not evidence of content |
+| Writing scratch files, plans or drafts into the output directory | The output directory holds deliverables only |
+| Integrating the brief into the knowledge base without being asked | The wiki is the user's to curate |

@@ -1,141 +1,78 @@
 ---
 name: peer-review
-description: >
-  Simulate a tough but constructive peer review of a research paper, draft, or technical document.
-  Produces a structured review with severity-graded feedback (FATAL/MAJOR/MINOR), inline annotations quoting specific passages, and a concrete revision plan.
-  Use this skill aggressively whenever the user asks for a review, critique, or feedback on a paper or draft, wants a pre-submission sanity check, or asks "what would reviewers say".
-when_to_use: >
-  Trigger phrases: "review this paper", "critique this", "peer review", "what would reviewers say",
-  "pre-submission check", "what's wrong with this paper", "give me feedback on this draft",
-  "review my paper", "sanity check before submission", "simulate a reviewer", "what are the weaknesses",
-  "would this pass review", "reviewer 2 this".
-argument-hint: <paper-path, arXiv-ID, or URL>
+description: >-
+  Write a severity-graded peer review (FATAL, MAJOR, MINOR) of a research paper, preprint, draft or research brief, with quoted passages, questions for the authors, a verdict and a revision plan, using the research:reviewer agent.
+  Use when the user asks to peer review a paper, says "what would reviewers say", "reviewer 2 this", "pre-submission check" or "would this pass review at NeurIPS", or wants feedback on a paper draft before submission.
+when_to_use: >-
+  Trigger phrases: "peer review this paper", "review my paper", "what would reviewers say", "pre-submission check", "simulate a reviewer", "reviewer 2 this", "would this pass review", "critique this preprint".
+  Code review, pull request review and reviewing a function or diff are not this skill.
+argument-hint: <paper path, arXiv ID or URL>
 allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
-disable-model-invocation: false
 ---
 
-# Peer Review
+# Peer review
 
-Simulate a rigorous but constructive peer review of a research artifact.
-Produces a structured review with severity-graded feedback and a concrete revision plan.
+You produce a tough, fair review of a research artefact and save it at `<output>/<slug>-review.md`, with the slug taken from the artefact's title.
+The `research:reviewer` agent writes the review and has no write access, so you save what it returns.
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, including your messages to the user.
-It carries the advisor stance, the truthfulness and confidence rules, the register and the phrasing blacklist that govern every artefact this skill produces.
+Take the output directory (default `output/`) from the project's `CLAUDE.md`.
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing anything, your messages included, and pass its full contents in the reviewer's brief.
 
-Three consequences for how you run this workflow.
-Lead with the uncomfortable part: the recommendation and the blocking weakness go in your first line to the user, before the strengths.
-Hold the verdict under pushback. Revise it for a new fact or a better argument, never for the paper's author repeating a position with more conviction; if you still disagree after three exchanges, say so plainly rather than drifting towards their view.
-Say what you could not judge. If a claim rests on data or code you do not have, name that as a limit of the review instead of grading it as though you had checked it.
-
-Check `CLAUDE.md` for the project's output directory (default: `output/`).
+The recommendation and the blocking weakness go in your first line to the user, before any strength.
+Hold the verdict under pushback: revise it for a new fact or a better argument, never because the author repeats a position, and after three exchanges state the disagreement plainly.
+Name what the review could not judge, such as a claim resting on data or code you do not have, instead of grading it as checked.
 
 ## Workflow
 
-### 1. Identify the Artifact
+Copy this checklist into your reply and tick it off as you go.
 
-Determine what is being reviewed from `$ARGUMENTS` or the conversation:
-
-- A local file (`.md`, `.tex`, `.pdf`) → read it directly.
-- An arXiv ID or URL → fetch and read it.
-- Text pasted in the conversation → use that directly.
-
-### 2. Conduct the Review
-
-Spawn a **`research:reviewer`** agent.
-Include in its brief:
-- The artifact location (file path, arXiv ID, URL, or pasted text from the conversation).
-- Permission to search for key cited papers and consult local knowledge if available, to verify claims independently.
-- Final output path: `<output>/<slug>-review.md` (derive the slug from the artifact's title).
-- Severity grading: FATAL / MAJOR / MINOR — the reviewer agent already enforces these definitions.
-- Review checklist to apply (the reviewer agent has its own checklist; these additions complement it):
-  - **Substance**: novelty, sufficiency of evidence, complete and fair quantitative reporting, honest limitations, presence of negative results.
-  - **Technical correctness**: proofs/derivations/equations, soundness of experimental protocols, reproducibility of hyperparameters and implementation details.
-  - **Related work**: completeness and fairness of citations; accuracy of positioning relative to prior art.
-  - **Clarity**: contribution stated early; all technical terms defined before use; figures/tables self-contained; abstract accurate.
-  - **Presentation**: structure, notation consistency, English and formatting.
-- The output template below — the reviewer must wrap its structured-review and inline-annotations output in this template, including the frontmatter and badge row.
-- The full contents of `${CLAUDE_PLUGIN_ROOT}/references/house-style.md`. The register, phrasing blacklist and punctuation rules bind the review prose.
-- Identifier discipline: refer to each section, table, figure, method and symbol by the name the paper uses, so the authors can find what you mean.
-
-Output template:
-
-```markdown
----
-tags: [peer-review]
-type: notes
-date_added: YYYY-MM-DD
-date_updated: YYYY-MM-DD
-sources: 1
-source_type: technical
----
-
-# Review: [Paper Title]
-
-![Type](https://img.shields.io/badge/type-peer--review-red) ![Added](https://img.shields.io/badge/added-YYYY--MM--DD-lightgrey)
-
-## Summary
-
-One paragraph describing what the paper does and what it claims, in the reviewer's own words.
-This confirms the reviewer understood the paper before critiquing it.
-
-## 🎯 Key Takeaways
-
-- 3–5 bullets on the most important strengths and weaknesses combined.
-
-## Strengths
-
-- **[S1]** ...
-- **[S2]** ...
-
-## Weaknesses
-
-Label each weakness with a severity:
-
-- **[FATAL — W1]** The paper cannot be accepted without addressing this. > "Quote the specific passage." Explanation of why this is fatal.
-- **[MAJOR — W2]** Significant weakness that substantially weakens the paper. > "Quote." Explanation.
-- **[MINOR — W3]** Small issue that should be fixed but does not affect the verdict. > "Quote." Explanation.
-
-## Questions for the Authors
-
-Numbered questions the authors must answer in a rebuttal or revision:
-
-1. ...
-2. ...
-
-## Verdict
-
-**Recommendation:** Accept / Minor Revision / Major Revision / Reject
-
-One paragraph justifying the recommendation in terms of the specific weaknesses found.
-Be direct — state which weaknesses are blocking and which are not.
-
-## Revision Plan
-
-Concrete, actionable steps the authors should take to address the weaknesses:
-
-- [ ] **[W1]** What specifically to do to resolve this.
-- [ ] **[W2]** What specifically to do.
-- [ ] **[W3]** What specifically to do.
-
-## 🔮 Open Questions
-
-- Broader questions the paper raises that are outside the scope of a revision.
-
-## Sources
-
-- [Paper title or arXiv ID](https://url)
-- [Any cited papers consulted during review](https://url)
+```text
+Peer review progress:
+- [ ] 1. Artefact identified and readable
+- [ ] 2. research:reviewer briefed and returned a review
+- [ ] 3. Review checked against the format (quotes present, severities honest)
+- [ ] 4. Review saved, verdict reported
 ```
 
-## Review Principles
+## 1. Identify the artefact
 
-- **Quote specifically.** Every weakness must quote the exact passage being criticised.
-Do not paraphrase when the original text can be shown.
-- **Be severity-honest.** FATAL means the paper should be rejected as-is — do not use it for minor annoyances.
-MINOR means the verdict does not change if unresolved.
-- **Separate what is shown from what is claimed.** If a claim exceeds the evidence, say so precisely.
-- **Never smooth away genuine uncertainty.** If the reviewer cannot verify a claim, say so.
-- **Acknowledge strengths genuinely.** A review that only finds faults is not credible.
-Tie every strength to specific evidence in the paper; do not pad the section to soften the verdict.
-- **Write the criticism plainly.** Say what is wrong, why it is wrong, and what would fix it.
-No rhetorical questions the authors did not ask, no metaphor where the technical noun works, and no filler hedges such as "it is worth noting" in front of a genuine objection.
+Take it from the arguments or the conversation: a local `.md`, `.tex` or `.pdf` file, an arXiv ID or URL, or text pasted into the conversation.
+For a PDF, convert it with the `markitdown:markitdown` skill when it is available.
+
+## 2. Brief the reviewer
+
+Spawn a `research:reviewer` agent with:
+
+- The artefact: a path or URL, or the pasted text in full.
+- Permission to search for key cited papers to check claims independently.
+- The full contents of `${CLAUDE_SKILL_DIR}/references/review-format.md`, the shape to return.
+- The full contents of `house-style.md`.
+- These checks, in addition to the reviewer's own list:
+  - Substance: novelty, sufficiency of evidence, complete and fair quantitative reporting, honest limitations, negative results.
+  - Technical correctness: derivations, experimental protocol, reproducibility of hyperparameters and implementation details.
+  - Related work: completeness, fairness and accuracy of positioning.
+  - Clarity: contribution stated early, terms defined before use, figures and tables self-contained, abstract accurate.
+- The rule to refer to each section, table, figure, method and symbol by the name the paper uses.
+
+## 3. Check the review
+
+Before saving, confirm that every weakness quotes the passage it criticises, that FATAL is used only for what blocks acceptance, and that each strength is tied to evidence.
+If the review fails a check, send it back to the reviewer with the failing points rather than editing the verdict yourself.
+
+## 4. Save and report
+
+Write the review to `<output>/<slug>-review.md`.
+Report the recommendation and the blocking weakness first, then the path, and then what the review could not judge.
+
+## Gotchas
+
+- `research:reviewer` cannot write files, so a brief that asks it to save the review produces nothing on disk.
+- A review that only lists faults is not credible, and one that pads the strengths to soften the verdict is not honest, so both fail step 3.
+
+## Strict prohibitions
+
+| Prohibited | Reason |
+| --- | --- |
+| A weakness without the quoted passage | The authors cannot find or answer it |
+| Grading a claim as checked when the data or code was unavailable | False assurance |
+| Inventing related work the reviewer did not find | Fabricated citations |

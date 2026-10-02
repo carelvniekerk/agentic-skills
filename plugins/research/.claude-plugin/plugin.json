@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "research",
-  "description": "Research and academic writing toolkit — deep research, literature review, external evidence gathering, source comparison, ELI5 explanation, paper drafting, peer review, and paper-versus-code audits. Ships researcher, writer, verifier, and reviewer subagents for the gather → synthesise → cite → critique pipeline.",
+  "description": "Research and academic writing: deep research briefs, literature reviews, sourced comparisons, external lookups, plain-English explanations, paper drafts, peer reviews and paper-against-code audits. Ships researcher, writer, verifier and reviewer agents that gather evidence, draft from it, cite it and critique the result.",
   "author": {
     "name": "Carel van Niekerk",
     "email": "code@carelvniekerk.com",

@@ -1,80 +1,67 @@
 ---
 name: external-research
-description: >
-  Web and academic evidence gathering — searches the open internet, arXiv, Semantic Scholar, GitHub, and official documentation for sources not available locally.
-  Use this skill when the user asks about recent developments, current state-of-the-art, latest releases, benchmarks, or anything time-sensitive.
-  Also use it when conducting literature reviews, deep research, or source comparisons, and when verifying claims that need external corroboration.
-  Always check local knowledge (wiki-search or equivalent) before reaching for this skill.
-when_to_use: >
-  Trigger phrases: "search for", "look up online", "find papers on", "what does the web say about",
-  "recent research on", "state of the art", "what's the latest on", "find sources for",
-  "are there any papers on", "search arXiv", "what's current in", "find implementations of".
+description: >-
+  Look up current external evidence on the web and in academic sources (arXiv, Semantic Scholar, GitHub, official documentation) and answer in the conversation with a URL for every claim.
+  Use when the user asks about a recent release, the current state of a model, library, benchmark or price, "what's the latest on", "is there a paper on", "find a paper that", or wants a claim checked against external sources, even if they do not say "search".
+when_to_use: >-
+  Trigger phrases: "look this up online", "what's the latest on", "is there a paper on", "find a paper that shows", "search arXiv for", "what's current in", "check whether this is still true", "find an implementation of".
+  Searching the current repository or local files is not this skill. A full brief belongs to deep-research and a survey of papers to literature-review.
 allowed-tools: WebSearch WebFetch
 ---
 
-# External Research (Web + Academic)
+# External research
 
-Search the open internet and academic literature for evidence not yet available locally.
-This skill is for **external** evidence gathering only — check local knowledge sources first before invoking this.
+You answer a question from current external sources, in the conversation, with a URL behind every factual claim.
+Write evidence to files only when the user asks for it, because a lookup in the middle of other work should not leave files in their repository.
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing up what you find.
-Its truthfulness and confidence rules govern these notes, and its register and phrasing rules govern the summary you give the user.
+Read `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` before writing the answer.
+Its truthfulness rules govern what counts as a finding, and its register governs the prose.
 
-## Tool Routing
+## Workflow
 
-| What you need | Tool to use | Notes |
-| --- | --- | --- |
-| Current topics: products, releases, benchmarks, docs, pricing | `WebSearch` | Always for "latest/current/recent" queries |
-| Academic papers, methods, theoretical results | `WebSearch` → arXiv, Semantic Scholar, Google Scholar | Background literature |
-| Code repositories, implementations | `WebSearch` → GitHub | Reproducibility checks |
-| Official documentation, vendor specs | `WebFetch` with specific URL | When the URL is known |
-| Mixed topics | Combine web + academic | Most research tasks |
+1. If the question touches something the user has written or read, search the knowledge base with the `kb-query:wiki` skill first, and say what it already covers.
+2. Search with two to four differently angled queries at once, then narrow with the names and terms the first results give you.
+3. Read the sources that carry the answer, preferring primary ones.
+4. Answer: the finding first, then the supporting sources, then anything you could not establish.
+
+| Need | Route |
+| --- | --- |
+| Releases, benchmarks, docs, pricing, anything "latest" or "current" | `WebSearch` for recent pages, then `WebFetch` the official source |
+| Papers, methods, theoretical results | `WebSearch` on arXiv, Semantic Scholar or Google Scholar, then `WebFetch` the abstract or HTML version |
+| Implementations | `WebSearch` on GitHub, then `WebFetch` the README |
+| A known URL | `WebFetch` directly |
 
 ## Rules
 
-- **Never answer a "latest/current" question from training knowledge alone.**
-Always fetch recent web sources.
-- **For AI model or product claims**, prefer official docs and vendor pages plus recent web sources over old papers.
-- **For mixed topics**, combine both: web sources for current reality, academic sources for background literature.
-- **Cite everything.**
-Every factual claim needs a source URL.
-A claim without a URL is not a finding — it is a guess.
-- **Verify URLs resolve.**
-Before including a source, confirm the page actually loads and contains what you expect.
-- **Prefer primary sources.**
-Vendor docs and original papers beat blog summaries and secondhand writeups.
-- **No vague authority.**
-"Studies show", "experts agree" and "recent work suggests" are banned without a named, linked source.
-- **Separate reading from inference.**
-Mark a note `[Likely]` or `[Guessing]` when it is your inference rather than something the source states, and never tag routine reporting of what you just read.
-- **Report an empty search as a finding.**
-If the evidence does not exist, say so in the first line of your summary. Do not pad the notes with adjacent material to disguise a gap.
-- **Surface anomalies.**
-Flag numbers that look implausible, benchmarks reported on different splits, undated pages, and sources that contradict each other, rather than silently picking one.
+- Never answer a "latest" or "current" question from training knowledge alone.
+- Give every factual claim a URL you fetched.
+A claim without one is labelled as unsourced or left out.
+- Prefer primary sources: original papers, official docs, vendor announcements and repositories beat blog summaries.
+Use news, forums and social media only to corroborate.
+- `WebFetch` returns a model's answer about the page, so ask it for the verbatim passage when a quote or number matters, and call anything else a paraphrase.
+- Mark your own inference `[Likely]` or `[Guessing]`, and do not tag what a source states.
+- If the evidence does not exist, say so in the first line, and do not pad the answer with adjacent material to disguise the gap.
+- Flag implausible numbers, results on different splits or metrics, undated pages and sources that contradict each other.
 
-## Evidence Quality Tiers
+## Writing to files
 
-1. **Primary** — original paper, official docs, vendor announcement, code repository.
-2. **Secondary** — reputable technical blog, peer-reviewed survey, conference talk with slides.
-3. **Tertiary** — news article, forum post, social media. Use only to corroborate, never as sole source.
-
-## Output
-
-Write evidence to scratch files named `<slug>-research-<source-type>.md` in the **project's designated scratch directory**.
-Check `CLAUDE.md` for the project's scratch directory convention; if none is defined, default to `research_scratch/`.
-These are intermediate files — final deliverables are written by the calling skill or workflow.
-
-Structure each scratch file as:
+When the user asks to keep the evidence, write `<scratch>/<slug>-research-<source-type>.md`, with the scratch directory from the project's `CLAUDE.md` (default `research_scratch/`):
 
 ```markdown
-# Evidence: <topic> — <source-type>
+# Evidence: <topic>, <source type>
 
 ## Source 1: [Title](url)
-- **Type:** primary / secondary / tertiary
+
+- **Type:** primary, secondary or tertiary
 - **Date:** YYYY-MM-DD
 - **Key finding:** one sentence
-- **Relevant excerpt or notes:**
-  ...
-
-## Source 2: ...
+- **Notes:** the relevant excerpt, marked verbatim or paraphrase
 ```
+
+## Strict prohibitions
+
+| Prohibited | Reason |
+| --- | --- |
+| A source, title, author, number or quote you did not fetch | Fabrication |
+| "Studies show" or "experts agree" without a linked source | Vague authority |
+| Writing files the user did not ask for | Leaves debris in their repository |
