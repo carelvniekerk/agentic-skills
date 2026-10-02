@@ -95,7 +95,7 @@ Classify the skill before drafting the body and include the matching blocks, tai
 | Gathers evidence, cites sources or states facts about external systems | The truthfulness rules: no fabricated citations, quotes, statistics, DOIs, authors, venues or years, uncited claims marked as uncited, no vague authority, inferences tagged, and an empty search reported as a finding. |
 | Performs mechanical operations with no prose and no judgement | None of the above, because each block costs context on every invocation. |
 
-In the agentic-skills marketplace, a skill in the `research` plugin points at `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` and passes its full contents in any agent brief, instead of inlining a copy.
+In the agentic-skills marketplace, a skill in the `research` plugin points at `references/house-style.md` under its own plugin root, through the `CLAUDE_PLUGIN_ROOT` placeholder, and passes its full contents in any agent brief, instead of inlining a copy.
 If a template inside the skill contradicts these rules, fix the template or state that it is a maximum rather than a quota.
 
 ## Companion skills
