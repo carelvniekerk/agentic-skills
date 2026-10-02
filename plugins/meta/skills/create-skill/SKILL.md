@@ -8,58 +8,58 @@ description:
 allowed-tools: Read Write Edit Glob Grep Bash(mkdir *) Bash(ls *) Bash(cat *) Bash(git *) Bash(claude *) Bash(uv *)
 ---
 
-# Skill Author
+# Skill author
 
-A disciplined workflow for authoring Claude Code skills.
-The deliverable is a working `SKILL.md` (plus any supporting files) that triggers reliably, stays under the size budget, and survives auto-compaction.
+You author, review and improve Claude Code skills.
+The deliverable is a `SKILL.md`, plus any supporting files, that triggers on the right requests, measurably improves the output against a run without it, and keeps its working instructions within the first 5,000 tokens.
 
-This skill enforces a **draft → test → review → iterate** loop.
-The first draft is rarely the final draft, and skipping evaluation is the single biggest reason skills under-trigger or produce inconsistent output in production.
+## Contents
 
----
+- Workflow at a glance
+- Operating principle
+- Stance while authoring
+- Voice of the artefact
+- Companion skills
+- Phase 0: capture intent
+- Phase 1: choose location
+- Phase 2: write the skill (including degrees of freedom)
+- Phase 3: evaluate
+- Phase 4: iterate
+- Phase 5: distribute
+- Checklist before declaring done
+- Template
+- Strict prohibitions
+- Reference files
+
+## Workflow at a glance
+
+Copy this checklist into your reply and tick it off as you go.
+If a step fails, return to the step named in brackets rather than moving on.
+
+```text
+Skill progress:
+- [ ] 0. Intent captured and confirmed by the user
+- [ ] 1. Scope chosen (personal, project or plugin)
+- [ ] 2. SKILL.md drafted, references linked one level deep
+- [ ] 3. Evaluated against a no-skill baseline (if it fails, return to 2)
+- [ ] 4. Iterated until the user is satisfied or progress stalls
+- [ ] 5. Validated and saved at the intended scope
+```
 
 ## Operating principle
 
-A skill is context that loads on demand.
-Three things determine whether it succeeds:
+A skill is context that loads on demand, and three properties decide whether it works.
 
 1. **Triggering.**
-   The `description` is the only signal Claude uses to decide whether to consult the skill.
-   If keywords the user actually types are missing, the skill never loads, regardless of how good the body is.
-2. **Concision.**
-   Once a skill loads, its body stays in context for the rest of the session and is re-attached after auto-compaction (with a per-skill cap of 5,000 tokens and a combined budget of 25,000 tokens across all re-attached skills).
-   Every line of `SKILL.md` is a recurring token cost.
+   Claude decides from the `name` and `description` alone whether to load the skill.
+   If the words the user actually types are missing, the body never loads.
+2. **Recurring cost.**
+   An invoked skill stays in context for the rest of the session.
+   After auto-compaction Claude Code re-attaches only the first 5,000 tokens of each skill, within a 25,000-token budget filled from the most recently invoked skill, so anything late in a long `SKILL.md` can disappear.
+   Put the instructions that matter most first.
 3. **Progressive disclosure.**
-   Detailed reference material, large examples, and rarely-needed docs belong in supporting files that are loaded only when the skill explicitly points to them.
-   Bundled scripts execute without their source loading into context at all.
-
-Optimise for these three properties from the first draft.
-Everything below operationalises that.
-
----
-
-## Source formatting — one sentence per line
-
-Whenever you write markdown in this workflow — the `SKILL.md` body, reference files, or any commit/PR text — put each sentence on its own line in the source.
-This convention is sometimes called *semantic line breaks*.
-
-The rendered output is unchanged: a markdown renderer collapses consecutive non-blank lines within a paragraph into one rendered line, so the visual result is identical to a soft-wrapped paragraph.
-The benefit is in `git diff`: editing one sentence produces a one-line diff instead of a re-flowed paragraph that touches every wrapped line.
-
-Within a list item, the same rule applies — the bullet marker stays on the first line, and continuation sentences sit on subsequent unindented lines.
-A blank line ends the paragraph or list item.
-
-````markdown
-- This is one bullet.
-The bullet continues here, still in the same item.
-
-- This is the next bullet.
-````
-
-Type each sentence on a new line as you author.
-Do not rely on a post-processing script to enforce this — the rule is small and unambiguous when you write sentence-by-sentence.
-
----
+   Material needed only some of the time belongs in reference files that `SKILL.md` links directly.
+   Scripts are executed, not read, so only their output costs context.
 
 ## Stance while authoring
 
@@ -68,747 +68,257 @@ Your job is to improve the user's design for this skill, not to transcribe their
 
 - Start with the answer, or with the objection if the framing is wrong.
 If the request is better served by a hook, a subagent, or a line in CLAUDE.md than by a skill, say so in your first message, before drafting.
-- Lead with the uncomfortable part: a failed trigger test, a field the harness silently ignores, or a draft that exceeds its budget goes first in your report, not after the parts that worked.
-- Challenge the premise only where it is weak and the weakness changes what the user should build.
+- Lead with the uncomfortable part: a failed trigger test, a field the harness silently ignores, or a draft over its budget goes first in your report.
+- Challenge the premise only where the weakness changes what the user should build.
 If the design holds, say so in a clause and move on.
-Do not manufacture an objection; a challenge that fires every time carries no information.
 Raise design objections in Phase 0 and Phase 1, not in the middle of an iterate loop the user has already approved.
 - When you disagree, give the reason, the alternative and the specific downside of the user's approach.
-Vary the phrasing; do not run a fixed template.
-- Hold your position under pushback. Revise it for a new fact or a better argument, not for repetition.
-If you still disagree after three exchanges, say so plainly rather than drifting towards the user's view.
-- Flag confidence where it is load-bearing, in prose or as `[Likely]` and `[Guessing]`.
-Claims about harness behaviour you have not verified against the current docs or a smoke test are the main case, for instance whether a string substitution expands in a reference file, or how a description is truncated in the listing.
-Do not tag routine reporting of what a validator or test printed.
-- List the judgement calls you made, and surface anything off in test output: a trigger test that passed because the prompt named the skill outright, a validator that passed but does not check what you needed, a warning you chose to ignore.
+- Hold your position under pushback.
+Revise it for a new fact or a better argument, not for repetition.
+If you still disagree after three exchanges, say so plainly.
+- Flag load-bearing confidence as `[Likely]` or `[Guessing]`, mainly for claims about harness behaviour you have not checked against the docs or a test run.
+- List the judgement calls you made, and surface anything off in test output: a trigger test that passed because the prompt named the skill, a grader that passes in both arms, a warning you chose to ignore.
 
 ## Voice of the artefact
 
-Two things follow from the user's writing rules, and both apply to every skill you author.
+Write the skill's own prose to the user's register: British English, sentence case headings, no em-dashes, plain sentences in the active voice, prose over bullets unless the content is a list.
+Avoid antithesis framing, colon-then-reveal, filler hedges, scare quotes and the banned vocabulary in the user's CLAUDE.md.
+Trigger phrases in `description` and `when_to_use` are the exception: they must match what the user types.
 
-**Write the skill's own prose to the register.**
-British English, sentence case headings, no em-dashes (en dashes only for numeric ranges), plain sentences in the active voice, prose over bullets unless the content is genuinely a list.
-Address the agent directly and state rules plainly.
-Avoid antithesis framing, colon-then-reveal, rule-of-three padding, filler hedges ("it's worth noting", "at its core"), scare quotes around invented labels, metaphor where the plain noun does the job, and the vocabulary set: delve, leverage, harness, unlock, seamless, robust, holistic, pivotal, underscore, foster, testament to, landscape, realm, deep dive, game-changer, elevate.
-"Robust" is permitted only in its technical sense, as in robust statistics.
-Trigger phrases in `description` and `when_to_use` are the exception: they must match what the user actually types, even when that includes a banned word such as "deep dive".
-
-**Make the skill carry the rules into its own output.**
-Classify what you are authoring before drafting the body, and include the matching blocks, tailored to the task rather than pasted whole:
+Then make the skill carry the rules into its own output.
+Classify the skill before drafting the body and include the matching blocks, tailored rather than pasted:
 
 | If the skill... | Include |
 | --- | --- |
-| Writes prose the user will keep or publish: reports, reviews, briefs, papers, ADRs, commit messages, PR descriptions, docstrings | The register rules, the phrasing blacklist, and the formatting rules (em-dashes, British English, sentence case, prose over bullets). For technical or research writing, add the scoping rule: formal and precise, but plain sentences in the active voice, with the passive only where the agent is genuinely irrelevant or unknown. |
-| Runs a review, a user-gated decision, or any loop where the user gives feedback | The advisor stance: start with the answer or the objection, lead with the uncomfortable part, challenge a weak premise only when it changes the outcome, hold position under pushback with the three-exchange rule, flag load-bearing confidence, list judgement calls and anomalies. |
-| Gathers evidence, cites sources, or states facts about external systems | The truthfulness rules: never fabricate a citation, quote, statistic, DOI, author list, venue or year; say a claim is uncited rather than invent a reference; no vague authority; tag inferences `[Likely]` or `[Guessing]`; report an empty search as a finding. |
-| Performs mechanical operations with no prose and no judgement | None of the above. Adding them costs context on every invocation for no behavioural gain. |
+| Writes prose the user keeps or publishes (reports, reviews, commit messages, PR descriptions, docstrings) | The register rules, the phrasing blacklist and the formatting rules. For technical writing, add: formal and precise, plain sentences, active voice, passive only where the agent is irrelevant or unknown. |
+| Runs a review, a user-gated decision or a feedback loop | The advisor stance: answer or objection first, uncomfortable part first, premise challenges only when they change the outcome, the three-exchange rule, load-bearing confidence tags, judgement calls and anomalies listed. |
+| Gathers evidence, cites sources or states facts about external systems | The truthfulness rules: no fabricated citations, quotes, statistics, DOIs, authors, venues or years, uncited claims marked as uncited, no vague authority, inferences tagged, and an empty search reported as a finding. |
+| Performs mechanical operations with no prose and no judgement | None of the above, because each block costs context on every invocation. |
 
-Most skills land in more than one row.
-Weight the blocks by what the skill actually does: a git workflow needs the advisor stance at its review gate and the register for its commit text, but little of the truthfulness block; a research skill needs the truthfulness block in full.
+In the agentic-skills marketplace, a skill in the `research` plugin points at `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` and passes its full contents in any agent brief, instead of inlining a copy.
+If a template inside the skill contradicts these rules, fix the template or state that it is a maximum rather than a quota.
 
-In the agentic-skills marketplace, if the skill belongs to the `research` plugin, point it at `${CLAUDE_PLUGIN_ROOT}/references/house-style.md` and have it pass that file's full contents in any agent brief, instead of inlining a new copy.
-If a template or example inside the skill contradicts these rules, for example a sample commit body written as sentence fragments or a PR template that demands exactly three bullets, fix the example or state that it is a maximum rather than a quota.
-Existing instructions that ask for a formal or academic tone with passive voice should be scoped to the rule above, not deleted.
+## Companion skills
 
----
+Three sibling skills cover Claude Code's authoring primitives, and they ship together in the `meta` plugin:
 
-## Companion skills — delegating to siblings
+- `meta:create-skill` (this skill): context that loads on demand into the parent conversation.
+- `meta:create-hook`: deterministic interception of a lifecycle event.
+- `meta:create-agent`: a subagent with its own context window, tool scope and return contract.
 
-This skill is one of three that together cover Claude Code's authoring primitives:
+When the job needs a sibling primitive, invoke the sibling through the `Skill` tool and hand over what you have already gathered, so it does not repeat its own intake.
+A skill that bundles a hook in its `hooks:` frontmatter needs `meta:create-hook` for the hook.
+A skill that wraps a subagent needs `meta:create-agent`, and the agent can preload this skill through its own `skills` field.
 
-- **`create-skill`** (this skill) — reusable prompt/workflow context that loads on demand into the parent conversation.
-- **`create-hook`** — deterministic interception of a lifecycle event (format on save, block a command, inject context).
-- **`create-agent`** — delegated subagent with its own context window, tool scope, and return-value contract.
+## Phase 0: capture intent
 
-If the user's request expands beyond a plain skill, invoke the sibling skill via the `Skill` tool rather than re-deriving its workflow inline.
-The siblings ship in the same `meta` plugin, so their `Skill`-tool names are `meta:create-skill`, `meta:create-hook` and `meta:create-agent`.
-Hand over the context you have already gathered (the wrapping file path, the lifecycle event, the desired tool scope) so the sibling does not re-ask its own Phase 0 questions.
+Extract what you can from the conversation first, because the user often says "turn this into a skill" after doing the work.
+Then ask, in one batched message, only for the gaps:
 
-Common compositions when authoring a skill:
-
-- The skill should bundle a **hook** in its frontmatter (e.g. a skill that auto-formats on save or injects context after compaction).
-  Delegate the hook design to `create-hook`, then place the resulting hook config in the skill's `hooks:` frontmatter field.
-- The skill should preload or document a **subagent** that the user delegates to (e.g. a skill that wraps a code-review subagent).
-  Delegate the agent design to `create-agent`, then reference it from the skill body and (optionally) the skill's `preloaded-skills`/`agents` directives.
-- The skill is itself a **meta-skill** that authors agents or hooks for other projects — the sibling skill is a reference, not a replacement.
-
----
-
-## Phase 0 — Capture intent
-
-Before writing anything, establish what the skill is for.
-The current conversation often already contains the workflow the user wants to capture (e.g. they say "turn this into a skill" after a debugging session).
-Extract what you can from history first; ask only for the gaps.
-
-Ask the user — in a single batched message — to confirm the following:
-
-1. **What should the skill enable Claude to do?**
-   One sentence, action-oriented.
-2. **When should it trigger?**
-   Concrete user phrases or contexts.
-   Aim for at least three.
-3. **What's the expected output?**
-   A file? A diagnostic report? A code change? Inline prose?
-4. **Reference content or task content?**
-   _Reference content_ (conventions, patterns, domain knowledge) typically lets Claude auto-invoke; _task content_ (deploy, commit, fix-issue) is usually user-invocable only.
-   See [§ Reference vs task content](#reference-vs-task-content).
-5. **Should we set up test cases?**
-   Skills with objectively verifiable outputs (file transforms, data extraction, code generation, fixed workflow steps) benefit from tests.
-   Skills with subjective outputs (writing style, art) often do not.
-   Suggest the appropriate default; the user decides.
+1. What should the skill enable Claude to do?
+One action-oriented sentence.
+2. When should it trigger?
+At least three phrases the user would actually type.
+3. What is the output: a file, a report, a code change, inline prose?
+4. Is it reference content (conventions Claude consults while working, usually auto-invoked) or task content (a procedure with side effects, usually user-invoked only)?
+5. Should we build evaluation cases?
+Skills with checkable output benefit most, while subjective output may rely on the user's review.
 
 Wait for confirmation before drafting.
+If the user has already answered these, say so and proceed.
 
----
+## Phase 1: choose location
 
-## Phase 1 — Choose location and structure
+| Scope | Path | Loads |
+| --- | --- | --- |
+| Personal | `~/.claude/skills/<name>/SKILL.md` | Every project on this machine, but not Cowork or cloud sessions |
+| Project | `<repo>/.claude/skills/<name>/SKILL.md` | Sessions started in that repository |
+| Plugin | `<plugin>/skills/<name>/SKILL.md` | Wherever the plugin is installed, namespaced `<plugin>:<name>` |
+| Enterprise | Managed settings | Organisation-wide |
 
-### Where the skill lives
+When the working repository is a plugin marketplace (it has `.claude-plugin/marketplace.json` at the root), skills go in `plugins/<plugin>/skills/<name>/`.
+Read `${CLAUDE_SKILL_DIR}/references/plugin-packaging.md` before creating a plugin or adding a skill to one.
+Otherwise use the personal or project scope, and ask which if the request does not say.
 
-| Scope      | Path                                     | Notes                                                                       |
-| ---------- | ---------------------------------------- | --------------------------------------------------------------------------- |
-| Personal   | `~/.claude/skills/<name>/SKILL.md`       | Available in every project on this machine.                                 |
-| Project    | `<repo>/.claude/skills/<name>/SKILL.md`  | Only when Claude Code runs from that repo.                                   |
-| Plugin     | `<plugin>/skills/<name>/SKILL.md`        | Namespaced `<plugin>:<name>`. **Use this inside a marketplace repo.**         |
-| Enterprise | Managed settings                         | Organisation-wide deployment.                                               |
+## Phase 2: write the skill
 
-Precedence when names collide: **enterprise > personal > project**.
-Plugin skills are namespaced and never collide — a plugin's `/git:commit` coexists with a personal `/commit`.
-A skill takes precedence over a `.claude/commands/` file with the same name.
+Read `${CLAUDE_SKILL_DIR}/references/frontmatter.md` before setting any field beyond `name`, `description` and `allowed-tools`.
+Claude Code silently ignores a misspelt or unknown key, so a field you have not checked may do nothing.
 
-In monorepos, Claude Code automatically discovers skills from nested `.claude/skills/` directories under whichever file you are working on (e.g. `packages/frontend/.claude/skills/`).
+### The description
 
-### Publishing from a marketplace repository
+The description is the only text Claude sees before deciding to load the skill.
 
-When the working repository is a plugin marketplace (it has `.claude-plugin/marketplace.json` at the root), skills live inside a plugin: `plugins/<plugin>/skills/<name>/SKILL.md`.
-Otherwise, pick the personal or project scope from the table above, skip Phase 1.5, and skip the plugin-only items in the quick checklist.
-Ask the user which scope they want if the request does not make it clear.
-The plugin is the unit of installation, and `.claude-plugin/marketplace.json` at the repo root is what makes it installable.
-The next phase covers the plugin layout and what the frontmatter must carry.
+- State what the skill does in the first sentence, then when to use it, with the phrases the user would type, including informal ones.
+- Put the key use case first, because `description` and `when_to_use` together are cut at 1,536 characters in the listing.
+- Lean towards triggering: name adjacent situations where the skill should still fire, even if the user does not use its keyword.
+Avoid capitals and "MUST" to force triggering, because current models over-trigger on aggressive wording.
+Let the trigger evaluation in Phase 3 decide how assertive the wording needs to be.
+- Keep it within 1,024 characters, the spec limit enforced on claude.ai and the API.
 
-### Anatomy of a skill
+### The body
 
-```
-skill-name/
-├── SKILL.md              (required — entrypoint)
-├── references/           (loaded on demand, referenced from SKILL.md)
-│   ├── api-spec.md
-│   └── examples.md
-├── scripts/              (executed, not loaded into context)
-│   └── run.py
-└── assets/               (templates, fonts, icons used in output)
-    └── template.md
-```
+Write standing instructions.
+Claude Code injects the body once and never re-reads it, so phrase rules to cover the whole task ("run the tests after every edit", not "run the tests").
 
-`SKILL.md` is the only required file.
-Everything else is optional and loaded only when `SKILL.md` explicitly points to it.
+- **Order by importance.**
+Put the workflow, the contract and the rules most often broken in the first screen, and move background later or out to references.
+- **Match freedom to fragility.**
+Set each step's degree of freedom by asking what happens if Claude does it differently, as described in "Degrees of freedom" below.
+- **Use checklists for ordered work.**
+For multi-step workflows, give a checklist Claude copies and ticks off, and say which step to return to when a check fails.
+A validator can be a checklist of requirements rather than code.
+- **Explain the reason in a clause instead of shouting.**
+"Run `ruff` before committing, because the pre-commit hook rejects unformatted files" works better than "ALWAYS run ruff".
+- **Give defaults, not menus.**
+Name the tool or approach to use and mention an alternative only for a stated condition.
+- **Keep a gotchas section** for the non-obvious failures Claude would otherwise rediscover.
+- **Cut what Claude already knows.**
+Every line is a recurring token cost, so drop narration and general background.
+- **Move rules that must always hold into a hook.**
+A hook runs whether or not Claude follows the skill, and a hook in the skill's `hooks:` frontmatter stays with the skill.
+- **State the contract** when the skill could surprise the user: what it produces, what it does not do, and its fallback for edge cases.
 
-### Live change detection
+### Degrees of freedom
 
-Claude Code watches skill directories for file changes during a session.
-Adding, editing, or removing a skill under `~/.claude/skills/`, the project `.claude/skills/`, or any `.claude/skills/` inside an `--add-dir` directory takes effect immediately.
-Creating a brand-new top-level skills directory still requires a Claude Code restart so the watcher can attach to it.
+Match how specific each step is to how fragile and variable the task is.
 
----
+| Freedom | Form | Suits | Example |
+| --- | --- | --- | --- |
+| High | Plain goals in prose | Several approaches are valid and context decides | A code review: check structure, bugs and edge cases, readability and project conventions |
+| Medium | Pseudocode or a parameterised template | A preferred pattern exists but variation is acceptable | `generate_report(data, format="markdown", include_charts=True)` |
+| Low | An exact script with few or no parameters | The operation is fragile, consistency is critical or the sequence is fixed | "Run exactly `uv run scripts/migrate.py --verify --backup`. Do not modify the command or add flags." |
 
-## Phase 1.5 — Plugin packaging
+Decide per step, not per skill.
+A release skill can leave drafting the notes at high freedom and lock the tagging and pushing step down.
+If a different approach would change little, loosen the step, and if the consequence is real, tighten it.
+Low freedom usually means a bundled script rather than more prose, because a script behaves the same on every run and every model.
 
-Apply this phase only in a marketplace repository or when the user asks for a plugin.
-There, skills ship inside a plugin, and the plugin ships through the marketplace at `.claude-plugin/marketplace.json`.
-Claude Code reads `SKILL.md` frontmatter **directly** and merges nothing — whatever you write in the file is exactly what the loader sees.
+### Supporting files
 
-### All frontmatter is inline
-
-Two keys are non-negotiable:
-
-| Key           | Constraint                                                                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `name`        | Lowercase letters, digits, and hyphens. No leading/trailing hyphen. No consecutive hyphens. ≤ 64 characters. **Must match the parent directory name.** |
-| `description` | ≤ 1024 characters. Describes both what the skill does and when to use it.                                                                             |
-
-Always set `name` explicitly.
-Without it the invocation name falls back to the install directory name, which is unstable across plugin updates.
-
-Everything else Claude Code understands goes in the same block: `allowed-tools`, `when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `model`, `effort`, `context`, `agent`, `hooks`, `paths`, `shell`.
-Detailed semantics are in the Phase 2 frontmatter table.
-
-Write `allowed-tools` in Anthropic syntax — `Bash(git *)`, space-separated — not the open-spec `Bash(git:*)` form.
-
-> **Do not create a `.harness/` directory.**
-> Earlier revisions of the agentic-skills repository split Claude-only frontmatter into `.harness/claude.yaml` so a separate installer could merge it per platform.
-> That mechanism is gone, along with the Codex and Copilot targets it served.
-> A `.harness/` file today is simply ignored, and its keys are silently lost.
-
-### Directory layout
+Keep `SKILL.md` under 500 lines and move detail into supporting files beside it.
 
 ```text
-plugins/<plugin>/
-├── .claude-plugin/
-│   └── plugin.json             (manifest — ONLY this file goes in here)
-├── skills/
-│   └── <slug>/
-│       ├── SKILL.md            (required; complete frontmatter inline)
-│       ├── references/         (loaded on demand)
-│       ├── scripts/            (executed, not loaded as text)
-│       └── assets/             (templates, fixtures, fonts)
-└── agents/
-    └── <slug>.md               (optional subagents)
-```
-
-`skills/` and `agents/` are discovered automatically.
-Only declare `skills` or `agents` paths in `plugin.json` when they live somewhere non-standard.
-
-### Choosing which plugin a skill joins
-
-The plugin name becomes the slash prefix — `/git:commit`, `/research:peer-review` — so keep it short.
-
-A plugin is the unit of installation *and* of context cost: every enabled plugin's skill descriptions load on every turn.
-Group skills you would always install together.
-Put a skill you would only ever want in one project into its own plugin so it can be installed at project scope.
-
-Adding a new plugin means adding its entry to `.claude-plugin/marketplace.json` too, or it will not be installable:
-
-```json
-{ "name": "git", "source": "./plugins/git", "category": "workflow", "tags": ["git", "commit"] }
-```
-
-Sources are paths from the repository root and must start with `./`, so write the `./plugins/` prefix in full.
-Do not set `metadata.pluginRoot` — a source short enough to need it is rejected by the schema, and a valid one ignores it.
-Note that `claude plugin validate` checks the schema but never checks that the path exists, so confirm a new entry with an actual install rather than with the validator.
-
-### Validate
-
-```bash
-claude plugin validate .                            # marketplace manifest
-claude plugin validate plugins/<plugin>             # plugin manifest
-claude plugin validate plugins/<plugin>/skills      # the skill files themselves
-```
-
-Plugin manifests in agentic-skills deliberately omit `version` so the git SHA drives updates.
-`validate` emits one warning per plugin about that; it is expected.
-
----
-
-## Phase 2 — Write the SKILL.md
-
-### Frontmatter reference
-
-Frontmatter sits between `---` markers at the top of `SKILL.md`.
-All fields are optional except — practically speaking — `description`.
-Most fields below are Claude Code extensions on top of the open Agent Skills spec.
-All of them go inline in `SKILL.md` — see [§ Phase 1.5 — Plugin packaging](#phase-15--plugin-packaging).
-
-| Field                      | Purpose                                                                     | Notes                                                                                                                                                                     |
-| -------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                     | Display name for the skill.                                                 | Lowercase letters, numbers, hyphens. Max 64 characters. Defaults to the directory name if omitted.                                                                        |
-| `description`              | What the skill does and when to use it.                                     | The primary triggering signal. If omitted, the first paragraph of body content is used. Combined with `when_to_use`, capped at **1,536 characters** in the skill listing. |
-| `when_to_use`              | Additional triggering context — phrases, examples, edge cases.              | Appended to `description` and shares the 1,536-character cap.                                                                                                             |
-| `argument-hint`            | Hint shown during autocomplete.                                             | E.g. `[issue-number]` or `[filename] [format]`.                                                                                                                           |
-| `arguments`                | Named positional arguments for `$name` substitution.                        | Space-separated string or YAML list. Names map to argument positions in order.                                                                                            |
-| `disable-model-invocation` | If `true`, only the user can invoke the skill.                              | Use for skills with side effects (`/deploy`, `/commit`, `/send-slack-message`). Also prevents the skill from being preloaded into subagents. Default: `false`.            |
-| `user-invocable`           | If `false`, hides the skill from the `/` menu.                              | Use for background knowledge that isn't actionable as a command. Default: `true`.                                                                                         |
-| `allowed-tools`            | Tools Claude can use without per-use permission while this skill is active. | Space-separated string or YAML list. Does not restrict tools — every tool remains callable, governed by your normal permission settings.                                  |
-| `model`                    | Model to use while this skill is active.                                    | Same values as `/model`, or `inherit`. Override applies for the rest of the current turn only.                                                                            |
-| `effort`                   | Effort level.                                                               | `low`, `medium`, `high`, `xhigh`, `max` — available levels depend on the model.                                                                                           |
-| `context`                  | Set to `fork` to run in a forked subagent.                                  | The skill body becomes the subagent's prompt. See [§ Run in a forked subagent](#run-in-a-forked-subagent).                                                                |
-| `agent`                    | Subagent type when `context: fork`.                                         | `Explore`, `Plan`, `general-purpose`, or any custom subagent in `.claude/agents/`. Defaults to `general-purpose`.                                                         |
-| `hooks`                    | Hooks scoped to this skill's lifecycle.                                     | See the Hooks docs for format.                                                                                                                                            |
-| `paths`                    | Glob patterns limiting when the skill auto-activates.                       | Comma-separated string or YAML list. When set, Claude only auto-loads the skill while working with matching files.                                                        |
-| `shell`                    | Shell for `` !`command` `` and ` ```! ` blocks.                             | `bash` (default) or `powershell`. PowerShell requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`.                                                                                |
-
-### String substitutions available in the body
-
-| Variable               | Expands to                                                                                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `$ARGUMENTS`           | All arguments passed when invoking the skill. If absent from the body, arguments are appended as `ARGUMENTS: <value>`.                                              |
-| `$ARGUMENTS[N]`        | The N-th argument (0-based). Use shell-style quoting for multi-word values.                                                                                         |
-| `$N`                   | Shorthand for `$ARGUMENTS[N]` (e.g. `$0`, `$1`).                                                                                                                    |
-| `$name`                | A named argument declared in `arguments:`. With `arguments: [issue, branch]`, `$issue` is the first argument and `$branch` the second.                              |
-| `${CLAUDE_SESSION_ID}` | The current session ID — useful for per-session log files.                                                                                                          |
-| `${CLAUDE_EFFORT}`     | The current effort level.                                                                                                                                           |
-| `${CLAUDE_SKILL_DIR}`  | The directory containing this `SKILL.md`. **Always use this** to reference bundled scripts or assets, so paths resolve regardless of the current working directory. |
-
-### Reference vs task content
-
-Whether the skill is reference or task content shapes the frontmatter and the body.
-
-**Reference content** — knowledge Claude should consult while doing other work (style guides, API conventions, domain context).
-Let Claude auto-invoke.
-The body should state facts and patterns, not procedures.
-
-```yaml
----
-name: api-conventions
-description: API design patterns for this codebase
----
-```
-
-**Task content** — a procedure with side effects (deploy, commit, run a migration).
-Restrict to user invocation, and pre-approve the tools the procedure needs.
-
-```yaml
----
-name: deploy
-description: Deploy the application to production
-disable-model-invocation: true
-allowed-tools: Bash(git push *) Bash(./deploy.sh *)
----
-```
-
-### The `description` field — getting triggering right
-
-This is the most important line in the file.
-Internalise three things:
-
-1. **Claude has a tendency to _under-trigger_ skills.**
-   To compensate, write descriptions slightly "pushy".
-   Instead of _"How to build a fast dashboard"_, write _"How to build a fast dashboard. Use this skill whenever the user mentions dashboards, data visualisation, internal metrics, or wants to display any kind of data, even if they don't explicitly say 'dashboard'."_
-2. **Front-load the key use case.**
-   The combined `description` + `when_to_use` is truncated at 1,536 characters in the skill listing — what the user would actually type goes first.
-3. **Include the trigger phrases users actually use.**
-   If users say "fix the bug" rather than "diagnose the runtime exception", put "fix the bug" in the description.
-
-A reliable structure:
-
-```
-<one sentence: what it does>.
-Use this skill aggressively whenever the user mentions <phrase 1>, <phrase 2>, <phrase 3>, or <phrase 4> — even if they don't explicitly say <obvious keyword>.
-Also use it when <secondary trigger 1>, <secondary trigger 2>.
-The skill enforces <one-line summary of the workflow or contract>.
-```
-
-### The body — keep it tight
-
-The body lives in context for the rest of the session.
-Apply the same conciseness test as for `CLAUDE.md`: state what to do, not how or why.
-
-Hard rules:
-
-- **Aim for under 500 lines.**
-  If you exceed this, split into reference files.
-- **Do not narrate.**
-  _"This skill helps you debug bugs by gathering context."_ → cut.
-  _"Run `git status` and record the output."_ → keep.
-- **Write standing instructions, not one-time steps.**
-  The skill content is injected once per invocation and does not re-read on later turns.
-  Anything that should apply throughout the task must be phrased as an ongoing rule.
-- **Use headings to make the structure scannable.**
-  Claude (and you) will skim it.
-
-### Reference files (progressive disclosure)
-
-Detailed material — full API specs, long example collections, framework-specific notes — goes in separate files referenced from `SKILL.md`:
-
-```
 my-skill/
-├── SKILL.md          (overview + navigation)
-├── references/
-│   ├── reference.md  (loaded only when SKILL.md tells Claude to)
-│   └── examples.md
-└── scripts/
-    └── helper.py     (executed, never loaded as text)
+├── SKILL.md          # workflow, contract, pointers
+├── references/       # read when SKILL.md says so
+├── scripts/          # executed; only output enters context
+└── assets/           # templates and files used in output
 ```
 
-Tell Claude _what each file contains and when to read it_:
-
-```markdown
-## Additional resources
-
-- For complete API details, see [references/reference.md](references/reference.md) — read this when implementing new endpoints.
-- For canonical examples, see [references/examples.md](references/examples.md) — read this when writing tests.
-```
-
-For long reference files (>300 lines), include a table of contents at the top so Claude can jump to the relevant section without reading the whole thing.
-
-When a skill supports multiple variants (cloud providers, frameworks, languages), organise references by variant and have `SKILL.md` route between them:
-
-```
-cloud-deploy/
-├── SKILL.md          (workflow + selection logic)
-└── references/
-    ├── aws.md
-    ├── gcp.md
-    └── azure.md
-```
-
-### Bundled scripts — always use `uv run`
-
-If your skill bundles Python scripts, **run them with `uv run`, not the system Python interpreter**.
-Never instruct the user (or Claude) to `pip install` anything globally; never assume `python3` resolves to the right interpreter.
-
-`uv run` handles environment isolation, dependency resolution, and Python version pinning in a single command.
-For self-contained scripts, use [PEP 723 inline metadata](https://peps.python.org/pep-0723/) so dependencies travel with the file:
-
-```python
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#     "rich",
-#     "httpx",
-# ]
-# ///
-"""What this script does."""
-...
-```
-
-In `SKILL.md`, reference the script via `${CLAUDE_SKILL_DIR}` so it resolves regardless of working directory:
-
-```markdown
-Run the analyser:
-
-\`\`\`bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/analyse.py "$ARGUMENTS"
-\`\`\`
-```
-
-For skills that need a more complex environment (private dependencies, lockfiles), bundle a `pyproject.toml` and `uv.lock` alongside the script and invoke with `uv run --project ${CLAUDE_SKILL_DIR}/scripts ...`.
-
-This keeps skills portable, reproducible, and immune to whatever Python state the user happens to have on their machine.
-
-### Dynamic context injection
-
-The `` !`<command>` `` syntax runs a shell command **before** the skill is sent to Claude and replaces the placeholder with the command's stdout.
-Use this to ground the skill in live state (current diff, current branch, current PR comments) instead of expecting Claude to fetch it.
-
-```markdown
----
-name: summarise-changes
-description: Summarises uncommitted changes and flags risks. Use when the user asks what changed, wants a commit message, or asks to review their diff.
----
-
-## Current changes
-
-!`git diff HEAD`
-
-## Instructions
-
-Summarise the diff above in two or three bullets, then list risks (missing error handling, hardcoded values, untested paths). If the diff is empty, say so.
-```
-
-For multi-line commands, use a fenced block opened with ` ```! ` instead of inline:
-
-````markdown
-## Environment
-
-```!
-node --version
-uv --version
-git status --short
-```
-````
-
-This is preprocessing — Claude only sees the resolved output, not the command.
-If the command is expensive or has side effects, prefer letting Claude run it via `Bash` so the user can see what is happening.
-
-The setting `disableSkillShellExecution: true` blocks this for user, project, plugin, and additional-directory skills (commands are replaced with `[shell command execution disabled by policy]`).
-Bundled and managed skills are unaffected.
-
-### Run in a forked subagent
-
-Add `context: fork` to run the skill in an isolated subagent context.
-The skill body becomes the subagent's prompt; it does **not** see the parent conversation history.
-
-```yaml
----
-name: deep-research
-description: Research a topic thoroughly with read-only exploration tools.
-context: fork
-agent: Explore
----
-
-Research $ARGUMENTS thoroughly:
-1. Find relevant files using Glob and Grep.
-2. Read and analyse the code.
-3. Summarise findings with specific file:line references.
-```
-
-Use `context: fork` only for skills with explicit, actionable instructions.
-A skill that says "use these API conventions" without a task will return nothing useful when forked, because the subagent receives the conventions but no prompt to act on.
-
-The `agent` field selects the execution environment (model, tools, permissions).
-`Explore` is read-only and optimised for codebase navigation; `Plan` is read-only and optimised for planning; `general-purpose` has the full toolset.
-Custom subagents from `.claude/agents/` also work.
-
-### Restricting tool use
-
-`allowed-tools` **grants** permission for listed tools without per-use prompting; it does not restrict.
-To deny tools, add deny rules in `/permissions`.
-
-Permission syntax: `Skill(name)` for an exact match, `Skill(name *)` for prefix-with-arguments.
-
-```
-Skill(commit)         # allow the commit skill
-Skill(review-pr *)    # allow review-pr with any arguments
-Skill(deploy *)       # deny if placed under deny rules
-```
-
-To disable all skills entirely, deny `Skill` in `/permissions`.
-
-### Path-restricted activation
-
-The `paths` field auto-loads the skill only when the user is working with files matching the pattern.
-This is useful for skills that are only relevant to a specific subsystem.
-
-```yaml
-paths:
-    - "src/api/**/*.py"
-    - "tests/api/**/*.py"
-```
-
-Same glob format as path-specific rules in `CLAUDE.md`.
-
-### Asking for deeper reasoning
-
-Include the literal word `ultrathink` anywhere in the skill body to bump the reasoning budget for the duration of that invocation.
-Reserve this for skills where shallow answers are genuinely harmful (architecture decisions, security review, hard debugging).
-
-### The Principle of Lack of Surprise
-
-Skills are loaded into context that already contains user instructions, project conventions, and other skills.
-A surprising skill — one that overrides what the user just asked for, conflicts with `CLAUDE.md`, or silently changes formatting — is worse than no skill.
-
-When in doubt, **state the contract explicitly** at the top of the body:
-
-```markdown
-This skill produces <X>.
-It does not <Y>.
-If <edge case>, it returns <fallback> rather than guessing.
-```
-
----
-
-## Phase 3 — Test the skill
-
-A skill that has not been tested is not a finished skill.
-Even for trivial skills, run at least one trigger test and one execution test before declaring done.
-
-### 3a. Trigger tests
-
-Verify the skill activates when it should and stays quiet when it shouldn't.
-
-1. Open Claude Code in a project where the skill is installed.
-2. Type queries that should trigger the skill.
-   Confirm Claude consults it (you'll see the skill name in the activity stream).
-3. Type queries that should _not_ trigger the skill.
-   Confirm Claude does not consult it.
-4. Run `What skills are available?` to confirm the description appears as expected.
-
-If the skill under-triggers, the `description` is missing keywords the user would actually use.
-If it over-triggers, the `description` is too vague — narrow it, or add `disable-model-invocation: true` if the skill should only be manual.
-
-### 3b. Execution tests
-
-For each test prompt:
-
-1. Run it with the skill installed.
-2. Inspect the output: is it correct, complete, in the expected format?
-3. If the skill produces files, save them and have the user open them.
-4. If the skill is non-deterministic, run the prompt **at least three times** to gauge variance.
-
-Triggering note: Claude consults skills mainly for tasks it can't trivially handle.
-Single-step prompts like _"read this file"_ may not trigger a skill even when the description matches perfectly.
-Use substantive test prompts that genuinely benefit from the skill.
-
-### 3c. Description optimisation (Claude Code only)
-
-If you have access to the bundled `claude` CLI and the `skill-creator` example skill is installed at `/mnt/skills/examples/skill-creator/`, you can run its description optimiser.
-This script splits a prompt set 60/40 train/test, evaluates the current description (three runs per query for stability), proposes improvements, and iterates.
-
-```bash
-uv run python -m scripts.run_loop \
-  --eval-set <path-to-trigger-eval.json> \
-  --skill-path <path-to-skill> \
-  --model <model-id-from-system-prompt> \
-  --max-iterations 5 \
-  --verbose
-```
-
-Use the model ID from the active session so the test mirrors what the user actually experiences.
-The script returns `best_description` selected on the held-out test set, not on training, so it doesn't overfit.
-Apply the result by updating the skill's frontmatter.
-
-If the optimiser isn't available, fall back to manual iteration: change one thing at a time, re-run the trigger tests, and keep what improves the score.
-
----
-
-## Phase 4 — Iterate
-
-Treat the first draft as a hypothesis.
-After each test pass:
-
-1. **Note what failed and why.**
-   Was it triggering, output format, scope, or correctness?
-2. **Make the smallest change that addresses the failure.**
-   Avoid rewrites — they conflate multiple changes and obscure what helped.
-3. **Re-run the relevant tests.**
-4. **Stop when you and the user are satisfied** — not when the skill is perfect.
-   Skills can be edited later; live change detection means edits take effect within the session.
-
-When iteration plateaus, expand the test set and run again at larger scale.
-Skills that pass twenty diverse prompts are usually robust; skills that pass three are usually overfitted to the prompts you happened to write.
-
----
-
-## Phase 5 — Distribute
-
-Skills propagate at four scopes — pick the narrowest one that works.
-
-| Scope               | How                                                                                                       |
-| ------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Personal (only you) | `~/.claude/skills/<name>/`. Nothing else to do.                                                           |
-| Project (one repo)  | Commit `.claude/skills/<name>/` to version control.                                                       |
-| **Plugin**          | Place under `plugins/<plugin>/skills/<name>/` and list the plugin in the marketplace. Namespaced `plugin:name`. |
-| Enterprise          | Deploy via managed settings.                                                                              |
-
-Marketplace repositories use the plugin path.
-A consumer adds the marketplace once and installs whichever plugins they want, at whichever scope:
-
-```bash
-/plugin marketplace add carelvniekerk/agentic-skills
-
-claude plugin install git@agentic-skills                        # global
-claude plugin install research@agentic-skills --scope project   # one repo
-```
-
-Because no agentic-skills plugin pins a `version`, Claude Code uses the git commit SHA — so every push to `main` reaches installed copies on the next update.
-Auto-update is off by default for third-party marketplaces; enable it once under `/plugin` → **Marketplaces**, or set `"autoUpdate": true` on the `extraKnownMarketplaces` entry.
-
-There is a fifth, install-free option worth knowing: a plugin directory symlinked into `~/.claude/skills/<name>/` auto-loads as `<name>@skills-dir`, with no marketplace, install, or cache involved.
-Useful for developing against a live checkout.
-
-For project skills, review `allowed-tools` carefully before checking in — a skill can grant itself broad tool access, and trusting the workspace activates those grants for everyone who clones the repo.
-
-If `present_files` is available and you've followed the example `skill-creator` workflow, package with:
-
-```bash
-uv run python -m scripts.package_skill <path/to/skill-folder>
-```
-
-This produces a `.skill` file that can be installed by another user.
-
----
-
-## Common failure modes and fixes
-
-### Skill never triggers
-
-- The `description` lacks keywords the user actually types.
-  Add the user's actual phrasing, including informal versions.
-- The skill is shadowed by a higher-precedence skill with the same name (enterprise > personal > project).
-  Run `What skills are available?` and check which one Claude is seeing.
-- The user's request is a single-step task Claude can handle directly.
-  This is expected — skills are mainly for multi-step or specialised work.
-
-### Skill triggers when it shouldn't
-
-- The `description` is too generic.
-  Narrow with specific contexts and trigger phrases.
-- Add `disable-model-invocation: true` if the skill should only ever be user-invoked.
-- Use `paths:` to limit auto-activation to relevant files.
-
-### Skill description gets cut off in the listing
-
-Skill descriptions share a budget that scales at 1% of the context window (fallback 8,000 characters).
-If you have many skills, low-priority ones get truncated.
-
-- Set `SLASH_COMMAND_TOOL_CHAR_BUDGET` to raise the limit.
-- Set low-priority skills to `"name-only"` in `skillOverrides` (in `.claude/settings.local.json`) — the name still lists, freeing budget for descriptions of skills that need them.
-- Tighten the skill's own `description` and `when_to_use` so the key use case fits before the 1,536-character per-skill cap.
-
-### Skill seems to stop influencing behaviour mid-session
-
-The content is almost certainly still in context — Claude is choosing other tools or approaches.
-Strengthen the description and the standing instructions in the body, or use [hooks](https://code.claude.com/docs/en/hooks) to enforce behaviour deterministically.
-If the skill is large or many other skills were invoked after it, re-invoke it after auto-compaction to restore the full content (auto-compaction keeps only the first 5,000 tokens of each skill, with a 25,000-token combined budget).
-
-### Bundled script fails on someone else's machine
-
-Almost always a Python environment problem.
-Switch to `uv run` with PEP 723 inline metadata so dependencies travel with the script.
-Reference the script via `${CLAUDE_SKILL_DIR}` so paths don't break when the working directory changes.
-
----
-
-## Quick checklist before declaring done
-
-- [ ] `name` matches the directory name and uses lowercase + hyphens only.
-- [ ] `name` is ≤ 64 characters with no consecutive or leading/trailing hyphens (open Agent Skills spec).
-- [ ] `description` is ≤ 1,024 characters (open Agent Skills spec) and includes at least three trigger phrases the user would actually type.
-- [ ] `description` + `when_to_use` together fit comfortably under 1,536 characters (Claude Code listing cap).
-- [ ] Body is under 500 lines; long material moved to `references/`.
-- [ ] The skill was classified against the Voice of the artefact table, and the matching stance, register, phrasing and truthfulness blocks are present and tailored, or deliberately omitted for a mechanical skill.
-- [ ] The skill's own prose follows the register: no em-dashes, sentence case headings, no banned vocabulary outside trigger phrases.
-- [ ] Any bundled scripts use `uv run` and reference `${CLAUDE_SKILL_DIR}`.
-- [ ] `allowed-tools` lists only what the skill genuinely needs, in Anthropic syntax (`Bash(git *)`).
-- [ ] If the skill has side effects, `disable-model-invocation: true` is set.
-- [ ] All frontmatter is inline in SKILL.md — there is no `.harness/` directory.
-- [ ] Plugin only: the skill sits under `plugins/<plugin>/skills/<name>/`, and that plugin has an entry in `.claude-plugin/marketplace.json`.
-- [ ] Plugin only: `claude plugin validate plugins/<plugin>/skills` passes.
-- [ ] Trigger tests pass (the skill activates on intended phrases and stays quiet otherwise).
-- [ ] Execution tests pass on at least three prompts.
-- [ ] Plugin only: smoke-tested with `claude --plugin-dir plugins/<plugin>` and invoked as `/<plugin>:<name>`.
-- [ ] The skill is committed (project) or saved (personal/plugin) at the intended scope.
-
----
-
-## Template — minimal SKILL.md
-
-Use this as a starting point.
+- Link every reference file directly from `SKILL.md`, and say what it contains and when to read it.
+Do not chain references: Claude may preview a file reached through another file with a partial read and miss its end.
+- Give `SKILL.md` and every reference file over 100 lines a contents list at the top, matching its headings, so a partial read still shows the file's full scope.
+- Split references by domain or variant (`aws.md`, `gcp.md`) so a task loads only the file it needs.
+- Refer to bundled files as `${CLAUDE_SKILL_DIR}/...`, which resolves regardless of the working directory.
+- Run bundled Python with `uv run` and PEP 723 inline metadata, never a global `pip install`.
+State environment requirements in the spec's `compatibility` field when the skill must run elsewhere, because the Claude API has no network access and cannot install packages.
+- If Claude would keep writing the same helper, bundle it as a script.
+
+Read `${CLAUDE_SKILL_DIR}/references/advanced-features.md` for dynamic context injection, forked subagents, path-scoped activation, tool restriction and frontmatter hooks.
+
+## Phase 3: evaluate
+
+A skill that fires is not yet a skill that helps.
+Measure two things separately: whether Claude invokes it on the right prompts and not on near misses, and whether the output is better than a run without it.
+Read `${CLAUDE_SKILL_DIR}/references/evaluation.md` for the case format, graders and commands.
+
+1. Write two or three realistic cases before polishing the body, plus at least one near-miss prompt that should not trigger the skill.
+2. Run each case in a fresh session with the skill and again without it.
+Context left over from writing the skill hides gaps in what you wrote.
+   - A plugin skill: `claude plugin eval <plugin-dir> --no-publish`, which runs a no-plugin baseline arm and reports the difference as `Δ`.
+   - A personal or project skill: set the skill to `"off"` in `skillOverrides` for the baseline run, or wrap it in a skills-directory plugin and use `claude plugin eval`.
+   - Tune the description with the `skill-creator` plugin's optimisation loop when trigger results are mixed.
+3. Read the transcripts, not only the scores.
+A case that scores 1.0 in both arms shows the skill is not what made it pass.
+4. Test on the models the skill will run on: Haiku shows whether the guidance is sufficient, Opus whether it over-explains.
+Remove instructions that make a stronger model do worse than it does without them.
+
+Every eval run is a billed model call.
+Agree the run count and a `--max-cost-usd` ceiling with the user before launching.
+
+## Phase 4: iterate
+
+1. Name what failed: triggering, format, scope or correctness.
+2. Generalise from the failure rather than patching the one prompt, because the skill must work on prompts you have not seen.
+3. Make the smallest change that addresses it, then re-run the same cases.
+4. When improving an existing skill, snapshot the old version first and use it as the baseline.
+5. Stop when the user is satisfied, when the cases pass with a positive `Δ`, or when changes stop improving the score.
+Pass rates that plateau while rules accumulate suggest the skill is over-constrained.
+
+When the cases pass, add more varied ones before trusting the skill.
+
+## Phase 5: distribute
+
+Save the skill at the scope chosen in Phase 1.
+Personal and project skills take effect within the session.
+A plugin skill needs the marketplace entry, validation and an install described in `${CLAUDE_SKILL_DIR}/references/plugin-packaging.md`.
+Review `allowed-tools` in project skills before committing them, because workspace trust does not gate the grant.
+
+When something goes wrong after release (no triggering, truncated description, the skill stops being followed), read `${CLAUDE_SKILL_DIR}/references/troubleshooting.md`.
+
+## Checklist before declaring done
+
+- [ ] `name` is lowercase letters, digits and hyphens, at most 64 characters, matches the directory and contains neither "anthropic" nor "claude".
+- [ ] `description` states what and when, front-loads the key use case, stays within 1,024 characters and uses no capitals or "MUST" to force triggering.
+- [ ] Every frontmatter key is spelt exactly as in the reference, and a skill bound for claude.ai or the API uses only the six spec fields.
+- [ ] `SKILL.md` is under 500 lines, the workflow and most-broken rules come first, and it opens with a contents list.
+- [ ] Every reference file is linked directly from `SKILL.md`, and each one over 100 lines opens with a contents list.
+- [ ] The skill was classified against the voice table, and the matching blocks are present or deliberately omitted.
+- [ ] The skill's own prose follows the register.
+- [ ] Bundled scripts use `uv run` and `${CLAUDE_SKILL_DIR}`.
+- [ ] `allowed-tools` lists only what the skill needs, and tools it must never use are in `disallowed-tools`.
+- [ ] A skill with side effects sets `disable-model-invocation: true`.
+- [ ] Evaluation ran in fresh sessions against a no-skill baseline, including one near-miss prompt, and the results were reported with their anomalies.
+- [ ] Plugin only: the marketplace entry exists, `claude plugin validate` passes on the plugin and its `skills/`, and an install succeeded.
+
+## Template
 
 ```markdown
 ---
 name: <skill-name>
-description: <one sentence: what it does>. Use this skill whenever the user mentions <phrase 1>, <phrase 2>, or <phrase 3> — even if they don't explicitly say <obvious keyword>. The skill enforces <contract>.
+description: <What it does, in one sentence>. Use when the user <phrase 1>, <phrase 2> or <phrase 3>, or <adjacent situation>, even if they do not say <keyword>.
 allowed-tools: Read Grep
 ---
 
-# <Skill Name>
+# <Skill name>
 
-<One-paragraph statement of the contract: what it produces, what it doesn't, and the fallback for edge cases.>
+<Contract: what it produces, what it does not do, the fallback for edge cases.>
 
-## When to use
+## Workflow
 
-- <concrete trigger 1>
-- <concrete trigger 2>
-- <concrete trigger 3>
-
-## Procedure
-
-1. <step>
-2. <step>
-3. <step>
+- [ ] 1. <step>
+- [ ] 2. <step>
+- [ ] 3. <check>; if it fails, return to step 2
 
 ## Output format
 
-<state expected output explicitly>
+<the expected output>
 
-## Edge cases
+## Gotchas
 
-- <edge case>: <expected behaviour>
+- <non-obvious failure and what to do instead>
 ```
 
----
+## Strict prohibitions
 
-## Related documentation
+| Prohibited | Reason |
+| --- | --- |
+| Overwriting an existing skill without reading it and snapshotting it first | Loses the baseline and the user's work |
+| Writing under `~/.claude/skills/synced/` or naming a skill `synced` or `anthropic-skills` | Reserved for claude.ai synced skills, so the skill will not load or will be replaced |
+| Launching evals without an agreed run count and `--max-cost-usd` | Every run is billed |
+| Publishing an eval report without `--no-publish` unless the user agreed | The report goes to claude.ai and contains the prompts and transcripts |
+| `--trust-plugin` on a plugin the user did not write | Eval runs execute the plugin's code as the user |
+| Hard-coded secrets or tokens in a skill or its scripts | Skills are shared and committed |
+| Committing or pushing from this skill | Hand over to the user's commit workflow |
 
-- **Official Agent Skills spec**: <https://agentskills.io>
-- **Claude Code skills docs**: <https://code.claude.com/docs/en/skills>
-- **Subagents**: <https://code.claude.com/docs/en/sub-agents>
-- **Hooks**: <https://code.claude.com/docs/en/hooks>
-- **Permissions**: <https://code.claude.com/docs/en/permissions>
-- **Plugins**: <https://code.claude.com/docs/en/plugins>
-- **Memory / CLAUDE.md**: <https://code.claude.com/docs/en/memory>
+## Reference files
 
----
-
-Repeating the core loop one last time:
-
-1. Capture intent (Phase 0).
-2. Choose location and structure (Phase 1).
-3. Draft `SKILL.md` (Phase 2).
-4. Test triggering and execution (Phase 3).
-5. Iterate one change at a time (Phase 4).
-6. Distribute at the narrowest scope that works (Phase 5).
-
-Add these as TodoList entries when authoring a skill so no step is silently skipped.
+- `${CLAUDE_SKILL_DIR}/references/frontmatter.md`: every frontmatter field, string substitutions, the portability rule, invocation control and reserved names.
+Read before setting any field beyond the basics.
+- `${CLAUDE_SKILL_DIR}/references/advanced-features.md`: dynamic context injection, forked subagents, `paths`, tool restriction, frontmatter hooks and `ultrathink`.
+- `${CLAUDE_SKILL_DIR}/references/evaluation.md`: baseline comparison, `claude plugin eval` cases and graders, skill-creator and trigger-query design.
+Read before Phase 3.
+- `${CLAUDE_SKILL_DIR}/references/plugin-packaging.md`: plugin layout, marketplace entries, reserved plugin names, validation and distribution.
+Read before Phase 1 in a marketplace repository.
+- `${CLAUDE_SKILL_DIR}/references/troubleshooting.md`: no triggering, over-triggering, truncated descriptions, lost instructions after compaction and failing scripts.
