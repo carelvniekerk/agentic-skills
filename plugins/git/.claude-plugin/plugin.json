@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "git",
-  "description": "Thorough Git workflows — conversation-aware commits that split unrelated changes into separate logical commits, and an end-to-end pull request flow with tests, lint, type-check, review gates, and merge. Never bypasses hooks or force-pushes.",
+  "description": "Git workflows: reviewed commits that split unrelated changes and carry the conversation's reasoning into the message, and a pull request flow with tests, scoped lint and type checks, a review gate, CI-gated merge and resync. Never bypasses hooks or force-pushes.",
   "author": {
     "name": "Carel van Niekerk",
     "email": "code@carelvniekerk.com",
