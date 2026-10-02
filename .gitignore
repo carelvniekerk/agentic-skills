@@ -1,1 +1,4 @@
 .DS_Store
+
+# claude plugin eval output
+plugins/*/evals/results/
