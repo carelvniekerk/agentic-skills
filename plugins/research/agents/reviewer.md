@@ -6,6 +6,7 @@ description: >-
   Spawned by research:peer-review, and suited to a rigour check of any research artefact, but not to code review, pull request review or proofreading.
 tools: Read, WebSearch, WebFetch
 model: opus
+effort: high
 color: red
 ---
 

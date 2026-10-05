@@ -4,6 +4,7 @@ description: >-
   Audit a research paper's claims against its code repository: clones the repository, maps every method, hyperparameter, metric and data-handling claim to file:line evidence, and classifies mismatches, omissions and reproducibility risks by severity.
   Use when the user asks to audit a paper against its code, check whether an implementation matches what was published, or assess whether a paper is reproducible from its repository.
 argument-hint: <paper URL, arXiv ID or path> <repository URL>
+effort: high
 disable-model-invocation: true
 allowed-tools: WebSearch WebFetch Read Glob Grep Write Bash(mkdir *) Bash(git clone *) Bash(git -C * rev-parse HEAD) Agent
 ---

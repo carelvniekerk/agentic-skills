@@ -5,6 +5,7 @@ description: >-
   Use when the user wants something to happen automatically on a Claude Code event, such as blocking a command, formatting files after edits, injecting context at session start, notifying when Claude finishes or auditing config changes, or names an event such as PreToolUse, PostToolUse, Stop, SessionStart or UserPromptSubmit.
   Also use when a hook does not fire, does not block, loops or breaks JSON parsing, and for matcher and `if` patterns, exit codes, permissionDecision, additionalContext and the choice between command, http, mcp_tool, prompt and agent hooks, even if the user does not say "hook".
   Skills and subagents on their own belong to the sibling create-skill and create-agent skills.
+effort: high
 allowed-tools: Read Write Edit Glob Grep Bash(jq *) Bash(chmod *) Bash(mkdir *) Bash(ls *) Bash(cat *) Bash(git *) Bash(claude *) Bash(uv *) Bash(echo *) Bash(printf *) Bash(bash *)
 ---
 
