@@ -94,7 +94,7 @@ Four things in that scaffold carry weight.
 
 **Zero is a valid fan-out width.** Simple queries should reach synthesis without consulting anything. If your classifier cannot return an empty plan, you are paying specialist calls on "hello".
 
-**Per-branch failure containment.** One vertical timing out should degrade the answer, not fail the request. Return the error into `findings` and let the synthesiser state what it could not consult — a partial answer that names its gap is more useful, and more defensible in an audit, than a 500.
+**Per-branch failure containment.** One vertical timing out should degrade the answer, not fail the request. Return the error into `findings` and let the synthesiser state what it could not consult: a partial answer that names its gap is more useful, and more defensible in an audit, than a 500.
 
 ## Statelessness, and how to recover memory
 

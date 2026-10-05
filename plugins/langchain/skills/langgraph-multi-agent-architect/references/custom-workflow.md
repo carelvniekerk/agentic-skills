@@ -1,6 +1,6 @@
 # Custom workflow: deterministic graphs with agentic nodes
 
-An explicit LangGraph graph mixing deterministic logic with agentic behaviour. Other patterns can be embedded as nodes — a router inside an analysis step, a subagent supervisor inside a drafting step.
+An explicit LangGraph graph mixing deterministic logic with agentic behaviour. Other patterns can be embedded as nodes: a router inside an analysis step, a subagent supervisor inside a drafting step.
 
 This is the pattern most often needed and most often skipped, because it is less exciting to describe than a supervisor. It is the right answer whenever the process order is defined by something other than the model's judgement: a regulation, a contract, an approval chain, a validation gate. Making the sequence a graph rather than a prompt instruction converts "the agent usually does the checks first" into "the checks are a node the graph must traverse".
 
@@ -8,7 +8,7 @@ This is the pattern most often needed and most often skipped, because it is less
 
 Reach for a custom workflow when the control flow is largely fixed with agentic pockets; when a step must be auditable as having occurred, in order; when a human approval sits in the middle of the process; when different steps need different models and you want that choice explicit rather than emergent; or when partial failure must be handled per stage rather than by retrying the whole conversation.
 
-For German and EU regulated processes this is usually the correct default. An auditor asking "was the eligibility check performed before the decision" is answerable from a graph topology and a checkpoint history. It is not answerable from a supervisor's prompt, and the difference is not rhetorical — one is evidence, the other is an intention.
+For German and EU regulated processes this is usually the correct default. An auditor asking "was the eligibility check performed before the decision" is answerable from a graph topology and a checkpoint history. It is not answerable from a supervisor's prompt, and the difference is not rhetorical: one is evidence, the other is an intention.
 
 ## Shape
 
@@ -72,11 +72,11 @@ graph = builder.compile(checkpointer=PostgresSaver.from_conn_string(settings.pg_
 
 Points worth internalising.
 
-**Deterministic nodes should not call models.** If a rule engine can decide it, a rule engine should decide it — cheaper, testable, and explicable to an auditor. The most common improvement available to an over-agentified workflow is replacing a model call with fifteen lines of Python.
+**Deterministic nodes should not call models.** If a rule engine can decide it, a rule engine should decide it: cheaper, testable, and explicable to an auditor. The most common improvement available to an over-agentified workflow is replacing a model call with fifteen lines of Python.
 
 **Reducers on any key written by more than one node.** Same requirement as the router. `Annotated[list, operator.add]` for accumulating keys; a custom reducer where merge semantics are non-trivial.
 
-**`interrupt` is durable, not a callback.** Execution stops, state persists, and the graph resumes when a `Command(resume=...)` arrives — possibly days later, possibly in a different process. This is what makes genuine human-in-the-loop feasible rather than a blocking web request with a long timeout. It requires a real checkpointer.
+**`interrupt` is durable, not a callback.** Execution stops, state persists, and the graph resumes when a `Command(resume=...)` arrives, possibly days later, possibly in a different process. This is what makes genuine human-in-the-loop feasible rather than a blocking web request with a long timeout. It requires a real checkpointer.
 
 **Model choice per node, from configuration.** A cheap model for extraction, a stronger one for the decision, resolved through `init_chat_model`. Make the mapping a config table so it can be retuned and, where residency requires it, repointed at an on-premise endpoint per node.
 
@@ -88,7 +88,7 @@ A node may invoke a compiled graph of any shape. Compose deliberately:
 - A subagent supervisor as the drafting node, when one stage needs dynamic delegation.
 - A handoffs agent as the intake node, when one stage is conversational and staged.
 
-Each embedding is a context boundary. Decide explicitly what crosses it inbound and outbound, and prefer structured state over message history — a workflow node has no reason to inherit another agent's internal reasoning.
+Each embedding is a context boundary. Decide explicitly what crosses it inbound and outbound, and prefer structured state over message history: a workflow node has no reason to inherit another agent's internal reasoning.
 
 ## Failure handling per stage
 

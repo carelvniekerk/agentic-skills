@@ -1,8 +1,8 @@
 # Subagents: centralised orchestration
 
-A main agent — the supervisor — coordinates specialists by calling them as tools. It decides which to invoke, what input to give, and how to combine results. Specialists are stateless by default and remember nothing between invocations; all conversation memory lives with the supervisor.
+A main agent, the supervisor, coordinates specialists by calling them as tools. It decides which to invoke, what input to give, and how to combine results. Specialists are stateless by default and remember nothing between invocations; all conversation memory lives with the supervisor.
 
-The property that justifies the pattern is **context isolation**: each invocation runs in a clean context window, so a specialist's 4k of domain documentation never enters the main conversation and never gets reprocessed on subsequent turns. Note the corollary — specialists may have identical capabilities to the supervisor and the pattern still pays for itself, because isolation alone is the benefit.
+The property that justifies the pattern is **context isolation**: each invocation runs in a clean context window, so a specialist's 4k of domain documentation never enters the main conversation and never gets reprocessed on subsequent turns. Note the corollary: specialists may have identical capabilities to the supervisor and the pattern still pays for itself, because isolation alone is the benefit.
 
 The property that disqualifies it is that specialists cannot own the user conversation. Results flow back through the supervisor, which costs one extra model call per interaction and means the user only ever hears the supervisor's voice.
 
@@ -65,15 +65,15 @@ def task(agent_name: AgentName, description: str) -> str:
 
 The enum constraint matters: it moves the closed set into the tool schema, so an invalid agent name becomes a schema violation the model can see and correct rather than a `KeyError` at runtime.
 
-Three ways to tell the supervisor what exists, in increasing order of scale: enumerate in the system prompt (fewer than ten, static); enum on the dispatch tool (fewer than ten, wanting type safety); a `list_agents` discovery tool (many, or dynamic — this is progressive disclosure applied to the registry itself).
+Three ways to tell the supervisor what exists, in increasing order of scale: enumerate in the system prompt (fewer than ten, static); enum on the dispatch tool (fewer than ten, wanting type safety); a `list_agents` discovery tool (many, or dynamic: this is progressive disclosure applied to the registry itself).
 
 ## Context engineering at the boundary
 
 Three levers, each affecting a different failure mode.
 
-**Specs** — the name and description are the entire basis on which the supervisor routes. Treat them as prompt engineering under version control, and when routing accuracy is the observed problem, fix descriptions before touching topology.
+**Specs**: the name and description are the entire basis on which the supervisor routes. Treat them as prompt engineering under version control, and when routing accuracy is the observed problem, fix descriptions before touching topology.
 
-**Inputs** — decide what each specialist receives. Query-only maximises isolation; full context maximises capability. Pull from state via `ToolRuntime` when the specialist needs more than the query:
+**Inputs**: decide what each specialist receives. Query-only maximises isolation; full context maximises capability. Pull from state via `ToolRuntime` when the specialist needs more than the query:
 
 ```python
 from langchain.agents import AgentState
@@ -91,7 +91,7 @@ def call_research(query: str, runtime: ToolRuntime[None, SupervisorState]) -> st
     return result["messages"][-1].content
 ```
 
-**Outputs** — the supervisor sees only the specialist's final message. This produces the pattern's most common and most confusing failure: the specialist does the work, the tool results sit in its own history, and the final message summarises rather than reports. Instruct specialists explicitly that the caller sees only their last message. Where structured data must cross the boundary, return a `Command` that writes state keys alongside the `ToolMessage`:
+**Outputs**: the supervisor sees only the specialist's final message. This produces the pattern's most common and most confusing failure: the specialist does the work, the tool results sit in its own history, and the final message summarises rather than reports. Instruct specialists explicitly that the caller sees only their last message. Where structured data must cross the boundary, return a `Command` that writes state keys alongside the `ToolMessage`:
 
 ```python
 from typing import Annotated
@@ -110,13 +110,13 @@ def call_research(query: str, tool_call_id: Annotated[str, InjectedToolCallId]) 
 
 ## Synchronous or asynchronous delegation
 
-Distinct from Python's `async`/`await`. Synchronous means the supervisor blocks until the specialist returns — correct when the next action depends on the result. Asynchronous means the supervisor starts a background job and stays responsive, which needs three tools (start, check status, fetch result) and an application-level story for notifying the user on completion. Reach for it when a specialist's work is measured in minutes, such as reviewing a long document, and the user should not be held at a spinner.
+Distinct from Python's `async`/`await`. Synchronous means the supervisor blocks until the specialist returns, which is correct when the next action depends on the result. Asynchronous means the supervisor starts a background job and stays responsive, which needs three tools (start, check status, fetch result) and an application-level story for notifying the user on completion. Reach for it when a specialist's work is measured in minutes, such as reviewing a long document, and the user should not be held at a spinner.
 
 ## Persistence and state visibility
 
-Specialists default to **inherited checkpointer** mode: fresh state per invocation, interrupts supported, safe in parallel. Compile with `checkpointer=True` for continuations mode if a specialist must keep its own history across invocations — but note that this contradicts the stateless assumption the cost model relies on, so record the change in the ADR.
+Specialists default to **inherited checkpointer** mode: fresh state per invocation, interrupts supported, safe in parallel. Compile with `checkpointer=True` for continuations mode if a specialist must keep its own history across invocations, but note that this contradicts the stateless assumption the cost model relies on, so record the change in the ADR.
 
-One operational sharp edge worth flagging in any design review: because specialists are invoked inside tool functions, LangGraph cannot discover them statically, so `get_state` with `subgraphs=True` will not return their state. If you need to inspect nested state — typically during an interrupt — invoke the specialist from a node in a custom graph instead of from inside a tool.
+One operational sharp edge worth flagging in any design review: because specialists are invoked inside tool functions, LangGraph cannot discover them statically, so `get_state` with `subgraphs=True` will not return their state. If you need to inspect nested state (typically during an interrupt), invoke the specialist from a node in a custom graph instead of from inside a tool.
 
 ## Parallelism
 

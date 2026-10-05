@@ -1,14 +1,14 @@
 # Handoffs: state-driven transitions
 
-Behaviour changes based on a state variable. A tool writes `current_step` or `active_agent`; the system reads it and adjusts configuration — system prompt and available tools — or routes to a different agent. The variable persists across conversation turns, which is what makes sequential workflows possible.
+Behaviour changes based on a state variable. A tool writes `current_step` or `active_agent`; the system reads it and adjusts its configuration (system prompt and available tools) or routes to a different agent. The variable persists across conversation turns, which is what makes sequential workflows possible.
 
 This is the only pattern where a specialist both owns the user conversation and remembers where the conversation got to. That combination is why it wins customer support, staged intake, and any flow where capability must unlock on precondition. The price is statefulness: it cannot parallelise, and multi-domain fan-out degrades badly because each domain must be visited in sequence with the conversation history growing throughout.
 
 ## Two implementations, and the default
 
-**Single agent with middleware** — one agent whose prompt and tool set are rewritten per model call based on state. **Multiple agent subgraphs** — distinct agents as graph nodes, navigated with `Command.PARENT`.
+**Single agent with middleware**: one agent whose prompt and tool set are rewritten per model call based on state. **Multiple agent subgraphs**: distinct agents as graph nodes, navigated with `Command.PARENT`.
 
-Prefer single agent with middleware. It is simpler, message history flows naturally, and it removes the entire class of malformed-history bugs. Reach for subgraphs only when a specialist is genuinely a bespoke implementation — a node that is itself a graph with retrieval or reflection steps — not merely because "they are different agents" conceptually. The conceptual distinction is satisfied by different prompts and tools.
+Prefer single agent with middleware. It is simpler, message history flows naturally, and it removes the entire class of malformed-history bugs. Reach for subgraphs only when a specialist is genuinely a bespoke implementation (a node that is itself a graph with retrieval or reflection steps) and not merely because "they are different agents" conceptually. The conceptual distinction is satisfied by different prompts and tools.
 
 ## Single agent with middleware
 
@@ -70,7 +70,7 @@ agent = create_agent(
 
 Two points that decide whether this works in practice.
 
-The `ToolMessage` with a matching `tool_call_id` is not optional. When a model calls a tool it expects a response; a `Command` that updates `messages` without the paired acknowledgement leaves malformed history that providers reject — often intermittently, which is why it gets misdiagnosed as model flakiness.
+The `ToolMessage` with a matching `tool_call_id` is not optional. When a model calls a tool it expects a response; a `Command` that updates `messages` without the paired acknowledgement leaves malformed history that providers reject, often intermittently, which is why it gets misdiagnosed as model flakiness.
 
 The checkpointer is not optional either. The whole pattern rests on the step variable surviving between turns. Without persistence you have an agent that forgets which stage it reached, which presents as the user being asked for their warranty ID three times.
 

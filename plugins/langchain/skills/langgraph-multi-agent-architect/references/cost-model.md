@@ -6,9 +6,9 @@ Two metrics. **Model calls** drive latency, especially where sequential, and per
 
 ## Calibration points
 
-These are the LangChain published measurements. Treat them as a sanity check on your own arithmetic, not as your answer — your prompt sizes and tool counts are not theirs.
+These are the LangChain published measurements. Treat them as a sanity check on your own arithmetic, not as your answer. Your prompt sizes and tool counts are not theirs.
 
-**Scenario A — one-shot.** "Buy coffee"; a specialist can call a `buy_coffee` tool.
+**Scenario A: one-shot.** "Buy coffee"; a specialist can call a `buy_coffee` tool.
 
 | Pattern | Calls |
 | --- | --- |
@@ -19,18 +19,18 @@ These are the LangChain published measurements. Treat them as a sanity check on 
 
 Subagents pays one extra call because the result returns through the supervisor. That call buys centralised control and context isolation.
 
-**Scenario B — repeat request.** Same request twice in one conversation.
+**Scenario B: repeat request.** Same request twice in one conversation.
 
 | Pattern | Turn 2 | Total | Saving vs subagents |
 | --- | --- | --- | --- |
-| Subagents | 4 | 8 | — |
+| Subagents | 4 | 8 | none |
 | Handoffs | 2 | 5 | 40% |
 | Skills | 2 | 5 | 40% |
 | Router | 3 | 6 | 25% |
 
-Stateful patterns skip setup on repeat: the handoff already happened, the skill is already loaded. Subagents' cost is flat by design — statelessness buys isolation and pays for it every turn.
+Stateful patterns skip setup on repeat: the handoff already happened, the skill is already loaded. Subagents' cost is flat by design: statelessness buys isolation and pays for it every turn.
 
-**Scenario C — multi-domain fan-out.** Three domains, roughly 2k tokens of documentation each, consulted for one request.
+**Scenario C: multi-domain fan-out.** Three domains, roughly 2k tokens of documentation each, consulted for one request.
 
 | Pattern | Calls | Tokens |
 | --- | --- | --- |
@@ -99,8 +99,8 @@ Internal knowledge assistant. Six verticals, ~3k tokens of context each. Mix: 60
 
 *Skills.* Single-vertical: 3 calls; ≈ 1.5k + 3k, then reprocessed ≈ 7.5k. Two-vertical: 3 calls but both contexts resident ≈ 13k. Follow-up: 2 calls, everything still resident ≈ 9k+. Blended ≈ 2.9 calls, ≈ 9.2k tokens.
 
-Router wins on tokens by roughly a third, loses slightly on calls, and loses outright on follow-up experience. The 10% conversational slice is what decides it: wrap the router as a tool inside a stateful agent, keeping router economics for lookups and paying conversational cost only on turns that need it. That hybrid recommendation falls out of the arithmetic — which is the point of doing the arithmetic.
+Router wins on tokens by roughly a third, loses slightly on calls, and loses outright on follow-up experience. The 10% conversational slice is what decides it: wrap the router as a tool inside a stateful agent, keeping router economics for lookups and paying conversational cost only on turns that need it. That hybrid recommendation falls out of the arithmetic, which is the point of doing the arithmetic.
 
 ## What not to do
 
-Do not present token counts to three significant figures from estimated inputs; state the precision honestly. Do not blend model prices when nodes use different models. Do not report call count as a proxy for latency without stating sequential depth. Do not omit the cost of the pattern you are recommending against — a comparison with one column is an advertisement.
+Do not present token counts to three significant figures from estimated inputs; state the precision honestly. Do not blend model prices when nodes use different models. Do not report call count as a proxy for latency without stating sequential depth. Do not omit the cost of the pattern you are recommending against: a comparison with one column is an advertisement.
