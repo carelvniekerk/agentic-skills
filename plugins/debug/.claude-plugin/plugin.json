@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "debug",
-  "description": "Diagnostic-first debugging. Gathers environment and run-condition evidence, reads the code and full terminal output, searches issues and PRs exhaustively, then delivers a ranked hypothesis report — and stops there for discussion before any fix.",
+  "description": "Diagnostic-first debugging on Opus at high effort. Gathers environment and run-condition evidence, reads the code, the full terminal output and the installed library source, reads upstream issues and PRs in full, then delivers a ranked-hypothesis report with the provenance of every claim, and stops there before any fix.",
   "author": {
     "name": "Carel van Niekerk",
     "email": "code@carelvniekerk.com",
