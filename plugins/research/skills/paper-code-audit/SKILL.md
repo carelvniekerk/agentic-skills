@@ -25,12 +25,12 @@ A deviation suspected because a file is absent is labelled `[Likely]` or `[Guess
 
 - Workflow
 - 1. Identify the targets
-- 1. Clone the repository
-- 1. Gather evidence
-- 1. Classify findings
-- 1. Write the audit
-- 1. Verify and cite
-- 1. Deliver
+- 2. Clone the repository
+- 3. Gather evidence
+- 4. Classify findings
+- 5. Write the audit
+- 6. Verify and cite
+- 7. Deliver
 - Gotchas
 - Strict prohibitions
 

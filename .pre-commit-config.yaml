@@ -33,10 +33,11 @@ repos:
       rev: v0.23.3
       hooks:
           - id: markdownlint-cli2
-            # The rules left enabled are all safely auto-fixable (insert a blank
-            # line, renumber a list). Anything judgement-based is disabled in
-            # .markdownlint-cli2.jsonc, so --fix never rewrites prose.
-            args: ["--fix"]
+            # Report only, never --fix. The config disables rules one by one,
+            # so every rule a new markdownlint release adds is on by default,
+            # and its fixer would rewrite skill bodies unseen. --fix has done
+            # this once already: MD029 renumbered "- 2. Plan" contents entries
+            # to "- 1." in every research skill that mirrors numbered headings.
 
     # Claude Code's own validators — the authority on plugin, marketplace,
     # skill, and agent schemas. These catch what a YAML parser cannot:

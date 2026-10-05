@@ -27,6 +27,12 @@
     "MD040": false, // fenced code language tag — many blocks are plain output
     "MD049": false, // emphasis style (_x_ vs *x*)
 
+    // Ordered-list prefixes. A contents entry such as "- 2. Plan" mirrors the
+    // heading "## 2. Plan", and this rule reads it as an ordered list nested
+    // in a bullet that should start at 1. Under --fix it renumbered every
+    // entry to "1." in deep-research and paper-code-audit.
+    "MD029": false,
+
     // A repeated heading under a *different* parent is normal in these long
     // phase-structured skills; a repeat among true siblings is a mistake.
     "MD024": { "siblings_only": true },

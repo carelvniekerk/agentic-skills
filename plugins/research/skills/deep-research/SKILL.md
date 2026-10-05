@@ -26,12 +26,12 @@ If the conclusions rest mostly on inference rather than on sources read, say so 
 
 - Workflow
 - 1. Check local knowledge
-- 1. Plan
-- 1. Gather evidence
-- 1. Evaluate and loop
-- 1. Write the brief
-- 1. Verify and cite
-- 1. Deliver
+- 2. Plan
+- 3. Gather evidence
+- 4. Evaluate and loop
+- 5. Write the brief
+- 6. Verify and cite
+- 7. Deliver
 - Strict prohibitions
 
 ## Workflow

@@ -247,7 +247,11 @@ claude plugin validate plugins/<name>/skills   # the skill files themselves
 `pre-commit install` wires up the hooks in `.pre-commit-config.yaml`.
 They run the three `claude plugin validate` invocations above automatically, alongside whitespace, JSON, and spelling checks.
 
-`markdownlint-cli2` runs with `--fix`, configured by `.markdownlint-cli2.jsonc`.
+`markdownlint-cli2` runs in report-only mode, configured by `.markdownlint-cli2.jsonc`.
+Never add `--fix` to the hook.
+The config disables rules one by one, so a rule added in a new markdownlint release is on by default, and its fixer would rewrite skill bodies without anyone reading the change.
+That has happened once: MD029 renumbered every contents entry in two research skills to "1.".
+Fix what the hook reports by hand.
 Most of its default rule set is switched off, because it assumes soft-wrapped prose and would fight the semantic-line-break convention on every line.
 What stays on catches genuine breakage rather than style: dead in-document anchor links, unbalanced code fences, repeated sibling headings, stray blank lines.
 That is not hypothetical — enabling it surfaced five unbalanced fences in the `hf` skill that had been silently swallowing about 250 lines of its body.
