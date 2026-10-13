@@ -19,6 +19,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `python-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
 | `chezmoi`        | —                                                                                                                         | —                                          | `PreToolUse`                               |
 | `uv`             | —                                                                                                                         | —                                          | `PreToolUse`                               |
+| `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
 | `meta`           | `create-skill`, `create-hook`, `create-agent`                                                                             | —                                          | —                                          |
 
 ### What each one does
@@ -48,6 +49,9 @@ See [Python quality hooks](#python-quality-hooks) below.
 See [Guard hooks](#guard-hooks) below.
 
 - **`uv`** — one hook that refuses `pip install` and `pip uninstall` in a Bash command and names the uv equivalent.
+
+- **`orchestration`** — three read-only Haiku subagents for lookups (two of them query a local [codebase-memory](https://github.com/DeusData/codebase-memory-mcp) code graph and check it against the source), a `delegate` skill that tells the main session when to use them, a `setup` skill that writes the main and advisor models, the Flightdeck options and the CLAUDE.md rules into your own files, and hooks: a code-graph refresh, a Sonnet gate on six risky Bash command families and a Sonnet Stop check.
+See [`plugins/orchestration/README.md`](./plugins/orchestration/README.md).
 
 - **`meta`** — authoring workflows for Claude Code skills, hooks and subagents.
 Each runs a draft, test, review and iterate loop against the current reference docs and delegates to its siblings when a job needs more than one primitive.

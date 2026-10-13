@@ -1,0 +1,111 @@
+{
+    "description": "Session context for the orchestration subagents, a code-graph refresh before the graph agents start, a Sonnet gate on six risky Bash command families, and a Stop check for missing test reports and breaches of the global CLAUDE.md writing rules.",
+    "hooks": {
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "uv",
+                        "args": [
+                            "run",
+                            "--script",
+                            "${CLAUDE_PLUGIN_ROOT}/hooks/session-context.py"
+                        ],
+                        "timeout": 10
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "prompt",
+                        "if": "Bash(rm *)",
+                        "model": "claude-sonnet-5-5",
+                        "continueOnBlock": true,
+                        "timeout": 30,
+                        "statusMessage": "Sonnet gate",
+                        "prompt": "You are a safety gate for a Bash command that Claude Code is about to run on a developer's laptop. The hook input follows as JSON: the command is in tool_input.command and the working directory in cwd. Reply {\"ok\": true} unless the command does one of these: deletes files outside cwd or deletes uncommitted work inside it; force-pushes or rewrites published history; discards uncommitted changes; escalates privileges; sends local files, environment variables or credentials to a remote host. Deleting build artefacts, caches or virtual environments inside cwd is fine. If the command is risky, reply {\"ok\": false, \"reason\": \"<one sentence naming what is risky and a safer alternative>\"}. $ARGUMENTS"
+                    },
+                    {
+                        "type": "prompt",
+                        "if": "Bash(sudo *)",
+                        "model": "claude-sonnet-5-5",
+                        "continueOnBlock": true,
+                        "timeout": 30,
+                        "statusMessage": "Sonnet gate",
+                        "prompt": "You are a safety gate for a Bash command that Claude Code is about to run on a developer's laptop. The hook input follows as JSON: the command is in tool_input.command and the working directory in cwd. Reply {\"ok\": true} unless the command does one of these: deletes files outside cwd or deletes uncommitted work inside it; force-pushes or rewrites published history; discards uncommitted changes; escalates privileges; sends local files, environment variables or credentials to a remote host. Deleting build artefacts, caches or virtual environments inside cwd is fine. If the command is risky, reply {\"ok\": false, \"reason\": \"<one sentence naming what is risky and a safer alternative>\"}. $ARGUMENTS"
+                    },
+                    {
+                        "type": "prompt",
+                        "if": "Bash(git push *)",
+                        "model": "claude-sonnet-5-5",
+                        "continueOnBlock": true,
+                        "timeout": 30,
+                        "statusMessage": "Sonnet gate",
+                        "prompt": "You are a safety gate for a Bash command that Claude Code is about to run on a developer's laptop. The hook input follows as JSON: the command is in tool_input.command and the working directory in cwd. Reply {\"ok\": true} unless the command does one of these: deletes files outside cwd or deletes uncommitted work inside it; force-pushes or rewrites published history; discards uncommitted changes; escalates privileges; sends local files, environment variables or credentials to a remote host. Deleting build artefacts, caches or virtual environments inside cwd is fine. If the command is risky, reply {\"ok\": false, \"reason\": \"<one sentence naming what is risky and a safer alternative>\"}. $ARGUMENTS"
+                    },
+                    {
+                        "type": "prompt",
+                        "if": "Bash(git reset *)",
+                        "model": "claude-sonnet-5-5",
+                        "continueOnBlock": true,
+                        "timeout": 30,
+                        "statusMessage": "Sonnet gate",
+                        "prompt": "You are a safety gate for a Bash command that Claude Code is about to run on a developer's laptop. The hook input follows as JSON: the command is in tool_input.command and the working directory in cwd. Reply {\"ok\": true} unless the command does one of these: deletes files outside cwd or deletes uncommitted work inside it; force-pushes or rewrites published history; discards uncommitted changes; escalates privileges; sends local files, environment variables or credentials to a remote host. Deleting build artefacts, caches or virtual environments inside cwd is fine. If the command is risky, reply {\"ok\": false, \"reason\": \"<one sentence naming what is risky and a safer alternative>\"}. $ARGUMENTS"
+                    },
+                    {
+                        "type": "prompt",
+                        "if": "Bash(git clean *)",
+                        "model": "claude-sonnet-5-5",
+                        "continueOnBlock": true,
+                        "timeout": 30,
+                        "statusMessage": "Sonnet gate",
+                        "prompt": "You are a safety gate for a Bash command that Claude Code is about to run on a developer's laptop. The hook input follows as JSON: the command is in tool_input.command and the working directory in cwd. Reply {\"ok\": true} unless the command does one of these: deletes files outside cwd or deletes uncommitted work inside it; force-pushes or rewrites published history; discards uncommitted changes; escalates privileges; sends local files, environment variables or credentials to a remote host. Deleting build artefacts, caches or virtual environments inside cwd is fine. If the command is risky, reply {\"ok\": false, \"reason\": \"<one sentence naming what is risky and a safer alternative>\"}. $ARGUMENTS"
+                    },
+                    {
+                        "type": "prompt",
+                        "if": "Bash(curl *)",
+                        "model": "claude-sonnet-5-5",
+                        "continueOnBlock": true,
+                        "timeout": 30,
+                        "statusMessage": "Sonnet gate",
+                        "prompt": "You are a safety gate for a Bash command that Claude Code is about to run on a developer's laptop. The hook input follows as JSON: the command is in tool_input.command and the working directory in cwd. Reply {\"ok\": true} unless the command does one of these: deletes files outside cwd or deletes uncommitted work inside it; force-pushes or rewrites published history; discards uncommitted changes; escalates privileges; sends local files, environment variables or credentials to a remote host. Deleting build artefacts, caches or virtual environments inside cwd is fine. If the command is risky, reply {\"ok\": false, \"reason\": \"<one sentence naming what is risky and a safer alternative>\"}. $ARGUMENTS"
+                    }
+                ]
+            },
+            {
+                "matcher": "Agent",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "uv",
+                        "args": [
+                            "run",
+                            "--script",
+                            "${CLAUDE_PLUGIN_ROOT}/hooks/graph-index.py"
+                        ],
+                        "timeout": 120,
+                        "statusMessage": "Refreshing the code graph"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "agent",
+                        "model": "claude-sonnet-5-5",
+                        "timeout": 60,
+                        "statusMessage": "Sonnet done and style check",
+                        "prompt": "You decide whether Claude Code may end its turn. The hook input follows as JSON. If stop_hook_active is true, reply {\"ok\": true} and do nothing else. Run two checks on last_assistant_message. CHECK 1, done: it passes if the message is a question to the user, a plan awaiting approval, or an answer that involved no code changes; or if it reports code changes and states which tests or checks were run and their result; or if it says the tests cannot run in this environment and why. Otherwise it fails with the finding \"The last message reports code changes but does not state which tests or checks were run and whether they passed.\" CHECK 2, writing rules: read the user's global CLAUDE.md. It sits at transcript_path with everything from \"/projects/\" onward replaced by \"/CLAUDE.md\". Take the rules from its sections Tone, Register, Formatting and punctuation, and Phrasing to avoid. Compare the prose of last_assistant_message with them: British English spelling, em and en dashes used as punctuation, semicolons, emoji, banned phrases and vocabulary, antithesis framing, rhetorical questions, one-line aphorism paragraphs, and Title Case headings. Skip fenced code, inline code, quoted text and file contents. In German text skip the spelling rules. Report only clear breaches, quote each offending phrase, and list at most three. If the file cannot be read, pass this check and say nothing about it. If both checks pass, reply {\"ok\": true}. Otherwise reply {\"ok\": false, \"reason\": \"<the findings>\"} and end the reason with the matching instruction. After a failed done check: \"Run the relevant tests or checks and report the result, or say why they cannot run.\" After a failed writing check: \"Reply again with the corrected text only and do not mention this check.\" Give both instructions if both checks failed. $ARGUMENTS"
+                    }
+                ]
+            }
+        ]
+    }
+}

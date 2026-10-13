@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "orchestration",
+  "description": "Splits work across Claude models. Ships three read-only Haiku subagents (repo-map and call-sites query a local codebase-memory code graph and check it against the source, api-docs fetches library documentation), a delegate skill that tells the main session when to use them, a setup skill that configures the main model, the Opus advisor, Flightdeck, permissions and the CLAUDE.md rules, and hooks: a code-graph refresh, a Sonnet gate on six risky Bash command families and a Stop check for missing test reports and breaches of the global CLAUDE.md writing rules. The gates are second opinions that fail open on timeout.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": [
+    "subagents",
+    "haiku",
+    "sonnet",
+    "advisor",
+    "hooks",
+    "model-routing"
+  ]
+}

@@ -63,6 +63,12 @@
       "tags": ["hooks", "uv", "pip", "python", "packaging"]
     },
     {
+      "name": "orchestration",
+      "source": "./plugins/orchestration",
+      "category": "workflow",
+      "tags": ["subagents", "haiku", "sonnet", "advisor", "hooks", "model-routing"]
+    },
+    {
       "name": "meta",
       "source": "./plugins/meta",
       "category": "development",

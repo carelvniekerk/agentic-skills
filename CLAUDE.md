@@ -37,6 +37,13 @@ agentic-skills/
     │   ├── .claude-plugin/plugin.json
     │   ├── hooks/            hooks.json + uv-redirect.sh
     │   └── tests/            acceptance.sh
+    ├── orchestration/
+    │   ├── .claude-plugin/plugin.json
+    │   ├── agents/           repo-map.md, call-sites.md, api-docs.md
+    │   ├── .mcp.json         codebase-memory-mcp, read-only analysis profile
+    │   ├── hooks/            hooks.json + session-context.py, graph-index.py
+    │   ├── skills/           delegate, setup
+    │   └── tests/            acceptance.sh, prompt-probe.sh, stop-probe.sh
     └── meta/
         ├── .claude-plugin/plugin.json
         └── skills/           create-skill, create-hook, create-agent
@@ -50,7 +57,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 
 ---
 
-## The Ten Plugins
+## The Eleven Plugins
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -63,6 +70,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
 | `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |
 | `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
+| `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: graph refresh, Bash gate, Stop check, session context | `/orchestration:setup`         |
 | `meta`           | create-skill, create-hook, create-agent                                                                                    | `/meta:create-skill`           |
 
 Plugin skills are **always** namespaced by the plugin name.
