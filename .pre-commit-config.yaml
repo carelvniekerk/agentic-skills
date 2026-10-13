@@ -19,6 +19,21 @@ repos:
             args: ["--fix=lf"]
           - id: detect-private-key
 
+    # Ruff for the hook scripts under plugins/*/hooks. ruff.toml pins the target
+    # to the oldest Python their PEP 723 headers allow, so the formatter cannot
+    # emit syntax that only newer interpreters accept.
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.16.10
+      hooks:
+          # types_or overrides the hook's default, which in this version also
+          # matches Markdown and would reformat the Python snippets inside the
+          # eval prompts and skill references.
+          - id: ruff-check
+            args: [--fix, --exit-non-zero-on-fix]
+            types_or: [python, pyi]
+          - id: ruff-format
+            types_or: [python, pyi]
+
     # Spell-checking prose — skills are mostly English, and a typo in a
     # description degrades trigger matching rather than failing loudly.
     - repo: https://github.com/codespell-project/codespell
@@ -38,6 +53,17 @@ repos:
             # and its fixer would rewrite skill bodies unseen. --fix has done
             # this once already: MD029 renumbered "- 2. Plan" contents entries
             # to "- 1." in every research skill that mirrors numbered headings.
+
+    # Type-check the hook scripts. ty reads each script's PEP 723
+    # requires-python, which is why a 3.14-only syntax shows up here too.
+    - repo: local
+      hooks:
+          - id: ty-check
+            name: ty-check
+            language: system
+            entry: uvx ty check
+            pass_filenames: false
+            types: [python]
 
     # Claude Code's own validators — the authority on plugin, marketplace,
     # skill, and agent schemas. These catch what a YAML parser cannot:

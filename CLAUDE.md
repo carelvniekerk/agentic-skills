@@ -247,6 +247,11 @@ claude plugin validate plugins/<name>/skills   # the skill files themselves
 `pre-commit install` wires up the hooks in `.pre-commit-config.yaml`.
 They run the three `claude plugin validate` invocations above automatically, alongside whitespace, JSON, and spelling checks.
 
+`ruff-check`, `ruff-format` and `ty-check` run on the Python hook scripts under `plugins/*/hooks`.
+`ruff.toml` pins `target-version = "py311"` because the scripts declare `requires-python = ">=3.11"` in their PEP 723 header, and a newer target makes ruff emit `except A, B:` syntax that fails before Python 3.14.
+It also restricts ruff to `.py` files, and the two ruff hooks set `types_or: [python, pyi]`, because ruff 0.17 formats Python snippets inside Markdown and would rewrite the deliberately broken ones in the eval prompts.
+A project `ruff.toml` replaces the global `~/.config/ruff/ruff.toml` rather than extending it, so the rule selection is repeated there.
+
 `markdownlint-cli2` runs in report-only mode, configured by `.markdownlint-cli2.jsonc`.
 Never add `--fix` to the hook.
 The config disables rules one by one, so a rule added in a new markdownlint release is on by default, and its fixer would rewrite skill bodies without anyone reading the change.
