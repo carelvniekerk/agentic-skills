@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.14"
 # dependencies = []
 # ///
 """PreToolUse hook on Agent: refresh the code graph before a graph agent starts.
@@ -58,7 +58,7 @@ def git_root(cwd: str) -> str | None:
             timeout=5,
             check=True,
         )
-    except (subprocess.SubprocessError, OSError):
+    except subprocess.SubprocessError, OSError:
         return None
     return proc.stdout.strip() or None
 

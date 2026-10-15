@@ -1,10 +1,11 @@
-# The hooks declare `requires-python = ">=3.11"` in their PEP 723 header, and
-# `uv run --script` honours it. A newer target makes ruff rewrite
-# `except (A, B):` into the unparenthesised form that is a syntax error before
-# Python 3.14, so the target must match the oldest interpreter the scripts accept.
+# The hooks declare `requires-python = ">=3.14"` in their PEP 723 header, and
+# `uv run --script` honours it, fetching 3.14 when it is missing. The target
+# must not exceed that floor: a newer one could rewrite code into syntax the
+# oldest accepted interpreter rejects, as the unparenthesised `except A, B:`
+# form did before 3.14.
 # A project ruff.toml replaces the global ~/.config/ruff/ruff.toml, so the
 # rule selection is repeated here and not inherited.
-target-version = "py311"
+target-version = "py314"
 
 # Ruff 0.17 also formats Python code blocks inside Markdown. The eval prompts and
 # the skill references contain deliberately unformatted or broken snippets, so

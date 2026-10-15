@@ -256,7 +256,8 @@ claude plugin validate plugins/<name>/skills   # the skill files themselves
 They run the three `claude plugin validate` invocations above automatically, alongside whitespace, JSON, and spelling checks.
 
 `ruff-check`, `ruff-format` and `ty-check` run on the Python hook scripts under `plugins/*/hooks`.
-`ruff.toml` pins `target-version = "py311"` because the scripts declare `requires-python = ">=3.11"` in their PEP 723 header, and a newer target makes ruff emit `except A, B:` syntax that fails before Python 3.14.
+`ruff.toml` pins `target-version = "py314"` to match the `requires-python = ">=3.14"` floor in the scripts' PEP 723 header.
+The target must never exceed that floor, because a newer one could make ruff emit syntax the oldest accepted interpreter rejects.
 It also restricts ruff to `.py` files, and the two ruff hooks set `types_or: [python, pyi]`, because ruff 0.17 formats Python snippets inside Markdown and would rewrite the deliberately broken ones in the eval prompts.
 A project `ruff.toml` replaces the global `~/.config/ruff/ruff.toml` rather than extending it, so the rule selection is repeated there.
 
