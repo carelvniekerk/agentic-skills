@@ -32,13 +32,19 @@ On no, do not ask again in this session.
 Ask in the main session, because subagents cannot ask the user.
 If the repository is not a git repository, skip the question.
 
-## Do the lookup yourself instead
+## Decide before the first search
 
-- The answer is one known file or a single Grep for a unique name.
-- The code is already in your context.
-- The library documentation is already in the repository or was fetched earlier in this session.
+Choose before your first Grep, Glob or Read on the task.
+Once you have started searching, the search tends to grow into the whole lookup and the main context fills with file contents.
+A symbol you can name is not a reason to Grep it yourself, because the Grep returns the first hits and not the complete list of references.
 
-A subagent costs a spawn and a round trip, so it pays off only when the search is wider than a few tool calls.
+Delegate when the task is one of these:
+
+- A rename or a signature change.
+- A request for every use of a symbol, or for the files and modules a change involves.
+- Code against an external library whose signatures you have not read in this session.
+
+Do the lookup yourself only when the code is already in your context, the answer sits in one file the user named, or the library documentation is in the repository or was fetched earlier in this session.
 
 ## Rules
 
