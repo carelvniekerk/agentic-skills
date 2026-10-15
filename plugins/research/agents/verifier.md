@@ -5,7 +5,7 @@ description: >-
   Spawned by the research plugin's skills as the last step before delivery, after research:writer.
   Use it for a citation and source-verification pass on a research draft, not for code or general proofreading.
 tools: Read, Write, Edit, WebFetch, WebSearch
-model: sonnet
+model: opus
 color: orange
 ---
 
