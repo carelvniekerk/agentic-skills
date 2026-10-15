@@ -100,9 +100,12 @@ for agent in repo-map call-sites; do
   check "agent $agent: has graph tools" true "$([[ -n "$graph_tools" ]] && echo true || echo false)"
 done
 
-# A global ruff target of 3.14 rewrites except (A, B) into a 3.14-only form.
-check "hooks: no unparenthesised multi-exception except" "" \
-  "$(rg -n '^\s*except [A-Za-z_.]+, ' "$ROOT/hooks" || true)"
+# ruff.toml targets py314, which formats except (A, B) as except A, B. That is a
+# syntax error before 3.14, so every hook must declare the matching floor.
+for hook in "$ROOT"/hooks/*.py; do
+  check "hook $(basename "$hook"): requires-python is >=3.14" true \
+    "$(rg -q '^# requires-python = ">=3\.14"$' "$hook" && echo true || echo false)"
+done
 
 # --- agents ------------------------------------------------------------------
 for agent in repo-map call-sites api-docs; do
