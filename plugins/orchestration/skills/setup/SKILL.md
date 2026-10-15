@@ -101,12 +101,18 @@ If both are present and identical, report them as already set.
 - Do not consult the advisor for routine edits, renames or formatting.
 
 ## Delegation
-- Invoke orchestration:delegate before a task that touches more than one module, asks which files a change would touch, renames a symbol or changes a signature, or writes code against an external library API that has not been verified in this session.
+- Check every task against the triggers below before your first Grep, Glob, Read or Bash search, and invoke orchestration:delegate first when one applies.
+Once you have started searching, the search grows into the whole lookup, so the check cannot wait until you know how wide the task is.
+- The triggers: a rename or a signature change, a request for every use of a symbol or for the files a change involves, a change that may span more than one module, and code against an external library API that has not been verified in this session.
+- A symbol you can name is still a trigger.
+A single Grep returns the first hits, not the complete list of references.
+- If you skip delegation for a task that matches a trigger, say so in one line with the reason before you search, for example one known file or documentation already fetched.
 - Use orchestration:repo-map for repository mapping, orchestration:call-sites for symbol searches and orchestration:api-docs for library documentation.
 - Subagents return paths, line numbers and short findings, never whole files.
 ```
 
 These are instructions, so they belong in CLAUDE.md and not in hook-injected context.
+The order matters, because in the eval suite the model delegated less often when it was free to search first.
 Match the file's existing heading level and its British English and punctuation rules.
 
 Then add `"Read(~/.claude/CLAUDE.md)"` to `permissions.allow` in `settings.json`, if no equivalent rule exists.
