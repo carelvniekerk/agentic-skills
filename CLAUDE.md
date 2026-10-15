@@ -66,7 +66,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `config`         | dotset                                                                                                                     | `/config:dotset`               |
 | `hf`             | hf + bundled Hugging Face MCP server                                                                                       | `/hf:hf`                       |
 | `langchain`      | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
-| `research`       | deep-research, external-research, literature-review, source-comparison, eli5, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
+| `research`       | deep-research, external-research, literature-review, source-comparison, eli5, tldr, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
 | `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
 | `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |
 | `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
