@@ -120,6 +120,12 @@ for agent in repo-map call-sites api-docs; do
     "$([[ "$fm" =~ (^|$'\n')(hooks|mcpServers|permissionMode|initialPrompt): ]] && echo true || echo false)"
   check "agent $agent: tells the agent not to consult the advisor" true \
     "$(grep -q 'Do not consult the advisor' "$file" && echo true || echo false)"
+  # Ten is the house ceiling for an agent's tool list, counting MCP tools. Subagents
+  # see every tool definition up front, so a longer list makes selection less reliable.
+  tool_count=$(tr ',' '\n' <<<"$tools" | sed '/^ *$/d' | wc -l | tr -d ' ')
+  check "agent $agent: at most ten tools" true "$([[ $tool_count -le 10 ]] && echo true || echo false)"
+  check "agent $agent: sets maxTurns as a backstop" true \
+    "$([[ "$fm" =~ (^|$'\n')maxTurns:\ [0-9]+ ]] && echo true || echo false)"
 done
 
 # --- whole plugin ------------------------------------------------------------
