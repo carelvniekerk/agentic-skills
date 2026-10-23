@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: '"\*\*/\*\.tex"'
+pattern: '"[^"\n]*\*\*/\*\.tex"'
 ---
