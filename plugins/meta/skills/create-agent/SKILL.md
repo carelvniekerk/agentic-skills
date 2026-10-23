@@ -104,7 +104,8 @@ Weight the blocks by what the agent does: a research agent needs the truthfulnes
 A subagent loads the user's CLAUDE.md files and rules unless it is the built-in Explore or Plan agent or sets `omitClaudeMd`, so on the user's machine the global writing rules already reach it.
 It never inherits the parent's auto memory.
 Explore, Plan and `omitClaudeMd` agents still load a subdirectory's CLAUDE.md and matching path-scoped rules when they touch files there.
-The docs do not say whether `omitClaudeMd` is honoured on a plugin agent, so do not rely on it there.
+The docs do not say whether `omitClaudeMd` is honoured on a plugin agent, and one probe on Claude Code 2.1.309 found that it is.
+Set it on a lookup agent that takes everything from its brief, because each spawn otherwise loads the user's and the project's CLAUDE.md files.
 Include the blocks anyway when the agent ships in a plugin, sets `omitClaudeMd`, or must hold the rules regardless of who installs it.
 In the agentic-skills marketplace, an agent in the `research` plugin points at `references/house-style.md` under its own plugin root, through the `CLAUDE_PLUGIN_ROOT` placeholder, instead of inlining a copy.
 

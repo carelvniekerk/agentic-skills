@@ -278,7 +278,8 @@ When something goes wrong after release (no triggering, truncated description, t
 - [ ] The skill's own prose follows the register.
 - [ ] Bundled scripts use `uv run` and `${CLAUDE_SKILL_DIR}`.
 - [ ] `allowed-tools` lists only what the skill needs, and tools it must never use are in `disallowed-tools`.
-- [ ] A skill with side effects sets `disable-model-invocation: true`.
+- [ ] A skill with side effects sets `disable-model-invocation: true`, unless it is meant to fire on natural language.
+`git:commit`, `git:pr` and `config:dotset` are that exception in this repository, and their review gates and prohibitions tables cover the side effect.
 - [ ] Evaluation ran in fresh sessions against a no-skill baseline, including one near-miss prompt, and the results were reported with their anomalies.
 - [ ] Plugin only: the marketplace entry exists, `claude plugin validate` passes on the plugin and its `skills/`, and an install succeeded.
 

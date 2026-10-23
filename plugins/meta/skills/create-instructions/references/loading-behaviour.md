@@ -60,8 +60,7 @@ The docs sentence on what loads before that approval is ambiguous, so do not rel
 The docs say user and project rules do not override each other: "if a user rule and a project rule conflict, Claude may follow either one, so keep the two consistent".
 Nested CLAUDE.md files concatenate in the same way, and nothing in the docs lets a folder file replace a parent rule.
 The docs describe the whole mechanism as context and point to a `PreToolUse` hook for a hard block.
-A project rule appears later in context than a user rule.
-[Likely] Later text gets somewhat more weight, but the docs make no such promise, so do not design around it.
+A project rule appears later in context than a user rule, and the docs give no guarantee that the later rule wins.
 
 ## Subagents and forked skills
 
@@ -120,7 +119,9 @@ Excluding `project` from `--setting-sources` also skips project rules.
 - Whether `@path` imports inside a rule file are expanded.
 - Whether a `rules/` folder inside a plugin is silently ignored or loaded, since no page says either and the manifest and layout lists exclude it.
 - Whether a plugin `settings.json` `agent` setting behaves as a main-session agent in every host, which the manifest reference states only as "settings Claude Code applies while the plugin is enabled".
-- Whether `omitClaudeMd` works on a plugin agent, since it is not in the list of ignored plugin fields.
+- Whether `omitClaudeMd` works on a plugin agent is not documented.
+One probe on Claude Code 2.1.309 on 2026-10-23 found it honoured: a plugin agent with the field answered NONE when asked to quote a rule from the user's CLAUDE.md, and a control plugin agent without it quoted the rule.
+That is one run per arm.
 - Whether `InstructionsLoaded` fires inside a subagent.
 - Whether a forked skill whose `agent` is a custom agent with `omitClaudeMd` drops CLAUDE.md.
 - Where an unscoped rule sits relative to the root CLAUDE.md within the loaded context.

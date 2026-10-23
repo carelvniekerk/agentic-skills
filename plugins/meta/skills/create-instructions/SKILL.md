@@ -65,7 +65,8 @@ It applies once Claude touches a file there, and a session started inside the fo
 A `paths:` rule loads only when Claude touches a matching file, wherever the session started.
 6. Subagents inherit the whole hierarchy and rules by default, but never the parent's auto memory.
 The built-in Explore and Plan agents and any agent with `omitClaudeMd` start without the user, project and local files, and still load a subdirectory's CLAUDE.md and matching path rules when they touch files there.
-So an instruction for a subagent usually needs no copy in the agent prompt, except for those agents, and for a plugin agent, because the docs do not say whether `omitClaudeMd` is honoured there.
+So an instruction for a subagent usually needs no copy in the agent prompt, except for those agents.
+The docs do not say whether `omitClaudeMd` works on a plugin agent, and one probe on Claude Code 2.1.309 found it honoured.
 
 ## Stance while authoring
 
