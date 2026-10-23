@@ -67,7 +67,8 @@ You are an advisor, not an assistant.
 Your job is to improve the user's design for this skill, not to transcribe their first description of it.
 
 - Start with the answer, or with the objection if the framing is wrong.
-If the request is better served by a hook, a subagent, or a line in CLAUDE.md than by a skill, say so in your first message, before drafting.
+If the request is better served by a hook, a subagent, a CLAUDE.md line or a path-scoped rule than by a skill, say so in your first message, before drafting.
+Claude Code does not enforce a CLAUDE.md line or a rule, so a rule that must always hold needs a hook, and `meta:create-instructions` decides where an instruction file belongs.
 - Lead with the uncomfortable part: a failed trigger test, a field the harness silently ignores, or a draft over its budget goes first in your report.
 - Challenge the premise only where the weakness changes what the user should build.
 If the design holds, say so in a clause and move on.
@@ -100,15 +101,17 @@ If a template inside the skill contradicts these rules, fix the template or stat
 
 ## Companion skills
 
-Three sibling skills cover Claude Code's authoring primitives, and they ship together in the `meta` plugin:
+Four sibling skills cover Claude Code's authoring primitives and instruction files, and they ship together in the `meta` plugin:
 
 - `meta:create-skill` (this skill): context that loads on demand into the parent conversation.
 - `meta:create-hook`: deterministic interception of a lifecycle event.
 - `meta:create-agent`: a subagent with its own context window, tool scope and return contract.
+- `meta:create-instructions`: CLAUDE.md files and the `.claude/rules/` directory, which Claude Code does not enforce.
 
 When the job needs a sibling primitive, invoke the sibling through the `Skill` tool and hand over what you have already gathered, so it does not repeat its own intake.
 A skill that bundles a hook in its `hooks:` frontmatter needs `meta:create-hook` for the hook.
 A skill that wraps a subagent needs `meta:create-agent`, and the agent can preload this skill through its own `skills` field.
+A request that is really about where an instruction should live, or about a CLAUDE.md that is too long or contradicts another layer, belongs to `meta:create-instructions`.
 
 ## Phase 0: capture intent
 
@@ -150,6 +153,8 @@ Claude Code silently ignores a misspelt or unknown key, so a field you have not 
 The description is the only text Claude sees before deciding to load the skill.
 
 - State what the skill does in the first sentence, then when to use it, with the phrases the user would type, including informal ones.
+- Keep the description free of first and second person ("I can help", "you can use this"), because it is injected into the system prompt and the platform authoring guide says to always write it in the third person.
+A bare verb phrase such as "Review a diff" has no pronoun, and this repository's own descriptions use that form [Likely].
 - Put the key use case first, because `description` and `when_to_use` together are cut at 1,536 characters in the listing.
 - Lean towards triggering: name adjacent situations where the skill should still fire, even if the user does not use its keyword.
 Avoid capitals and "MUST" to force triggering, because current models over-trigger on aggressive wording.
@@ -177,6 +182,10 @@ Name the tool or approach to use and mention an alternative only for a stated co
 Every line is a recurring token cost, so drop narration and general background.
 - **Move rules that must always hold into a hook.**
 A hook runs whether or not Claude follows the skill, and a hook in the skill's `hooks:` frontmatter stays with the skill.
+Prompt instructions alone have a non-zero failure rate, which is why Anthropic's exam guide uses a programmatic check for something like identity verification before a financial operation.
+- **Do not tell a model to force a tool call for structured output.**
+On Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1 the API rejects `tool_choice` `any` and `tool` with a 400, and the documented replacement is `strict: true` on the tool or `output_config.format`.
+This matters only to a skill that writes API code or prompts, and the source is the API define-tools page, since the exam guide still teaches forcing.
 - **State the contract** when the skill could surprise the user: what it produces, what it does not do, and its fallback for edge cases.
 
 ### Degrees of freedom
@@ -223,7 +232,8 @@ A skill that fires is not yet a skill that helps.
 Measure two things separately: whether Claude invokes it on the right prompts and not on near misses, and whether the output is better than a run without it.
 Read `${CLAUDE_SKILL_DIR}/references/evaluation.md` for the case format, graders and commands.
 
-1. Write two or three realistic cases before polishing the body, plus at least one near-miss prompt that should not trigger the skill.
+1. Write at least three realistic cases before polishing the body, plus at least one near-miss prompt that should not trigger the skill.
+The platform authoring guide asks for at least three evaluations, written before the extensive documentation.
 2. Run each case in a fresh session with the skill and again without it.
 Context left over from writing the skill hides gaps in what you wrote.
    - A plugin skill: `claude plugin eval <plugin-dir> --no-publish`, which runs a no-plugin baseline arm and reports the difference as `Δ`.
@@ -231,7 +241,7 @@ Context left over from writing the skill hides gaps in what you wrote.
    - Tune the description with the `skill-creator` plugin's optimisation loop when trigger results are mixed.
 3. Read the transcripts, not only the scores.
 A case that scores 1.0 in both arms shows the skill is not what made it pass.
-4. Test on the models the skill will run on: Haiku shows whether the guidance is sufficient, Opus whether it over-explains.
+4. Test on the models the skill will run on: Haiku shows whether the guidance is sufficient, Sonnet whether it holds on the usual model, and Opus whether it over-explains.
 Remove instructions that make a stronger model do worse than it does without them.
 
 Every eval run is a billed model call.
@@ -260,7 +270,7 @@ When something goes wrong after release (no triggering, truncated description, t
 ## Checklist before declaring done
 
 - [ ] `name` is lowercase letters, digits and hyphens, at most 64 characters, matches the directory and contains neither "anthropic" nor "claude".
-- [ ] `description` states what and when, front-loads the key use case, stays within 1,024 characters and uses no capitals or "MUST" to force triggering.
+- [ ] `description` states what and when without first or second person, front-loads the key use case, stays within 1,024 characters and uses no capitals or "MUST" to force triggering.
 - [ ] Every frontmatter key is spelt exactly as in the reference, and a skill bound for claude.ai or the API uses only the six spec fields.
 - [ ] `SKILL.md` is under 500 lines, the workflow and most-broken rules come first, and it opens with a contents list.
 - [ ] Every reference file is linked directly from `SKILL.md`, and each one over 100 lines opens with a contents list.

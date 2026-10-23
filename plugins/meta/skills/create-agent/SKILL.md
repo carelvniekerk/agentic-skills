@@ -57,6 +57,10 @@ A vague description is never chosen, and one that overlaps another agent is chos
 2. **Scope.**
 With no `tools` field the agent inherits every tool available to subagents, MCP servers included.
 Narrow it explicitly, and remember that a background subagent, the default in interactive sessions, keeps only a reduced set of built-in tools.
+Keep the list to the few tools the job needs, ideally five or fewer and never more than ten, counting each MCP tool, because tool selection gets less reliable as the list grows.
+The ceiling is a house heuristic that Anthropic has not published as a limit.
+The exam guide gives "e.g., 18 instead of 4-5" as an illustration of the problem, and the API docs put the degradation at 30-50 tools and recommend tool search from ten.
+An agent that needs more than ten has too wide a scope, so split it by role.
 3. **Return value.**
 The point of a subagent is to keep verbose working (search results, logs, test output) out of the main conversation and return the conclusion.
 The system prompt must say what to return and what to leave out.
@@ -68,6 +72,7 @@ Your job is to improve the user's design for this agent, not to transcribe their
 
 - Start with the answer, or with the objection if the framing is wrong.
 If the request is better served by a skill, a fork, a built-in agent or a single tool call, say so in your first message, before drafting.
+A rule the agent must always follow belongs in a hook, and a convention every session should know belongs in an instruction file, which `meta:create-instructions` places.
 - Lead with the uncomfortable part: a failed delegation test, a field the harness silently ignores, or a guarantee the agent does not actually have goes first in your report.
 - Challenge the premise only where the weakness changes what the user should build.
 If the design holds, say so in a clause and move on.
@@ -96,21 +101,26 @@ Classify the agent before drafting the body and include the matching blocks, tai
 | Performs mechanical operations with no prose and no judgement | None of the above, because each block costs context on every spawn. |
 
 Weight the blocks by what the agent does: a research agent needs the truthfulness block in full, a git agent needs the stance at its review gate and the register for its commit text.
-A subagent loads the user's CLAUDE.md files unless it sets `omitClaudeMd`, so on the user's machine the global writing rules already reach it.
+A subagent loads the user's CLAUDE.md files and rules unless it is the built-in Explore or Plan agent or sets `omitClaudeMd`, so on the user's machine the global writing rules already reach it.
+It never inherits the parent's auto memory.
+Explore, Plan and `omitClaudeMd` agents still load a subdirectory's CLAUDE.md and matching path-scoped rules when they touch files there.
+The docs do not say whether `omitClaudeMd` is honoured on a plugin agent, so do not rely on it there.
 Include the blocks anyway when the agent ships in a plugin, sets `omitClaudeMd`, or must hold the rules regardless of who installs it.
 In the agentic-skills marketplace, an agent in the `research` plugin points at `references/house-style.md` under its own plugin root, through the `CLAUDE_PLUGIN_ROOT` placeholder, instead of inlining a copy.
 
 ## Companion skills
 
-Three sibling skills cover Claude Code's authoring primitives, and they ship together in the `meta` plugin:
+Four sibling skills cover Claude Code's authoring primitives and instruction files, and they ship together in the `meta` plugin:
 
 - `meta:create-agent` (this skill): a subagent with its own context window, tool scope and return contract.
 - `meta:create-skill`: context that loads on demand into the parent conversation.
 - `meta:create-hook`: deterministic interception of a lifecycle event.
+- `meta:create-instructions`: CLAUDE.md files and the `.claude/rules/` directory, which Claude Code does not enforce.
 
 When the job needs a sibling primitive, invoke the sibling through the `Skill` tool and hand over what you have gathered (the agent file path, its tool scope, its permission needs), so it does not repeat its own intake.
 An agent that preloads custom skills through its `skills` field needs `meta:create-skill` for each skill that does not exist yet.
 An agent with a guard or injector needs `meta:create-hook`, and for a plugin agent that hook goes in the plugin's `hooks/hooks.json`, because plugin agents ignore `hooks:` frontmatter.
+A rule that every session and every subagent should see belongs in an instruction file, and `meta:create-instructions` decides whether it goes in CLAUDE.md or a path-scoped rule.
 
 ## Phase 0: capture intent
 
@@ -137,6 +147,7 @@ Then check the alternatives before drafting:
 | Skill | A reusable procedure or reference that runs in the main conversation |
 | Fork (`/subtask`) | A one-off side task that needs the whole conversation, and shares its prompt cache |
 | Hook | An action that must happen on an event, whatever Claude decides |
+| Instruction file | A convention or fact every session should know, which Claude Code does not enforce, placed by `meta:create-instructions` |
 | Agent team | Several long-running agents coordinating across sessions |
 | `/btw` | A quick question about the current conversation, with no tool access |
 
@@ -171,6 +182,7 @@ Claude Code ignores an unknown or misspelt field without reporting it, and multi
 The description is the only text Claude weighs, beside the user's request, when deciding to delegate.
 
 - Say what the agent does, then when to use it, with the phrases and situations the user would actually produce.
+- Keep the description free of first and second person ("I review", "your diff"), the rule the platform authoring guide sets for skill descriptions, because Claude reads it from the listing.
 - Name its scope precisely ("Python test failures from pytest output", not "debugging") so it does not collide with other agents.
 - Anthropic's docs recommend "use proactively" to encourage delegation.
 Add it when Claude should delegate unprompted, and let the Phase 3 near-miss case show whether it over-fires.
@@ -180,6 +192,9 @@ Add it when Claude should delegate unprompted, and let the Phase 3 near-miss cas
 
 - Set `tools` explicitly.
 A read-only agent lists no `Write`, `Edit` or `NotebookEdit`, and leaves out `Agent` unless it should delegate further, because subagents may spawn their own up to three layers deep.
+Count the entries, MCP tools included, and keep the list to the few the job needs, ideally five or fewer and never more than ten.
+`Agent(type)` in `tools` limits which subagent types can be spawned only for an agent run as the main thread with `claude --agent`.
+In a subagent definition the parenthesised list is ignored, so `Agent(worker)` there still grants the `Agent` tool with no type restriction [Likely], and the only way to stop a subagent spawning is to omit `Agent` from `tools`.
 - `disallowedTools` removes a whole tool even with a specifier, so `Bash(git push *)` there removes all of Bash.
 Block specific commands with a permission deny rule instead.
 - Pick `model` for the workload: `haiku` for fast lookups, `sonnet` for most work, `opus` for hard synthesis, or omit it to follow the default order.
@@ -196,6 +211,13 @@ The agent receives it with environment details, the CLAUDE.md files (unless `omi
 - State the return contract: the sections or fields to return, a length limit, and what to leave out ("Do not paste log lines beyond the three that show the failure").
 - Say what to do at the edges: no findings, ambiguous input, a task outside its scope.
 - Subagents cannot ask the user questions, because `AskUserQuestion` is withheld from every subagent, so tell the agent to state its assumptions in the result instead.
+- Cover failure in the return contract: the agent recovers from transient errors itself and returns only what it cannot resolve, with what it attempted and any partial results.
+A run that reaches `maxTurns` comes back marked partial, so the result should also say what remains.
+- Put a termination criterion in the prompt ("stop when the failing test is identified") and set `maxTurns` as the backstop.
+Anthropic's exam guide lists an iteration cap used as the primary stop condition among its anti-patterns.
+- Write the prompt to stand alone, because a subagent does not see the coordinator's history.
+The brief that delegates to it, usually written by a skill, should carry an objective, an output format, guidance on tools and sources and clear task boundaries.
+- If the agent writes API code that extracts structured data, tell it to use `strict: true` or `output_config.format`, because a forced `tool_choice` returns a 400 on Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1.
 
 Read `${CLAUDE_SKILL_DIR}/references/invocation.md` for foreground and background runs, forks, `--agent` sessions, `--agents` JSON, nesting, resuming and disabling agents.
 Read `${CLAUDE_SKILL_DIR}/references/templates.md` for complete example agents.
@@ -210,7 +232,7 @@ Run `claude plugin validate <dir>` on the agents directory (`.claude/agents`, `~
 Claude Code skips a project or personal file with no `name`, no `description`, a `name` containing `:`, or YAML that does not parse, and says so only in `claude --debug` output.
 Confirm the agent appears in the `@` typeahead.
 2. **It delegates on the right prompts and not on near misses.**
-Write two or three prompts the way the user would type them, without naming the agent, and one near miss that shares vocabulary but needs something else.
+Write at least three prompts the way the user would type them, without naming the agent, and one near miss that shares vocabulary but needs something else.
 For a plugin agent, use `claude plugin eval` with `Agent` in `allowed_tools` and a `tool_used` grader on `Agent` whose `input_match` is `'"subagent_type"\s*:\s*"(?:[\w-]+:)*<name>"'`.
 Read `meta:create-skill`'s evaluation reference for the case format, and agree the run count and a `--max-cost-usd` ceiling with the user first.
 In the no-plugin baseline arm, a dispatch to the plugin agent fails with `Agent type ... not found`, which is expected.
@@ -245,10 +267,12 @@ When an agent misbehaves after release, read `${CLAUDE_SKILL_DIR}/references/tro
 
 - [ ] A subagent is the right primitive, and no built-in agent already covers the job.
 - [ ] `name` is lowercase with hyphens, unique in its scope, and contains no `:`.
-- [ ] `description` says what and when, with the user's phrasing and a precise scope.
+- [ ] `description` says what and when without first or second person, with the user's phrasing and a precise scope.
 - [ ] `tools` is set explicitly, with no write tool for a read-only agent and no `Agent` unless nesting is intended.
+- [ ] The tool list holds only what the job needs, ideally five or fewer and never more than ten, MCP tools counted.
 - [ ] No safety property depends on `permissionMode` alone.
-- [ ] The body states the return contract and the edge-case behaviour, and asks for assumptions instead of questions.
+- [ ] The body states the return contract, including what it returns on failure or a partial run, and the edge-case behaviour, and asks for assumptions instead of questions.
+- [ ] The prompt has a termination criterion, and `maxTurns` is set only as the backstop.
 - [ ] The agent was classified against the voice table, and the matching blocks are present or deliberately omitted.
 - [ ] Plugin only: the frontmatter does not set `hooks`, `mcpServers`, `permissionMode` or `initialPrompt`, and every delegating skill uses the scoped name.
 - [ ] `claude plugin validate` passes on the agents directory.

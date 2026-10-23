@@ -39,7 +39,7 @@ A session that wrote the skill still holds the reasoning behind it, which hides 
 
 ## Writing cases
 
-Start with two or three cases that cover the skill's main job, and add one near miss: a prompt that shares the skill's vocabulary but needs something else, such as a sibling skill.
+Start with at least three cases that cover the skill's main job, and add one near miss: a prompt that shares the skill's vocabulary but needs something else, such as a sibling skill.
 Write prompts the way the user types them, with concrete detail and without naming the skill.
 A prompt so simple that Claude can answer it unaided will not trigger any skill, whatever the description says.
 
