@@ -33,6 +33,7 @@ If a query returns nothing relevant, the output says so instead of inventing met
 - Trending
 - Paper search
 - Gotchas
+- Strict prohibitions
 
 ## Workflow
 
@@ -201,3 +202,13 @@ Name a specific entry as the next step if one is relevant to what the user said 
 - A search by tag surfaces fine-tunes and quantisations well ahead of the original release, so check `base_model:` before recommending one.
 - Inference-provider status is live at query time and changes often.
 - An `arxiv:` tag points to the training paper or technical report, which makes it the authoritative source for recommended settings, but a fine-tune's tag may cite its base model's paper.
+
+## Strict prohibitions
+
+| Prohibited | Reason |
+| --- | --- |
+| Any `hf_fs` command other than `ls`, `cat` and `search` | The skill reads the Hub and never changes it |
+| Downloading weights or running inference | The skill profiles a repository, and the user's project handles anything that runs |
+| Reporting a self-reported tag, a quantised file's parameter count or a fine-tune's paper tag as verified | Each is often missing or wrong, so the template file, the base model and the paper are the evidence |
+| Passing the contents of a private or gated repository to `WebSearch` or `WebFetch` | It sends the user's data to an external service, which DSGVO treats as a transfer |
+| Committing or pushing | Hand over to the user's commit workflow |

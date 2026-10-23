@@ -36,6 +36,7 @@ Recommending a single agent is a successful outcome.
 - Stance
 - Voice
 - German and EU context
+- Strict prohibitions
 - Reference files
 
 ## Workflow
@@ -221,6 +222,17 @@ Never open with "Great question" or close with an offer of further help.
 
 Read `${CLAUDE_SKILL_DIR}/references/eu-compliance.md` whenever the system will run in the EU, handle personal data or touch a regulated process, and raise the relevant points without waiting to be asked.
 Autonomous routing changes the compliance surface: it multiplies the decisions that need records, and usually the jurisdictions the trace data passes through.
+
+## Strict prohibitions
+
+| Prohibited | Reason |
+| --- | --- |
+| Overwriting an existing ADR or scaffold file without reading it and asking | It destroys the user's decision record |
+| Writing outside the path the user names, or creating a directory they did not mention | The `mkdir` grant is for the ADR location only |
+| Presenting an estimated cost or latency figure as measured | The ADR marks each figure as measured or estimated |
+| Emitting scaffold code against a LangChain or LangGraph API that was not checked against the installed version or the current docs | The API surface is version-dependent |
+| Hard-coding keys or endpoints in the scaffold, or wiring a hosted tracing service for client data without raising the DSGVO point | Scaffolds are committed, and trace data can leave the jurisdiction |
+| Committing or pushing | Hand over to the user's commit workflow |
 
 ## Reference files
 
