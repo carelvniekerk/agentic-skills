@@ -72,7 +72,7 @@
       "name": "meta",
       "source": "./plugins/meta",
       "category": "development",
-      "tags": ["claude-code", "skills", "hooks", "subagents", "authoring"]
+      "tags": ["claude-code", "skills", "hooks", "subagents", "claude-md", "rules", "authoring"]
     }
   ]
 }

@@ -20,7 +20,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `chezmoi`        | —                                                                                                                         | —                                          | `PreToolUse`                               |
 | `uv`             | —                                                                                                                         | —                                          | `PreToolUse`                               |
 | `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
-| `meta`           | `create-skill`, `create-hook`, `create-agent`                                                                             | —                                          | —                                          |
+| `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
 
 ### What each one does
 
@@ -53,7 +53,7 @@ See [Guard hooks](#guard-hooks) below.
 - **`orchestration`** — three read-only Haiku subagents for lookups (two of them query a local [codebase-memory](https://github.com/DeusData/codebase-memory-mcp) code graph and check it against the source), a `delegate` skill that tells the main session when to use them, a `setup` skill that writes the main and advisor models, the Flightdeck options and the CLAUDE.md rules into your own files, and hooks: a code-graph refresh, a Sonnet gate on six risky Bash command families and a Sonnet Stop check.
 See [`plugins/orchestration/README.md`](./plugins/orchestration/README.md).
 
-- **`meta`** — authoring workflows for Claude Code skills, hooks and subagents.
+- **`meta`** — authoring workflows for Claude Code skills, hooks, subagents and instruction files (CLAUDE.md and `.claude/rules/`).
 Each runs a draft, test, review and iterate loop against the current reference docs and delegates to its siblings when a job needs more than one primitive.
 Inside a plugin marketplace repository they follow the `plugins/<plugin>/` layout; elsewhere they default to personal or project scope.
 See [Guard hooks](#guard-hooks) below.

@@ -98,11 +98,12 @@ Write it in British English, in plain sentences in the active voice, with no em-
 
 ## Companion skills
 
-Three sibling skills cover Claude Code's authoring primitives, and they ship together in the `meta` plugin:
+Four sibling skills cover Claude Code's authoring primitives and instruction files, and they ship together in the `meta` plugin:
 
 - `meta:create-hook` (this skill): deterministic interception of a lifecycle event.
 - `meta:create-skill`: context that loads on demand into the parent conversation.
 - `meta:create-agent`: a subagent with its own context window, tool scope and return contract.
+- `meta:create-instructions`: CLAUDE.md files and the `.claude/rules/` directory, which Claude Code does not enforce.
 
 When the job needs a sibling primitive, invoke the sibling through the `Skill` tool and hand over what you have gathered (event, matcher, `if`, decision contract, handler type), so it does not repeat its own intake.
 A hook packaged in a skill's `hooks:` frontmatter needs `meta:create-skill` for the wrapping `SKILL.md`.

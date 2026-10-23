@@ -46,7 +46,7 @@ agentic-skills/
     │   └── tests/            acceptance.sh, prompt-probe.sh, stop-probe.sh
     └── meta/
         ├── .claude-plugin/plugin.json
-        └── skills/           create-skill, create-hook, create-agent
+        └── skills/           create-skill, create-hook, create-agent, create-instructions
 ```
 
 Every plugin directory is self-contained.
@@ -71,7 +71,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |
 | `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
 | `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: graph refresh, Bash gate, Stop check, session context | `/orchestration:setup`         |
-| `meta`           | create-skill, create-hook, create-agent                                                                                    | `/meta:create-skill`           |
+| `meta`           | create-skill, create-hook, create-agent, create-instructions                                                               | `/meta:create-skill`           |
 
 Plugin skills are **always** namespaced by the plugin name.
 The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.
@@ -333,14 +333,15 @@ This is the safety contract.
 
 ## Authoring Meta-Skills
 
-Three skills in the `meta` plugin automate the authoring of new Claude Code primitives.
+Four skills in the `meta` plugin automate the authoring of new Claude Code primitives and instruction files.
 Use them whenever you create or refine the corresponding artefact instead of writing the file from scratch:
 
-| Skill          | For authoring                                                                                         |
-| -------------- | ----------------------------------------------------------------------------------------------------- |
-| `create-skill` | A new `SKILL.md` — any skill under `plugins/<plugin>/skills/`, or a skill bundled inside a plugin.     |
-| `create-hook`  | A hook entry — `settings.json`, plugin `hooks/hooks.json`, or skill/agent frontmatter `hooks:` field.  |
-| `create-agent` | A subagent definition under `plugins/<plugin>/agents/`.                                                |
+| Skill                | For authoring                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `create-skill`       | A new `SKILL.md` — any skill under `plugins/<plugin>/skills/`, or a skill bundled inside a plugin.                                       |
+| `create-hook`        | A hook entry — `settings.json`, plugin `hooks/hooks.json`, or skill/agent frontmatter `hooks:` field.                                    |
+| `create-agent`       | A subagent definition under `plugins/<plugin>/agents/`.                                                                                  |
+| `create-instructions` | A `CLAUDE.md` or `CLAUDE.local.md` at any level, and the `.claude/rules/` directory: new files, audits and propose-only restructures. |
 
 These meta-skills are aware of each other.
 When a job needs more than one primitive — a skill that bundles a hook, an agent with preloaded skills, a hook scoped to a specific subagent — each delegates to its sibling via the `Skill` tool rather than reimplementing the workflow inline.
