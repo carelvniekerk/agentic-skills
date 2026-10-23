@@ -218,6 +218,7 @@ Anthropic's exam guide lists an iteration cap used as the primary stop condition
 - Write the prompt to stand alone, because a subagent does not see the coordinator's history.
 The brief that delegates to it, usually written by a skill, should carry an objective, an output format, guidance on tools and sources and clear task boundaries.
 - If the agent writes API code that extracts structured data, tell it to use `strict: true` or `output_config.format`, because a forced `tool_choice` returns a 400 on Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1.
+If the agent is code that loops on the API or runs on the Agent SDK instead of a Claude Code subagent, read `${CLAUDE_SKILL_DIR}/references/api-loops.md` for `stop_reason` handling, loop limits and structured output.
 
 Read `${CLAUDE_SKILL_DIR}/references/invocation.md` for foreground and background runs, forks, `--agent` sessions, `--agents` JSON, nesting, resuming and disabling agents.
 Read `${CLAUDE_SKILL_DIR}/references/templates.md` for complete example agents.
@@ -328,3 +329,5 @@ Read before setting any field beyond the basics.
 - `${CLAUDE_SKILL_DIR}/references/invocation.md`: how agents are invoked, foreground and background runs, forks, `--agent` and `--agents`, nesting, resume, context at startup and disabling.
 - `${CLAUDE_SKILL_DIR}/references/templates.md`: complete example agents for common jobs.
 - `${CLAUDE_SKILL_DIR}/references/troubleshooting.md`: agents that never delegate, delegate wrongly, have too much access, flood the parent or ignore fields, plus security review.
+- `${CLAUDE_SKILL_DIR}/references/api-loops.md`: agents built on the API or Agent SDK, with the `stop_reason` table, loop limits, budgets, structured output and where the exam guide and the docs differ.
+Read only when the agent is API or SDK code.
