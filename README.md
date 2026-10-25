@@ -21,6 +21,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `uv`             | —                                                                                                                         | —                                          | `PreToolUse`                               |
 | `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
 | `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
+| `implement`      | `architecture-design`, `implement`                                                                                        | `test-reviewer`, `code-reviewer`, `architecture-reviewer` | `PreToolUse`                |
 
 ### What each one does
 
@@ -57,6 +58,12 @@ See [`plugins/orchestration/README.md`](./plugins/orchestration/README.md).
 Each runs a draft, test, review and iterate loop against the current reference docs and delegates to its siblings when a job needs more than one primitive.
 Inside a plugin marketplace repository they follow the `plugins/<plugin>/` layout; elsewhere they default to personal or project scope.
 See [Guard hooks](#guard-hooks) below.
+
+- **`implement`**: design and build in a loop, for Python.
+`architecture-design` picks module boundaries and dependency direction and picks a design pattern only when a named force justifies it, with the Python idiom checked first, and it ends at a human approval gate.
+`implement` then writes acceptance tests from the design, locks them with a hook, implements in the main session and runs three read-only reviewers (tests, code, architecture) in a clean context for up to three rounds.
+The pattern guide is paraphrased from open sources, marks its thin rows, and contains no text from the book.
+It needs the `orchestration` plugin for its lookups.
 
 ---
 

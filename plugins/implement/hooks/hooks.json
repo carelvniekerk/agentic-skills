@@ -1,0 +1,23 @@
+{
+    "description": "Denies edits to the acceptance tests listed in .implement/loop.json while an implement loop is running.",
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "uv",
+                        "args": [
+                            "run",
+                            "--script",
+                            "${CLAUDE_PLUGIN_ROOT}/hooks/test-lock.py"
+                        ],
+                        "timeout": 10,
+                        "statusMessage": "checking the test lock"
+                    }
+                ]
+            }
+        ]
+    }
+}

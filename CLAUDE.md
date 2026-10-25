@@ -44,9 +44,16 @@ agentic-skills/
     │   ├── hooks/            hooks.json + session-context.py, graph-index.py
     │   ├── skills/           delegate, setup
     │   └── tests/            acceptance.sh, prompt-probe.sh, stop-probe.sh
-    └── meta/
+    ├── meta/
+    │   ├── .claude-plugin/plugin.json
+    │   └── skills/           create-skill, create-hook, create-agent, create-instructions
+    └── implement/
         ├── .claude-plugin/plugin.json
-        └── skills/           create-skill, create-hook, create-agent, create-instructions
+        ├── skills/           architecture-design, implement
+        ├── agents/           test-reviewer.md, code-reviewer.md, architecture-reviewer.md
+        ├── hooks/            hooks.json + test-lock.py
+        ├── tests/            acceptance.sh
+        └── evals/            trigger and near-miss cases for architecture-design
 ```
 
 Every plugin directory is self-contained.
@@ -57,7 +64,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 
 ---
 
-## The Eleven Plugins
+## The Twelve Plugins
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -72,6 +79,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
 | `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: graph refresh, Bash gate, Stop check, session context | `/orchestration:setup`         |
 | `meta`           | create-skill, create-hook, create-agent, create-instructions                                                               | `/meta:create-skill`           |
+| `implement`      | architecture-design, implement + 3 read-only reviewer agents (tests, code, architecture) + hook: test lock; depends on `orchestration` | `/implement:architecture-design` |
 
 Plugin skills are **always** namespaced by the plugin name.
 The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.

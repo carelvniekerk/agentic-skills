@@ -73,6 +73,12 @@
       "source": "./plugins/meta",
       "category": "development",
       "tags": ["claude-code", "skills", "hooks", "subagents", "claude-md", "rules", "authoring"]
+    },
+    {
+      "name": "implement",
+      "source": "./plugins/implement",
+      "category": "development",
+      "tags": ["architecture", "design-patterns", "python", "code-review", "tdd", "subagents", "hooks"]
     }
   ]
 }
