@@ -60,8 +60,9 @@ Inside a plugin marketplace repository they follow the `plugins/<plugin>/` layou
 See [Guard hooks](#guard-hooks) below.
 
 - **`implement`**: design and build in a loop, for Python.
-`architecture-design` picks module boundaries and dependency direction and picks a design pattern only when a named force justifies it, with the Python idiom checked first, and it ends at a human approval gate.
-`implement` then writes acceptance tests from the design, locks them with a hook, implements in the main session and runs three read-only reviewers (tests, code, architecture) in a clean context for up to three rounds.
+`architecture-design` picks module boundaries and dependency direction and picks a design pattern only when a named force justifies it, with the Python idiom checked first.
+A read-only architecture reviewer checks the draft for up to three rounds, and the skill then ends at a human approval gate.
+`implement` writes acceptance tests from the design, has a test reviewer check them for up to three rounds, locks them with a hook, implements in the main session and runs three read-only reviewers (tests, code, architecture) in a clean context for up to three rounds.
 The pattern guide is paraphrased from open sources, marks its thin rows, and contains no text from the book.
 It needs the `orchestration` plugin for its lookups.
 

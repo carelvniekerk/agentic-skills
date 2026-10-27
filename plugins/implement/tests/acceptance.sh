@@ -162,6 +162,15 @@ for agent in test-reviewer code-reviewer architecture-reviewer; do
     "$(grep -q 'Verdict: CLEAR' "$file" && grep -q 'Verdict: BLOCKED' "$file" && echo true || echo false)"
 done
 
+check "agent architecture-reviewer: names both modes" true \
+  "$(grep -q 'Mode: design' "$ROOT/agents/architecture-reviewer.md" && grep -q 'Mode: change' "$ROOT/agents/architecture-reviewer.md" && echo true || echo false)"
+check "agent test-reviewer: names both modes" true \
+  "$(grep -q 'Mode: pre-lock' "$ROOT/agents/test-reviewer.md" && grep -q 'Mode: change' "$ROOT/agents/test-reviewer.md" && echo true || echo false)"
+check "design review brief starts with the mode line" true \
+  "$(grep -q '^Mode: design$' "$ROOT/skills/architecture-design/references/design-review-brief.md" && echo true || echo false)"
+check "reviewer briefs carry the pre-lock and change mode lines" true \
+  "$(f="$ROOT/skills/implement/references/reviewer-briefs.md"; grep -q '^Mode: pre-lock$' "$f" && grep -q '^Mode: change$' "$f" && echo true || echo false)"
+
 # --- whole plugin ------------------------------------------------------------
 check "manifest: depends on orchestration" '["orchestration"]' "$(jq -c '.dependencies' "$ROOT/.claude-plugin/plugin.json")"
 check "manifest: no version field" null "$(jq -r '.version // "null"' "$ROOT/.claude-plugin/plugin.json")"

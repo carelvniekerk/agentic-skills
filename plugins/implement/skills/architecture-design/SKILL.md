@@ -3,11 +3,12 @@ name: architecture-design
 description: >-
   Design the architecture of a Python feature or system and write a design document with testable acceptance criteria, ending at a human approval gate.
   Chooses module boundaries and dependency direction, and chooses a design pattern only when a named force justifies it, checking the Python idiom first.
+  A read-only architecture reviewer in a clean context checks the draft for up to three rounds before the human sees it.
   Use when the user asks to design, architect or structure something before building it, which design pattern fits a problem, how to split a codebase into modules, or for an ADR or a design document ahead of implementation, even if they do not say "architecture".
 when_to_use: >-
   Trigger phrases: "design this", "architecture for", "how should I structure", "which design pattern", "should I use a factory", "draft an ADR", "design doc before we build", "module boundaries for", "review this design".
   Building the design belongs to implement:implement, a plain explanation of one pattern is answered directly, and refactoring a single function is not this skill.
-allowed-tools: Read Grep Glob Write Agent Bash(mkdir *)
+allowed-tools: Read Grep Glob Write Edit Agent Bash(mkdir *)
 ---
 
 # Architecture design
@@ -16,6 +17,10 @@ You turn a requirement into a design document that a person approves and that `i
 The design names its forces, its module boundaries, the direction of every dependency, each pattern it uses and why, and the acceptance criteria that the implementation will be tested against.
 You write no code and no tests.
 The document goes to `<design dir>/<slug>.md`, where the design directory comes from the project's `CLAUDE.md` and defaults to `docs/design/`.
+
+A read-only reviewer, `implement:architecture-reviewer` in design mode, checks the draft before you present it, for at most three rounds.
+That is up to three reviewer runs, and their cost is unmeasured.
+Tell the user this worst case before the first round.
 
 Choosing no pattern at all is a successful outcome.
 A pattern needs a force that is present in this requirement now, and a design with no such force says so.
@@ -31,7 +36,8 @@ A pattern needs a force that is present in this requirement now, and a design wi
 - Phase 3: structure
 - Phase 4: the pattern gate
 - Phase 5: write the design
-- Phase 6: the human gate
+- Phase 6: review the design
+- Phase 7: the human gate
 - Gotchas
 - Strict prohibitions
 - Reference files
@@ -48,7 +54,8 @@ Design progress:
 - [ ] 3. Modules, dependency direction and ports chosen
 - [ ] 4. Every pattern candidate put through the gate (no named force: reject)
 - [ ] 5. Design written with acceptance criteria that can be tested
-- [ ] 6. Presented, and stopped for the user's approval
+- [ ] 6. Draft reviewed by implement:architecture-reviewer in design mode, findings triaged and logged in the design, stop rules checked
+- [ ] 7. Presented, and stopped for the user's approval
 ```
 
 ## Stance
@@ -141,9 +148,36 @@ The acceptance criteria are the part `implement:implement` depends on, so write 
 A requirement that no test can check goes under unverified requirements and not into the criteria.
 Create the design directory with `mkdir -p` if it does not exist, and read any existing file at the path before writing, and ask before overwriting it.
 
-## Phase 6: the human gate
+## Phase 6: review the design
 
-Present the design as a short summary: the decisions, the rejected alternatives, the risks, the number of acceptance criteria, and the limits of the evidence.
+Read `${CLAUDE_SKILL_DIR}/references/design-review-brief.md` before this phase.
+Spawn one `implement:architecture-reviewer` per round with the fixed brief from that file.
+The brief holds the design document verbatim and the repository path, and leaves out your summary, your reasoning, your opinion of the design and the earlier rounds' findings, because the reviewer is meant to judge the document as a reader would.
+Every round spawns a fresh reviewer.
+
+Handle the verdict this way:
+
+- Fix every BLOCKING finding in the document with Edit, or keep the design and state why in the log for the user.
+You may not mark a BLOCKING finding as resolved by dismissing it, because the user decides at the gate.
+- Log MINOR findings, fix the cheap ones, and do not start another round for them.
+- A finding that the requirement is ambiguous or that two requirements conflict is not yours to settle.
+Stop the loop and ask the user.
+
+Append each round to the design's `Design review` section, in the format of the reference file, so the user reads it at the gate.
+Stop at the first of these:
+
+1. Success: the verdict is `CLEAR`, or only MINOR findings remain.
+2. Round limit: three rounds are done with a BLOCKING finding open.
+The limit is a backstop with no measurement behind it.
+3. No progress or oscillation: the open BLOCKING findings are substantially the same as the previous round's, or alternate between two states.
+4. Abort: the requirement itself needs a decision from the user.
+
+After any stop other than success, present the design with the open findings first and do not start another round on your own.
+A `CLEAR` verdict does not show the design is sound, because the reviewer shares your model and may share your blind spots [Guessing].
+
+## Phase 7: the human gate
+
+Present the design as a short summary: the decisions, the rejected alternatives, the risks, the number of acceptance criteria, the review rounds and what stayed open, and the limits of the evidence.
 State that nothing has been built.
 Ask the user to approve it or change it, and stop.
 When the user approves, set `status: approved` and fill `approved-by` in the design's frontmatter, so a later session can build from it without asking again, and name the next step as `/implement:implement <design path>`.
@@ -169,6 +203,10 @@ Do not start implementing, and do not treat silence or a general "continue" as a
 | Setting numeric coupling or cohesion limits as if the evidence supported them | No source read gives a threshold for a single change |
 | Overwriting an existing design document without reading it and asking | It destroys the user's earlier decisions |
 | Writing outside the design directory | The skill's only output is the design document |
+| Passing your summary, intent or earlier findings to the reviewer | It carries your framing into the clean context |
+| Dismissing a BLOCKING finding without the user | A reviewer you can overrule adds nothing |
+| Starting another review round after a stop other than success | The loop's limits are the user's safeguard |
+| Treating a `CLEAR` design review as approval | Only the user approves the design |
 | Committing or pushing | Hand over to the user's commit workflow |
 
 ## Reference files
@@ -179,3 +217,5 @@ Read before Phase 4.
 Read before Phase 3.
 - `${CLAUDE_SKILL_DIR}/references/design-template.md`: the design document structure and the acceptance criteria format.
 Read before Phase 5.
+- `${CLAUDE_SKILL_DIR}/references/design-review-brief.md`: the fixed brief for the design review, what stays out of it, and the format of the review log.
+Read before Phase 6.

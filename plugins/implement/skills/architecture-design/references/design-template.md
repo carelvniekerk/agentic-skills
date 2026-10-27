@@ -50,6 +50,9 @@ Requirements that no test can check, such as a qualitative goal or a target that
 What could invalidate the design, and what the user still has to decide.
 10. Evidence limits.
 Which recommendations rest on a thin or single-source row of the guides, and which codebase facts the survey could not confirm.
+11. Design review.
+One block per review round, added by Phase 6 of the skill, in the format of `design-review-brief.md`.
+Delete the section if no review ran, and say why under evidence limits.
 
 ## Acceptance criteria format
 

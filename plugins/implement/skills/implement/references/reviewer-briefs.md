@@ -1,6 +1,6 @@
 # Reviewer briefs and the rounds log
 
-The fixed templates for the briefs that `implement:implement` gives its three reviewers, and the format of `.implement/rounds.md`.
+The fixed templates for the briefs that `implement:implement` gives its three reviewers, the template for the pre-lock test review, and the format of `.implement/rounds.md`.
 A brief is built from these templates and from files and command output, and never from the implementer's own account of the work.
 
 ## Contents
@@ -8,6 +8,7 @@ A brief is built from these templates and from files and command output, and nev
 - What goes in a brief and what stays out
 - Building the parts
 - The common brief
+- The pre-lock test review brief
 - The task paragraph for each reviewer
 - What each reviewer receives
 - The rounds log
@@ -60,6 +61,7 @@ A changed locked test is a stop for you before the review, so a `CHANGED` line r
 ## The common brief
 
 ```text
+Mode: change
 This is review round <N>. Return the format in your instructions.
 
 ## Task
@@ -86,9 +88,37 @@ Paths: <the protected globs>
 Hash check before this round: <unchanged or CHANGED: paths>
 ```
 
+The `Mode: change` line is for `implement:test-reviewer` and `implement:architecture-reviewer`, which read it.
+Omit it from the brief for `implement:code-reviewer`.
+
+## The pre-lock test review brief
+
+The tests are written and failing, and no implementation exists, so the brief has no diff, no changed-file list and no lock status.
+Take the test output from `uv run pytest -q 2>&1 | tail -n 60`, and paste it as it came.
+
+```text
+Mode: pre-lock
+This is pre-lock test review round <N>. Return the format in your instructions.
+
+## Task
+Decide whether these tests prove every acceptance criterion before they are locked. Map each criterion ID to its tests, read the assertions, and report any test that cannot fail, any test that fails for a reason other than missing behaviour, any criterion without a test, and any test that asserts more than its criterion requires. The suite is red because no implementation exists, and that is expected. Read the files yourself.
+
+## Acceptance criteria
+<the criteria table from the design, verbatim>
+
+## Design excerpt
+<the interfaces the tests call, verbatim>
+
+## Test files
+<paths>
+
+## Test output
+<pytest output as it came>
+```
+
 ## The task paragraph for each reviewer
 
-Use these paragraphs word for word.
+Use these paragraphs word for word, for the review in Phase 4.
 
 For `implement:test-reviewer`:
 
@@ -118,13 +148,23 @@ Decide whether the change conforms to the design's structure, dependency directi
 | Test output | Yes | Yes | Yes |
 | Locked tests and hash check | Yes | No | No |
 
+The pre-lock review gets the criteria, the interfaces and the failing test output only.
 The test reviewer gets no design structure because its job is the tests against the criteria, and the extra material invites it to review the architecture instead.
 
 ## The rounds log
 
-Append one block per round to `.implement/rounds.md`, and do not rewrite earlier blocks:
+Append one block per round to `.implement/rounds.md`, and do not rewrite earlier blocks.
+The pre-lock rounds use the `Test review round N` heading and are kept apart from the implementation rounds, so the counts per round stay comparable:
 
 ```markdown
+## Test review round 1
+
+- test-reviewer (pre-lock): BLOCKED, 1 BLOCKING, 0 MINOR
+
+| ID | Reviewer | Severity | Location | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| T1 | test-reviewer | BLOCKING | tests/acceptance/test_cart.py:12 | AC-2 passes before any implementation exists | fixed |
+
 ## Round 1
 
 - Tests: 14 passed, 0 failed, 0 skipped
