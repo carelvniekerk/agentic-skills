@@ -23,7 +23,7 @@ repos:
     # to the oldest Python their PEP 723 headers allow, so the formatter cannot
     # emit syntax that only newer interpreters accept.
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.17.2
+      rev: v0.17.3
       hooks:
           # types_or overrides the hook's default, which in this version also
           # matches Markdown and would reformat the Python snippets inside the
