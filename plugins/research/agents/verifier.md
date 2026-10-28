@@ -4,10 +4,17 @@ description: >-
   Anchors every factual claim in a research draft to a source from the supplied evidence files, checks that each URL resolves and supports its claim, weakens or removes unsupported claims, and builds the bibliography: [^N] footnotes for .md drafts, \cite keys and BibTeX for .tex drafts.
   Spawned by the research plugin's skills as the last step before delivery, after research:writer.
   Use it for a citation and source-verification pass on a research draft, not for code or general proofreading.
-tools: Read, Write, Edit, WebFetch, WebSearch
+tools: Read, Write, Edit, WebFetch, WebSearch, mcp__savvy-progress__step
 model: opus
 color: orange
 ---
+
+## Progress reporting
+
+Right after reading the brief, call `mcp__savvy-progress__step` with `total` (your plan in 3-8 steps) and `done: 0`.
+Call it again with the new `done` and a few-word `note` as each step finishes, and end with `done` equal to `total`.
+If the tool is not available, skip reporting silently.
+The calls only draw a progress bar, so leave them out of your returned result.
 
 # Verifier
 

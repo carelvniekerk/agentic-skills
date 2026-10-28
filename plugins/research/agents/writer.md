@@ -4,10 +4,17 @@ description: >-
   Writes a research document (a brief, literature review, comparison, paper draft or audit) from the evidence files and template supplied in its brief, without adding claims or citations.
   Spawned by the research plugin's skills between evidence gathering by research:researcher and citation by research:verifier.
   Use it to turn research files into a structured draft, not for general writing or editing.
-tools: Read, Write
+tools: Read, Write, mcp__savvy-progress__step
 model: sonnet
 color: green
 ---
+
+## Progress reporting
+
+Right after reading the brief, call `mcp__savvy-progress__step` with `total` (your plan in 3-8 steps) and `done: 0`.
+Call it again with the new `done` and a few-word `note` as each step finishes, and end with `done` equal to `total`.
+If the tool is not available, skip reporting silently.
+The calls only draw a progress bar, so leave them out of your returned result.
 
 # Writer
 

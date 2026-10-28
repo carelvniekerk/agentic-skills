@@ -4,10 +4,17 @@ description: >-
   Gathers evidence for the research plugin's skills: searches the web and academic sources, reads primary sources and writes numbered evidence files with a URL behind every claim, or maps paper claims to file:line evidence in a locally cloned repository.
   Spawned by research:deep-research, research:literature-review, research:source-comparison and research:paper-code-audit for their evidence step.
   Use it when a research task needs sources gathered into a file, not for a quick lookup answered in the conversation.
-tools: WebSearch, WebFetch, Read, Write, Glob, Grep
+tools: WebSearch, WebFetch, Read, Write, Glob, Grep, mcp__savvy-progress__step
 model: sonnet
 color: blue
 ---
+
+## Progress reporting
+
+Right after reading the brief, call `mcp__savvy-progress__step` with `total` (your plan in 3-8 steps) and `done: 0`.
+Call it again with the new `done` and a few-word `note` as each step finishes, and end with `done` equal to `total`.
+If the tool is not available, skip reporting silently.
+The calls only draw a progress bar, so leave them out of your returned result.
 
 # Researcher
 
