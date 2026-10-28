@@ -6,7 +6,7 @@ description: >-
 when_to_use: >-
   Trigger phrases: "deep research", "research this thoroughly", "write me a research brief on", "multi-source investigation", "I want a full picture of", "research and write up", "give me everything on".
   A survey of academic papers belongs to literature-review, a comparison of named options to source-comparison, and a quick lookup to external-research.
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress
 ---
 
 # Deep research
@@ -32,6 +32,7 @@ If the conclusions rest mostly on inference rather than on sources read, say so 
 - 5. Write the brief
 - 6. Verify and cite
 - 7. Deliver
+- Progress reporting
 - Strict prohibitions
 
 ## Workflow
@@ -121,6 +122,17 @@ Write the provenance sidecar to `<scratch>/<slug>.provenance.md`:
 ```
 
 In the delivery message, give the brief's path, then the judgement calls and anomalies, and the claims the verifier weakened or removed.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send the plan once step 2 is saved.
+Call it with `title: "Deep research: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Write the brief", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "heavy", after: [2]}`.
+Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, and reuse a task's title when you respawn its agent for another round.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 

@@ -6,7 +6,7 @@ description: >-
 argument-hint: <paper URL, arXiv ID or path> <repository URL>
 effort: high
 disable-model-invocation: true
-allowed-tools: WebSearch WebFetch Read Glob Grep Write Bash(mkdir *) Bash(git clone *) Bash(git -C * rev-parse HEAD) Agent
+allowed-tools: WebSearch WebFetch Read Glob Grep Write Bash(mkdir *) Bash(git clone *) Bash(git -C * rev-parse HEAD) Agent mcp__savvy-progress__progress
 ---
 
 # Paper-code audit
@@ -33,6 +33,7 @@ A deviation suspected because a file is absent is labelled `[Likely]` or `[Guess
 - 6. Verify and cite
 - 7. Deliver
 - Gotchas
+- Progress reporting
 - Strict prohibitions
 
 ## Workflow
@@ -119,6 +120,17 @@ Report the verdict with the blocking findings first, then the judgement calls be
 
 - A shallow clone has no history, so `git log` cannot tell you when a hyperparameter changed; say so if the paper's version predates the commit.
 - Defaults in a config file can be overridden by a launch script or command-line flags in a `README`, so check both before calling a hyperparameter a mismatch.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send the plan once the repository is cloned in step 2.
+Call it with `title: "Paper code audit: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Write the audit", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "heavy", after: [2]}`.
+Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, and reuse a task's title when you respawn its agent for another round.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 

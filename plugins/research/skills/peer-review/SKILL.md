@@ -7,7 +7,7 @@ when_to_use: >-
   Trigger phrases: "peer review this paper", "review my paper", "what would reviewers say", "pre-submission check", "simulate a reviewer", "reviewer 2 this", "would this pass review", "critique this preprint".
   Code review, pull request review and reviewing a function or diff are not this skill.
 argument-hint: <paper path, arXiv ID or URL>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress
 ---
 
 # Peer review
@@ -68,6 +68,17 @@ Report the recommendation and the blocking weakness first, then the path, and th
 
 - `research:reviewer` cannot write files, so a brief that asks it to save the review produces nothing on disk.
 - A review that only lists faults is not credible, and one that pads the strengths to soften the verdict is not honest, so both fail step 3.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send the plan before you spawn the reviewer in step 2.
+Call it with `title: "Peer review: <slug>"`, `total: 1`, `phase: "delegate"` and `tasks` of `{title: "Review the paper", tier: "heavy", after: []}`.
+Send `done: 1` with `phase: "review"` once you have checked the review in step 3.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 

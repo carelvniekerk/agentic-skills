@@ -7,7 +7,7 @@ when_to_use: >-
   Trigger phrases: "compare these papers", "compare these methods", "X vs Y" for named methods or tools, "how do these approaches differ", "comparison matrix", "which of these frameworks", "side by side comparison of", "how does X stack up against Y".
   Comparing code, functions or implementation choices inside the current project is not this skill, and Claude answers that directly.
 argument-hint: <the items to compare, and optionally the dimensions>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress
 ---
 
 # Source comparison
@@ -82,6 +82,17 @@ Spawn a `research:verifier` agent with:
 ## 6. Deliver
 
 Report the path, the dimensions the evidence decides and those it does not, and the judgement calls behind the dimensions and confidence labels.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send the plan once step 2 is saved.
+Call it with `title: "Source comparison: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Build the comparison", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "heavy", after: [2]}`.
+Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, and reuse a task's title when you respawn its agent for another round.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 

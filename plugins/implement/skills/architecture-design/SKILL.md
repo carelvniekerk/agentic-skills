@@ -8,7 +8,7 @@ description: >-
 when_to_use: >-
   Trigger phrases: "design this", "architecture for", "how should I structure", "which design pattern", "should I use a factory", "draft an ADR", "design doc before we build", "module boundaries for", "review this design".
   Building the design belongs to implement:implement, a plain explanation of one pattern is answered directly, and refactoring a single function is not this skill.
-allowed-tools: Read Grep Glob Write Edit Agent Bash(mkdir *)
+allowed-tools: Read Grep Glob Write Edit Agent Bash(mkdir *) mcp__savvy-progress__progress
 ---
 
 # Architecture design
@@ -39,6 +39,7 @@ A pattern needs a force that is present in this requirement now, and a design wi
 - Phase 6: review the design
 - Phase 7: the human gate
 - Gotchas
+- Progress reporting
 - Strict prohibitions
 - Reference files
 
@@ -190,6 +191,17 @@ Do not start implementing, and do not treat silence or a general "continue" as a
 - Interpreter and Mediator have no Python treatment in the sources, and Adapter, Bridge, Composite, Facade, Proxy and several behavioural patterns rest on one source or on inference.
 - Dependency inversion is optional for the data layer in one source and defining in four, so state which rule the design adopts.
 - Several primary sources behind the architecture checks were never read, among them Martin's dependency inversion text, the ISO/IEC 25010 standard and the ATAM report.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send `title: "Design: <slug>"`, `total: 1`, `phase: "design"` and `tasks` of `{title: "Review the design", tier: "medium", after: []}` when you start Phase 0.
+Switch to `phase: "delegate"` when Phase 6 begins, and reuse the title "Review the design" for every round.
+Send `done: 1` with `phase: "review"` when a round ends in `CLEAR`, and `finished: true` when you reach the human gate in Phase 7.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 

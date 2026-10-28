@@ -5,7 +5,7 @@ description: >-
   Use when the user asks to write a paper, draft a report, write up results or turn notes into a paper.
 argument-hint: <topic or slug> [--latex | --markdown]
 disable-model-invocation: true
-allowed-tools: WebSearch WebFetch Read Glob Write Bash(mkdir *) Agent
+allowed-tools: WebSearch WebFetch Read Glob Write Bash(mkdir *) Agent mcp__savvy-progress__progress
 ---
 
 # Paper draft
@@ -79,6 +79,17 @@ Spawn a `research:verifier` agent with:
 
 Report the path, the material used and the gaps that remain.
 List the claims you weakened or cut for lack of support, and flag implausible numbers, results that are not comparable across sources and sections resting on one source.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send the plan once step 3 is saved.
+Call it with `title: "Paper draft: <slug>"`, `total: 2`, `phase: "delegate"` and `tasks` of `{title: "Draft the paper", tier: "medium", after: []}` and `{title: "Verify and cite", tier: "heavy", after: [1]}`.
+Send `done: 1` and `done: 2` with `phase: "review"` as you accept each stage's output.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 

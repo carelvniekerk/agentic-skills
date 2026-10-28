@@ -6,7 +6,7 @@ description: >-
 when_to_use: >-
   Trigger phrases: "literature review", "lit review", "survey the papers on", "related work section", "what papers exist on", "what does the literature say about", "prior work on", "who has published on", "state of the art in".
   A general multi-source brief belongs to deep-research, a critique of one paper to peer-review, and a quick paper lookup to external-research.
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress
 ---
 
 # Literature review
@@ -85,6 +85,17 @@ Spawn a `research:verifier` agent with:
 
 Write a provenance sidecar to `<scratch>/<slug>.provenance.md` with the papers excluded and why, how conflicting results were resolved, and which cross-paper comparisons are not like-for-like.
 In the delivery message, give the review's path, then those judgement calls, the anomalies in the evidence and the claims the verifier weakened or removed.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send the plan once step 2 is saved.
+Call it with `title: "Literature review: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather literature", tier: "medium", after: []}`, `{title: "Synthesise the review", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "heavy", after: [2]}`.
+Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, and reuse a task's title when you respawn its agent for another round.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 

@@ -9,7 +9,7 @@ when_to_use: >-
   Designing comes first and belongs to implement:architecture-design, and a small change with no design document does not need the loop.
 argument-hint: "[design document path]"
 disable-model-invocation: true
-allowed-tools: Read Write Edit Glob Grep Agent Bash(uv run *) Bash(uvx ty *) Bash(ruff *) Bash(git diff *) Bash(git status *) Bash(git ls-files *) Bash(git rev-parse *) Bash(shasum *) Bash(mkdir *) Bash(rm .implement/loop.json)
+allowed-tools: Read Write Edit Glob Grep Agent Bash(uv run *) Bash(uvx ty *) Bash(ruff *) Bash(git diff *) Bash(git status *) Bash(git ls-files *) Bash(git rev-parse *) Bash(shasum *) Bash(mkdir *) Bash(rm .implement/loop.json) mcp__savvy-progress__progress
 ---
 
 # Implement
@@ -36,6 +36,7 @@ Tell the user this worst case before round 1.
 - Phase 5: triage and stop rules
 - Phase 6: finish
 - Gotchas
+- Progress reporting
 - Strict prohibitions
 - Reference files
 
@@ -201,6 +202,17 @@ Suggest `/git:commit` as the next step and do not run it.
 - The hook ignores a marker older than 12 hours, so a long loop needs a new marker, and a crashed loop leaves one that does nothing.
 - The hook guards Edit, Write and NotebookEdit.
 Deliberate circumvention through Bash is outside it and outside this skill's rules.
+
+## Progress reporting
+
+Report to savvy-progress from the main session only, through `mcp__savvy-progress__progress`.
+If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
+Never call `mcp__savvy-progress__step` here, because only the agents report steps.
+Send `title: "Implement: <slug>"`, `total: 3`, `phase: "design"` and `tasks` of `{title: "Review the tests", tier: "medium", after: []}`, `{title: "Review the code", tier: "medium", after: []}` and `{title: "Review the architecture", tier: "medium", after: []}` once Phase 0 passes.
+Reuse "Review the tests" for the pre-lock review in Phase 1 and switch to `phase: "delegate"` when Phase 4 spawns the three reviewers.
+At the start of each round send `done: 0` with `phase: "review"`, then send the number of reviewers whose verdict you have accepted as each returns.
+Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
+End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 
 ## Strict prohibitions
 
