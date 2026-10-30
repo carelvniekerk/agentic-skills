@@ -22,8 +22,8 @@ When invoked:
 
 1. Graph.
 Call `repository_status`.
-The Graphicle server stops at start in a folder that is not a synced project, so missing graph tools mean the repository is not synced.
-In that case begin your answer with this line, word for word: "Graphicle graph unavailable: the repository is probably not synced (`graphicle sync .` opts it in) or `graphicle` is not on the PATH. Searched with Grep only."
+The Graphicle server stops at start when its data folder is missing or the folder is not a synced project, so missing graph tools mean the repository is not set up.
+In that case begin your answer with this line, word for word: "Graphicle graph unavailable: the repository is probably not set up for Graphicle (`graphicle setup` does that) or `graphicle` is not on the PATH. Searched with Grep only."
 Then use Grep alone.
 Otherwise resolve the symbol with `get_node`, then list its callers with `get_neighbors`, and use `query_graph` for references that neither shows.
 Report a result as partial when the tool says it is partial or marks its range as not checked against the current file.

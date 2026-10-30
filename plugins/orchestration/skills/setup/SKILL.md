@@ -149,9 +149,9 @@ If it prints a version, report it and change nothing.
 2. If it is missing, offer to install it with Homebrew, using the formula `graphicle-ai/tap/graphicle`.
 Check the command with `brew info` first, and run the install only after a yes.
 3. Say that Graphicle is a young tool (0.1.x, release builds not yet signed with a trusted certificate) and that releases land almost daily, so the user may want to pin it.
-4. Say how a repository opts in: `graphicle sync .` in that repository, once.
-Without it the graph agents fall back to Glob and Grep and say so.
-Do not run the sync.
+4. Say how a repository opts in: the first time a graph agent reports that Graphicle is unavailable, the main session runs `graphicle setup --clients none --no-hooks --no-capture --no-instructions` on the repository root, after a permission prompt, and the user reconnects the server in `/mcp`.
+Until then the graph agents fall back to Glob and Grep and say so.
+Do not run it from this skill.
 5. Mention retention: the data folder (`~/Library/Application Support/Graphicle` on macOS) holds the synced source text of every opted-in repository until `graphicle offboard --project <folder>` removes it.
 That command prints a plan first, and `--apply <plan hash>` carries it out.
 6. If `~/.cache/codebase-memory-mcp/` exists, say that the old indexes of client code are still there, and that `codebase-memory-mcp cli delete_project` or `trash` removes them.
@@ -186,4 +186,4 @@ Say that new settings take effect in a new session, and that the plugin hooks ap
 | Running `claude plugin install`, `brew install` or `chezmoi apply` without asking | Each changes state outside the files shown |
 | Granting `Read` on more than `~/.claude/CLAUDE.md` | The rule exists for one file, and a wider grant exposes credentials stored under `~/.claude` |
 | Granting an MCP permission for anything but the six Graphicle read tools named in Phase 3, or a whole-server rule for Graphicle | Each grant widens what a background subagent may call without asking, and the server also publishes `graph_link`, which persists edges |
-| Running `graphicle sync`, `graphicle setup` or `graphicle connect` | A sync copies a repository's source text into the Graphicle store, and the user opts each repository in |
+| Running `graphicle sync`, `graphicle setup` or `graphicle connect` | This skill configures models and permissions, and the `delegate` skill sets each repository up on demand because a setup copies the repository's source text into the Graphicle store |
