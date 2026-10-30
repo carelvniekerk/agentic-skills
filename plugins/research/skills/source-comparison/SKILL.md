@@ -47,7 +47,7 @@ Derive a slug and save the plan to `<scratch>/.plans/<slug>.md`.
 
 ## 3. Gather
 
-Spawn a `research:researcher` agent with:
+Spawn a `research:researcher` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The items and dimensions.
 - The requirement of comparable coverage across items: if evidence is thin for one item, the file says so instead of padding with inference.
@@ -56,7 +56,7 @@ Spawn a `research:researcher` agent with:
 
 ## 4. Build the comparison
 
-Spawn a `research:writer` agent with:
+Spawn a `research:writer` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - All research file paths and the draft path `<scratch>/.drafts/<slug>-comparison-draft.md`.
 - The full contents of `${CLAUDE_PLUGIN_ROOT}/references/brief-format.md` for frontmatter, badges and citation conventions.
@@ -72,7 +72,7 @@ Spawn a `research:writer` agent with:
 
 ## 5. Verify and cite
 
-Spawn a `research:verifier` agent with:
+Spawn a `research:verifier` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The draft path, the research files as the source pool and the final path `<output>/<slug>-comparison.md`.
 - Citation format: Markdown footnotes `[^N]`.
@@ -89,10 +89,16 @@ Report to savvy-progress from the main session only, through `mcp__savvy-progres
 If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
 Never call `mcp__savvy-progress__step` here, because only the agents report steps.
 Send the plan once step 2 is saved.
-Call it with `title: "Source comparison: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Build the comparison", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "heavy", after: [2]}`.
-Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, and reuse a task's title when you respawn its agent for another round.
+Call it with `title: "Source comparison: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Build the comparison", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "careful", after: [2]}`, because `research:verifier` runs on Opus.
+Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, one call per accepted stage, and send `phase: "delegate"` before you spawn the next stage's agent.
+Reuse a task's title when you respawn its agent for another round.
 Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
 End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
+End every agent brief with this line, written exactly like this, because an agent only reports steps when its brief asks it to:
+
+```text
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
+```
 
 ## Strict prohibitions
 

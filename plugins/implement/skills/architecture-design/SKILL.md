@@ -198,8 +198,8 @@ Report to savvy-progress from the main session only, through `mcp__savvy-progres
 If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
 Never call `mcp__savvy-progress__step` here, because only the agents report steps.
 Send `title: "Design: <slug>"`, `total: 1`, `phase: "design"` and `tasks` of `{title: "Review the design", tier: "medium", after: []}` when you start Phase 0.
-Switch to `phase: "delegate"` when Phase 6 begins, and reuse the title "Review the design" for every round.
-Send `done: 1` with `phase: "review"` when a round ends in `CLEAR`, and `finished: true` when you reach the human gate in Phase 7.
+Switch to `phase: "delegate"` when Phase 6 begins, send it again before each further round's reviewer, and reuse the title "Review the design" for every round.
+Send `done: 1` with `phase: "review"` when a round ends in `CLEAR`, and `finished: true` with `phase: "close"` when you reach the human gate in Phase 7.
 Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
 End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 

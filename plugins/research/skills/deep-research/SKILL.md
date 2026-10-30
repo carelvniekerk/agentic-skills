@@ -63,7 +63,7 @@ Save the plan to `<scratch>/.plans/<slug>.md`, show it to the user, then continu
 
 ## 3. Gather evidence
 
-Spawn a `research:researcher` agent with:
+Spawn a `research:researcher` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The full plan from step 2.
 - A target of at least 12 sources, and the rule that fewer than 8 is insufficient.
@@ -78,7 +78,7 @@ Stop when another round would not change the conclusions, and after at most two 
 
 ## 5. Write the brief
 
-Spawn a `research:writer` agent with:
+Spawn a `research:writer` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The paths of all research files.
 - The full contents of `${CLAUDE_PLUGIN_ROOT}/references/brief-format.md`, which the writer follows exactly.
@@ -95,7 +95,7 @@ Spawn a `research:writer` agent with:
 
 ## 6. Verify and cite
 
-Spawn a `research:verifier` agent with:
+Spawn a `research:verifier` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The draft path and every research file path, as the authoritative source pool.
 - The final path `<output>/<slug>.md`.
@@ -129,10 +129,16 @@ Report to savvy-progress from the main session only, through `mcp__savvy-progres
 If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
 Never call `mcp__savvy-progress__step` here, because only the agents report steps.
 Send the plan once step 2 is saved.
-Call it with `title: "Deep research: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Write the brief", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "heavy", after: [2]}`.
-Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, and reuse a task's title when you respawn its agent for another round.
+Call it with `title: "Deep research: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Write the brief", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "careful", after: [2]}`, because `research:verifier` runs on Opus.
+Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, one call per accepted stage, and send `phase: "delegate"` before you spawn the next stage's agent.
+Reuse a task's title when you respawn its agent for another round.
 Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
 End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
+End every agent brief with this line, written exactly like this, because an agent only reports steps when its brief asks it to:
+
+```text
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
+```
 
 ## Strict prohibitions
 

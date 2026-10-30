@@ -18,6 +18,7 @@ In the brief:
 - The design document, verbatim and whole, including the acceptance criteria.
 - The path of the repository, so that the reviewer can read the code the design touches.
 - The fixed task paragraph below.
+- The reporting line as the last line, because the reviewer only reports steps when its brief asks it to, and the line carries no judgement about the design.
 
 Out of the brief:
 
@@ -46,6 +47,8 @@ Decide whether this design is complete, testable and justified: dependency direc
 
 ## Design document
 <the design document, verbatim, without its Design review section>
+
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
 ```
 
 ## The review log

@@ -41,7 +41,7 @@ For a PDF, convert it with the `markitdown:markitdown` skill when it is availabl
 
 ## 2. Brief the reviewer
 
-Spawn a `research:reviewer` agent with:
+Spawn a `research:reviewer` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The artefact: a path or URL, or the pasted text in full.
 - Permission to search for key cited papers to check claims independently.
@@ -75,10 +75,15 @@ Report to savvy-progress from the main session only, through `mcp__savvy-progres
 If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
 Never call `mcp__savvy-progress__step` here, because only the agents report steps.
 Send the plan before you spawn the reviewer in step 2.
-Call it with `title: "Peer review: <slug>"`, `total: 1`, `phase: "delegate"` and `tasks` of `{title: "Review the paper", tier: "heavy", after: []}`.
+Call it with `title: "Peer review: <slug>"`, `total: 1`, `phase: "delegate"` and `tasks` of `{title: "Review the paper", tier: "careful", after: []}`, because `research:reviewer` runs on Opus.
 Send `done: 1` with `phase: "review"` once you have checked the review in step 3.
 Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
 End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
+End the reviewer's brief with this line, written exactly like this, because an agent only reports steps when its brief asks it to:
+
+```text
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
+```
 
 ## Strict prohibitions
 

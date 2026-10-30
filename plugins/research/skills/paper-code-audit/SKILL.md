@@ -70,7 +70,7 @@ If the repository has a tag or release named for the paper or its venue, say so 
 
 ## 3. Gather evidence
 
-Spawn a `research:researcher` agent with:
+Spawn a `research:researcher` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The paper reference and the local clone path `<scratch>/<slug>-repo`.
 - Task one: extract from the paper the claimed methods, architectures, algorithms, default hyperparameters, training details, metrics, datasets, evaluation protocols, data handling and ablations, each with its section, table or equation number.
@@ -96,7 +96,7 @@ Save the classified list to `<scratch>/<slug>-findings.md`.
 
 ## 5. Write the audit
 
-Spawn a `research:writer` agent with:
+Spawn a `research:writer` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The findings file and both evidence files, and the draft path `<scratch>/.drafts/<slug>-audit-draft.md`.
 - The full contents of `${CLAUDE_SKILL_DIR}/references/audit-format.md`, which the writer follows exactly.
@@ -105,7 +105,7 @@ Spawn a `research:writer` agent with:
 
 ## 6. Verify and cite
 
-Spawn a `research:verifier` agent with:
+Spawn a `research:verifier` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The draft path, both evidence files, the paper URL and the repository URL as the source pool, and the final path `<output>/<slug>-audit.md`.
 - Citation format: Markdown footnotes `[^N]`, with the paper and repository URLs checked.
@@ -127,10 +127,16 @@ Report to savvy-progress from the main session only, through `mcp__savvy-progres
 If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
 Never call `mcp__savvy-progress__step` here, because only the agents report steps.
 Send the plan once the repository is cloned in step 2.
-Call it with `title: "Paper code audit: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Write the audit", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "heavy", after: [2]}`.
-Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, and reuse a task's title when you respawn its agent for another round.
+Call it with `title: "Paper code audit: <slug>"`, `total: 3`, `phase: "delegate"` and `tasks` of `{title: "Gather evidence", tier: "medium", after: []}`, `{title: "Write the audit", tier: "medium", after: [1]}` and `{title: "Verify and cite", tier: "careful", after: [2]}`, because `research:verifier` runs on Opus.
+Send `done: 1`, `done: 2` and `done: 3` with `phase: "review"` as you accept each stage's output, one call per accepted stage, and send `phase: "delegate"` before you spawn the next stage's agent.
+Reuse a task's title when you respawn its agent for another round.
 Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
 End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
+End every agent brief with this line, written exactly like this, because an agent only reports steps when its brief asks it to:
+
+```text
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
+```
 
 ## Strict prohibitions
 
