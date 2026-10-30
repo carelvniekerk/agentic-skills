@@ -22,8 +22,8 @@ When invoked:
 
 1. Check the graph.
 Call `repository_status`.
-The Graphicle server stops at start in a folder that is not a synced project, so missing graph tools mean the repository is not synced.
-In that case begin your answer with this line, word for word: "Graphicle graph unavailable: the repository is probably not synced (`graphicle sync .` opts it in) or `graphicle` is not on the PATH. Mapped with Glob and Grep only."
+The Graphicle server stops at start when its data folder is missing or the folder is not a synced project, so missing graph tools mean the repository is not set up.
+In that case begin your answer with this line, word for word: "Graphicle graph unavailable: the repository is probably not set up for Graphicle (`graphicle setup` does that) or `graphicle` is not on the PATH. Mapped with Glob and Grep only."
 Then map with Glob and Grep only.
 If a tool reports that the code graph is not built yet, call it once more, and treat the graph as unavailable if it is still not built.
 2. Check coverage.

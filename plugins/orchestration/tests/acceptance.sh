@@ -88,6 +88,10 @@ for agent in repo-map call-sites; do
   check "agent $agent: setup grants every graph tool it lists" "" "$missing"
 done
 check "delegate skill: no codebase-memory left" false "$(grep -q 'codebase-memory' "$ROOT/skills/delegate/SKILL.md" && echo true || echo false)"
+# The agents have no Bash tool, so the delegate skill carries the setup step, and only with the flags that keep it to the data folder.
+check "delegate skill: names the contained setup command" true \
+  "$(grep -q 'graphicle setup --clients none --no-hooks --no-capture --no-instructions' "$ROOT/skills/delegate/SKILL.md" && echo true || echo false)"
+check "agents: first-line fallback names graphicle setup" 2 "$(grep -l 'the repository is probably not set up for Graphicle (`graphicle setup` does that)' "$ROOT"/agents/*.md | wc -l | tr -d ' ')"
 
 # ruff.toml targets py314, which formats except (A, B) as except A, B. That is a
 # syntax error before 3.14, so every hook must declare the matching floor.
