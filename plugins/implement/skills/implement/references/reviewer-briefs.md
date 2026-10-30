@@ -26,6 +26,7 @@ In the brief:
 - The test, lint and type-check output.
 - The locked paths and the result of the hash comparison.
 - The fixed task paragraph for that reviewer.
+- The reporting line as the last line, because a reviewer only reports steps when its brief asks it to, and the line carries no judgement about the work.
 
 Out of the brief:
 
@@ -86,6 +87,8 @@ New files, not in git yet: <paths>
 ## Locked tests
 Paths: <the protected globs>
 Hash check before this round: <unchanged or CHANGED: paths>
+
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
 ```
 
 The `Mode: change` line is for `implement:test-reviewer` and `implement:architecture-reviewer`, which read it.
@@ -114,6 +117,8 @@ Decide whether these tests prove every acceptance criterion before they are lock
 
 ## Test output
 <pytest output as it came>
+
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
 ```
 
 ## The task paragraph for each reviewer

@@ -210,7 +210,7 @@ If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__pr
 Never call `mcp__savvy-progress__step` here, because only the agents report steps.
 Send `title: "Implement: <slug>"`, `total: 3`, `phase: "design"` and `tasks` of `{title: "Review the tests", tier: "medium", after: []}`, `{title: "Review the code", tier: "medium", after: []}` and `{title: "Review the architecture", tier: "medium", after: []}` once Phase 0 passes.
 Reuse "Review the tests" for the pre-lock review in Phase 1 and switch to `phase: "delegate"` when Phase 4 spawns the three reviewers.
-At the start of each round send `done: 0` with `phase: "review"`, then send the number of reviewers whose verdict you have accepted as each returns.
+At the start of each round send `done: 0` with `phase: "delegate"` before you spawn the reviewers, then send the number of reviewers whose verdict you have accepted with `phase: "review"` as each returns, one call per accepted verdict.
 Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
 End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
 

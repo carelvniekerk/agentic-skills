@@ -49,7 +49,7 @@ The default sections are title and abstract, introduction (problem, motivation, 
 
 ## 4. Draft
 
-Spawn a `research:writer` agent with:
+Spawn a `research:writer` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The source material paths and the outline.
 - The template:
@@ -67,7 +67,7 @@ Spawn a `research:writer` agent with:
 
 ## 5. Verify and cite
 
-Spawn a `research:verifier` agent with:
+Spawn a `research:verifier` agent with the reporting line from the Progress reporting section as the last line of its brief, and with:
 
 - The draft path (its extension selects the citation track) and all source material as the source pool.
 - The final path: `<output>/<slug>.md`, `<output>/<slug>.tex`, or the project's `latex_template:` file.
@@ -86,10 +86,15 @@ Report to savvy-progress from the main session only, through `mcp__savvy-progres
 If the tool is deferred, load it with `ToolSearch select:mcp__savvy-progress__progress`, and skip reporting silently if it is absent.
 Never call `mcp__savvy-progress__step` here, because only the agents report steps.
 Send the plan once step 3 is saved.
-Call it with `title: "Paper draft: <slug>"`, `total: 2`, `phase: "delegate"` and `tasks` of `{title: "Draft the paper", tier: "medium", after: []}` and `{title: "Verify and cite", tier: "heavy", after: [1]}`.
-Send `done: 1` and `done: 2` with `phase: "review"` as you accept each stage's output.
+Call it with `title: "Paper draft: <slug>"`, `total: 2`, `phase: "delegate"` and `tasks` of `{title: "Draft the paper", tier: "medium", after: []}` and `{title: "Verify and cite", tier: "careful", after: [1]}`, because `research:verifier` runs on Opus.
+Send `done: 1` and `done: 2` with `phase: "review"` as you accept each stage's output, one call per accepted stage, and send `phase: "delegate"` before you spawn the verifier.
 Keep `title` identical across the calls and pass each task title verbatim as the `Agent` description, because the panel matches runs to tasks by that string.
 End every path, an abort included, with `finished: true` and `phase: "close"`, so the bar does not stay up.
+End every agent brief with this line, written exactly like this, because an agent only reports steps when its brief asks it to:
+
+```text
+Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
+```
 
 ## Strict prohibitions
 

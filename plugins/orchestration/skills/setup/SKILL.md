@@ -2,7 +2,7 @@
 name: setup
 description: Configure the parts of the orchestration setup that live outside the plugin. Asks which main model and which advisor model to use and writes them to ~/.claude/settings.json, adds Flightdeck as a marketplace and plugin with its options when it is missing, appends the Advisor and Delegation rules to ~/.claude/CLAUDE.md, and offers to remove old manual copies of the router hook and agents. Use after installing orchestration, or when the user says "set up model split", "set the advisor model", "change my main model" or "add flightdeck".
 disable-model-invocation: true
-allowed-tools: Read AskUserQuestion Bash(claude --version) Bash(ls *) Bash(jq *) Bash(uv tool list) Bash(codebase-memory-mcp --version)
+allowed-tools: Read AskUserQuestion Bash(claude --version) Bash(ls *) Bash(jq *) Bash(graphicle --version) Bash(brew info *)
 ---
 
 # Set up the model split
@@ -33,7 +33,7 @@ Setup progress:
 - [ ] 2. Flightdeck marketplace, plugin and options checked, diff approved, written
 - [ ] 3. Advisor and Delegation rules appended, read rule added, diff approved, written
 - [ ] 4. Old manual copies listed, removal approved or skipped
-- [ ] 5. codebase-memory-mcp checked, and installed only if missing and approved
+- [ ] 5. Graphicle checked, and installed only if missing and approved
 - [ ] 6. Report given
 ```
 
@@ -120,10 +120,11 @@ The Stop check of this plugin reads that file to learn the writing rules.
 A headless or background hook agent cannot answer a permission prompt, so without the rule its Read is denied and the style check passes every reply without saying so.
 Grant exactly that one file, not `~/.claude/**`.
 
-Also add `"mcp__plugin_orchestration_codebase-memory"` to `permissions.allow`, if no equivalent rule exists.
-The graph agents are subagents, so in a headless or background run their codebase-memory calls are denied and they fall back to Grep without the graph.
-The rule is safe to grant because `.mcp.json` starts the server with the read-only `analysis` profile, which has no index, delete or ADR-write tool.
-Do not grant it for a server that was started without that profile.
+Also add these six rules to `permissions.allow`, if no equivalent rule exists: `mcp__plugin_orchestration_graphicle__repository_status`, `mcp__plugin_orchestration_graphicle__repository_files`, `mcp__plugin_orchestration_graphicle__query_graph`, `mcp__plugin_orchestration_graphicle__get_node`, `mcp__plugin_orchestration_graphicle__get_neighbors` and `mcp__plugin_orchestration_graphicle__shortest_path`.
+The graph agents are subagents, so in a headless or background run their Graphicle calls are denied and they fall back to Grep without the graph.
+Grant the tools one by one and never the whole server.
+`.mcp.json` starts it with `--tools all`, which publishes 23 tools, and one of them, `graph_link`, persists cross-repository edges for every readable project.
+The agents' `tools:` lists and these per-tool rules are what keep a graph agent read-only, not the server profile.
 
 ## Phase 4: old copies
 
@@ -141,16 +142,20 @@ Keep any hook entry that is not one of these.
 
 ## Phase 5: code graph
 
-`orchestration:repo-map` and `orchestration:call-sites` query codebase-memory-mcp, and the plugin's `.mcp.json` starts it with `--tool-profile=analysis`.
+`orchestration:repo-map` and `orchestration:call-sites` query Graphicle, and the plugin's `.mcp.json` starts it with `graphicle mcp --tools all --project .`.
 
-1. Check first whether it is installed: run `uv tool list` and `codebase-memory-mcp --version`.
-If either shows it, report the version and change nothing.
-2. If it is missing, offer `uv tool install codebase-memory-mcp` and run it only after a yes.
-The uv package is a wrapper that downloads the native binary from GitHub on first run and verifies its checksum.
-3. Say that the user can add it to their list of uv tools, and do not edit that list.
-4. Mention retention: indexes of client code stay under `~/.cache/codebase-memory-mcp/` until `codebase-memory-mcp cli delete_project` removes them.
-
-The question about `.codebase-memory/` in a repository's `.gitignore` belongs to `orchestration:delegate`, which asks per repository.
+1. Check first whether it is installed: run `graphicle --version`.
+If it prints a version, report it and change nothing.
+2. If it is missing, offer to install it with Homebrew, using the formula `graphicle-ai/tap/graphicle`.
+Check the command with `brew info` first, and run the install only after a yes.
+3. Say that Graphicle is a young tool (0.1.x, release builds not yet signed with a trusted certificate) and that releases land almost daily, so the user may want to pin it.
+4. Say how a repository opts in: `graphicle sync .` in that repository, once.
+Without it the graph agents fall back to Glob and Grep and say so.
+Do not run the sync.
+5. Mention retention: the data folder (`~/Library/Application Support/Graphicle` on macOS) holds the synced source text of every opted-in repository until `graphicle offboard --project <folder>` removes it.
+That command prints a plan first, and `--apply <plan hash>` carries it out.
+6. If `~/.cache/codebase-memory-mcp/` exists, say that the old indexes of client code are still there, and that `codebase-memory-mcp cli delete_project` or `trash` removes them.
+Do not delete anything.
 
 ## When the chezmoi guard refuses an edit
 
@@ -178,6 +183,7 @@ Say that new settings take effect in a new session, and that the plugin hooks ap
 | Editing, copying or disabling Flightdeck's own files | It is a separate observer plugin |
 | Bypassing the chezmoi guard with a shell command | The guard exists to stop edits that `chezmoi apply` would revert |
 | Deleting with `rm`, or removing a hook entry that is not one of the old copies | Deletions go through `trash`, and other hooks are the user's |
-| Running `claude plugin install`, `uv tool install` or `chezmoi apply` without asking | Each changes state outside the files shown |
+| Running `claude plugin install`, `brew install` or `chezmoi apply` without asking | Each changes state outside the files shown |
 | Granting `Read` on more than `~/.claude/CLAUDE.md` | The rule exists for one file, and a wider grant exposes credentials stored under `~/.claude` |
-| Granting an MCP permission for any server other than `orchestration`'s `codebase-memory` | Each grant widens what a background subagent may call without asking |
+| Granting an MCP permission for anything but the six Graphicle read tools named in Phase 3, or a whole-server rule for Graphicle | Each grant widens what a background subagent may call without asking, and the server also publishes `graph_link`, which persists edges |
+| Running `graphicle sync`, `graphicle setup` or `graphicle connect` | A sync copies a repository's source text into the Graphicle store, and the user opts each repository in |

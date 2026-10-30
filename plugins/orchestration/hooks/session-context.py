@@ -20,7 +20,7 @@ CONTEXT = (
     "orchestration:call-sites finds every reference to a symbol, "
     "orchestration:api-docs fetches current library documentation. "
     "orchestration:repo-map and orchestration:call-sites query a local "
-    "codebase-memory code graph "
+    "Graphicle code graph of a synced repository "
     "and check it against the source. "
     "The orchestration:delegate skill describes when each one applies."
 )

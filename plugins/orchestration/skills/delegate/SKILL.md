@@ -19,18 +19,11 @@ The saving comes from the subagent returning paths and line numbers instead of f
 
 ## Before the first graph agent in a repository
 
-`orchestration:repo-map` and `orchestration:call-sites` query a local codebase-memory graph.
-A hook indexes the repository before either agent starts and adds the index counts to your context.
-By default the index lives under `~/.cache/codebase-memory-mcp/`, but codebase-memory can also write a `.codebase-memory/` snapshot into the repository.
-So once per repository and session, before the first spawn of either agent:
-
-1. Run `git check-ignore -q .codebase-memory/graph.db.zst` from the repository root.
-2. If it exits non-zero, ask the user with `AskUserQuestion` whether to add `.codebase-memory/` to the repository's `.gitignore`.
-3. On yes, append the line to `.gitignore` with `Edit` (or create the file with `Write`), and say that the change is unstaged.
-On no, do not ask again in this session.
-
-Ask in the main session, because subagents cannot ask the user.
-If the repository is not a git repository, skip the question.
+`orchestration:repo-map` and `orchestration:call-sites` query a local Graphicle code graph.
+Graphicle serves only a repository that the user has synced with `graphicle sync .`, so a repository enters its store by that explicit step and never through a hook.
+In an unsynced repository the server does not start, and the agents say so in their first line and fall back to Glob and Grep.
+When an agent reports that, tell the user once per session that `graphicle sync .` opts the repository in, and that the sync copies the repository's source text into the Graphicle data folder.
+Do not run the sync yourself, and carry on with the Grep-based result.
 
 ## Decide before the first search
 
@@ -51,7 +44,6 @@ Do the lookup yourself only when the code is already in your context, the answer
 - Start independent lookups in the same message so they run in parallel, for example `orchestration:call-sites` and `orchestration:api-docs` for a signature change to a library wrapper.
 - Write a complete brief, because a subagent does not see this conversation.
 Give the goal, the exact names, the directories to skip and the return format.
-- Copy the project name and the index counts from the hook's context into the graph agents' briefs, because that context reaches you and not the subagent.
 - Treat the result as a lead, and read the coverage line first.
 A count mismatch or a failed spot-check means the graph missed something, so fall back to Grep for that area.
 Read the files you are about to edit yourself, because a Haiku summary can miss a reference.
@@ -74,5 +66,5 @@ Use the `orchestration:` names above, not the bare slugs.
 | Putting secrets, credentials or client data in an `orchestration:api-docs` brief | Its web searches leave the machine |
 | Delegating an edit, a commit or a shell command | All three agents are read-only and have no Bash tool |
 | Editing a file from a subagent summary without reading the file | Haiku summaries can miss a reference |
-| Editing `.gitignore` without the user's yes | The user decides per repository whether the graph snapshot may be committed |
-| Calling `manage_adr`, `delete_project` or `index_repository` with `persistence: true` | They write into the repository or delete an index, and the plugin exposes only read-only graph tools |
+| Running `graphicle sync`, `graphicle setup` or `graphicle connect` yourself | A sync copies the repository's source text into the Graphicle store, and `setup` and `connect` write hook and MCP entries into the repository and your home folder, so the user decides per repository |
+| Calling `graph_link` or any Graphicle tool outside the agents' lists | `graph_link` persists cross-repository edges for every readable project in the workspace |
