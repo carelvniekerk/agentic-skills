@@ -40,8 +40,8 @@ agentic-skills/
     ├── orchestration/
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/           repo-map.md, call-sites.md, api-docs.md
-    │   ├── .mcp.json         codebase-memory-mcp, read-only analysis profile
-    │   ├── hooks/            hooks.json + session-context.py, graph-index.py
+    │   ├── .mcp.json         graphicle mcp, tools all, fixed to the folder's project
+    │   ├── hooks/            hooks.json + session-context.py
     │   ├── skills/           delegate, setup
     │   └── tests/            acceptance.sh, prompt-probe.sh, stop-probe.sh
     ├── meta/
@@ -77,7 +77,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
 | `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |
 | `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
-| `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: graph refresh, Bash gate, Stop check, session context | `/orchestration:setup`         |
+| `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: Bash gate, Stop check, session context | `/orchestration:setup`         |
 | `meta`           | create-skill, create-hook, create-agent, create-instructions                                                               | `/meta:create-skill`           |
 | `implement`      | architecture-design, implement + 3 read-only reviewer agents (tests, code, architecture) + hook: test lock; depends on `orchestration` | `/implement:architecture-design` |
 

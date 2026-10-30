@@ -9,7 +9,6 @@ ROOT=$(cd -P -- "$HERE/.." && pwd -P)
 readonly ROOT
 readonly HOOKS_JSON="$ROOT/hooks/hooks.json"
 readonly SESSION_HOOK="$ROOT/hooks/session-context.py"
-readonly GRAPH_HOOK="$ROOT/hooks/graph-index.py"
 readonly MCP_JSON="$ROOT/.mcp.json"
 
 pass=0
@@ -48,7 +47,7 @@ check "SessionStart: exec form" "uv" "$(jq -r '.hooks.SessionStart[0].hooks[0].c
 check "SessionStart: script through CLAUDE_PLUGIN_ROOT" true \
   "$(jq -r '.hooks.SessionStart[0].hooks[0].args | any(startswith("${CLAUDE_PLUGIN_ROOT}/"))' "$HOOKS_JSON")"
 
-check "PreToolUse: matcher groups" "Agent Bash" "$(jq -r '[.hooks.PreToolUse[].matcher] | sort | join(" ")' "$HOOKS_JSON")"
+check "PreToolUse: matcher groups" "Bash" "$(jq -r '[.hooks.PreToolUse[].matcher] | sort | join(" ")' "$HOOKS_JSON")"
 check "PreToolUse: six handlers" 6 "$(jq '(.hooks.PreToolUse[] | select(.matcher == "Bash") | .hooks) | length' "$HOOKS_JSON")"
 check "PreToolUse: one rule per handler" \
   'Bash(curl *)|Bash(git clean *)|Bash(git push *)|Bash(git reset *)|Bash(rm *)|Bash(sudo *)' \
@@ -67,38 +66,28 @@ for needle in stop_hook_active transcript_path CLAUDE.md 'Run the relevant tests
 done
 
 # --- code graph -------------------------------------------------------------
-check ".mcp.json: codebase-memory with the read-only analysis profile" "codebase-memory-mcp --tool-profile=analysis" \
-  "$(jq -r '.mcpServers["codebase-memory"] | "\(.command) \(.args | join(" "))"' "$MCP_JSON")"
-check "Agent hook: exec form through CLAUDE_PLUGIN_ROOT" "uv|true|120" \
-  "$(jq -r '.hooks.PreToolUse[] | select(.matcher == "Agent") | .hooks[0] | "\(.command)|\(.args | any(. == "${CLAUDE_PLUGIN_ROOT}/hooks/graph-index.py"))|\(.timeout)"' "$HOOKS_JSON")"
+check ".mcp.json: one Graphicle server, fixed to this folder's project" "graphicle mcp --tools all --project ." \
+  "$(jq -r '.mcpServers.graphicle | "\(.command) \(.args | join(" "))"' "$MCP_JSON")"
+check ".mcp.json: only the graphicle server" graphicle "$(jq -r '.mcpServers | keys | join(" ")' "$MCP_JSON")"
+# --or-workspace would serve every synced client repository, and --allow-learning adds the write tools.
+check ".mcp.json: no workspace or learning flag" false \
+  "$(jq -r '.mcpServers.graphicle.args | any(. == "--or-workspace" or . == "--workspace" or . == "--allow-learning")' "$MCP_JSON")"
+check "hooks.json: no graph-index hook" false "$(jq -r '[.. | strings] | any(contains("graph-index"))' "$HOOKS_JSON")"
 
-# graph_case <label> <stdin>: the hook must exit 0 and print nothing.
-graph_case() {
-  local out rc
-  out=$(printf '%s' "$2" | "$GRAPH_HOOK" 2>/dev/null)
-  rc=$?
-  check "graph-index: $1" "0|" "$rc|$out"
-}
-NOGIT=$(mktemp -d "${TMPDIR:-/tmp}/graph-index-nogit.XXXXXX")
-trap 'rm -rf "$NOGIT"' EXIT
-graph_case "other agent is ignored" '{"cwd":"/tmp","tool_input":{"subagent_type":"Explore"}}'
-graph_case "non-JSON stdin" 'not json'
-graph_case "JSON array stdin" '[]'
-graph_case "missing tool_input" '{"cwd":"/tmp"}'
-graph_case "outside a git repository" "{\"cwd\":\"$NOGIT\",\"tool_input\":{\"subagent_type\":\"orchestration:repo-map\"}}"
-out=$(printf '%s' "{\"cwd\":\"$ROOT\",\"tool_input\":{\"subagent_type\":\"orchestration:repo-map\"}}" |
-  PATH=/usr/bin:/bin "$(command -v uv)" run --script "$GRAPH_HOOK" 2>/dev/null)
-check "graph-index: binary missing exits 0 silently" "0|" "$?|$out"
-
-# The analysis profile's 13 tools; anything else (index, delete, ADR writes) must not reach an agent.
-readonly ANALYSIS_TOOLS="search_graph query_graph trace_path get_code_snippet get_file_outline get_graph_schema compare_graphs get_architecture search_code list_projects index_status check_index_coverage detect_changes"
+# --tools all publishes 23 tools, graph_link (which persists edges) among them, so an agent may list only these read tools.
+readonly GRAPH_READ_TOOLS="repository_status repository_files query_graph get_node get_neighbors shortest_path get_community god_nodes graph_stats"
 for agent in repo-map call-sites; do
-  graph_tools=$(sed -n 's/^tools: *//p' "$ROOT/agents/$agent.md" | tr ',' '\n' | sed -n 's/^ *mcp__plugin_orchestration_codebase-memory__//p')
+  graph_tools=$(sed -n 's/^tools: *//p' "$ROOT/agents/$agent.md" | tr ',' '\n' | sed -n 's/^ *mcp__plugin_orchestration_graphicle__//p')
   outside=""
-  for t in $graph_tools; do [[ " $ANALYSIS_TOOLS " == *" $t "* ]] || outside+="$t "; done
-  check "agent $agent: graph tools are read-only analysis tools" "" "$outside"
+  for t in $graph_tools; do [[ " $GRAPH_READ_TOOLS " == *" $t "* ]] || outside+="$t "; done
+  check "agent $agent: graph tools are Graphicle read tools" "" "$outside"
   check "agent $agent: has graph tools" true "$([[ -n "$graph_tools" ]] && echo true || echo false)"
+  check "agent $agent: no codebase-memory tool left" false "$(grep -q 'codebase-memory' "$ROOT/agents/$agent.md" && echo true || echo false)"
+  missing=""
+  for t in $graph_tools; do grep -q "mcp__plugin_orchestration_graphicle__$t" "$ROOT/skills/setup/SKILL.md" || missing+="$t "; done
+  check "agent $agent: setup grants every graph tool it lists" "" "$missing"
 done
+check "delegate skill: no codebase-memory left" false "$(grep -q 'codebase-memory' "$ROOT/skills/delegate/SKILL.md" && echo true || echo false)"
 
 # ruff.toml targets py314, which formats except (A, B) as except A, B. That is a
 # syntax error before 3.14, so every hook must declare the matching floor.
@@ -135,7 +124,7 @@ check "no em or en dash" "" "$(cd "$ROOT" && rg -n --glob '!tests/**' '[—–]'
 # The setup skill names the old bare files under ~/.claude/agents/ on purpose.
 check "agents named only with the orchestration: prefix" "" \
   "$(rg -n -P '(?<!orchestration:)(?<![\w-])(repo-map|call-sites|api-docs)(?![\w-])' "$ROOT/skills" "$ROOT/hooks" --glob '!*.json' | grep -v '\.claude/agents/' || true)"
-for script in "$SESSION_HOOK" "$GRAPH_HOOK" "$HERE/acceptance.sh" "$HERE/prompt-probe.sh" "$HERE/stop-probe.sh"; do
+for script in "$SESSION_HOOK" "$HERE/acceptance.sh" "$HERE/prompt-probe.sh" "$HERE/stop-probe.sh"; do
   check "executable: ${script#"$ROOT"/}" true "$([[ -x "$script" ]] && echo true || echo false)"
 done
 

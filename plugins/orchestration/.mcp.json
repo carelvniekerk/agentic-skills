@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "codebase-memory": {
-      "command": "codebase-memory-mcp",
-      "args": ["--tool-profile=analysis"]
+    "graphicle": {
+      "command": "graphicle",
+      "args": ["mcp", "--tools", "all", "--project", "."]
     }
   }
 }

@@ -8,13 +8,12 @@ Nothing in the plugin sets your main model or advisor. The `setup` skill does th
 
 | Part | What it does |
 | --- | --- |
-| `orchestration:repo-map` | Haiku subagent. Maps the files, entry points, imports, calls and inheritance a change touches, from a local code graph that it checks against the source. Tools: Read, Glob, Grep and 12 read-only graph tools. |
-| `orchestration:call-sites` | Haiku subagent. Finds every call site, import and override of a symbol from the graph and from Grep, and marks each result as found by both or by one source. Tools: Read, Grep, Glob and 7 read-only graph tools. |
+| `orchestration:repo-map` | Haiku subagent. Maps the files, entry points, imports, calls and inheritance a change touches, from a local code graph that it checks against the source. Tools: Read, Glob, Grep and six read-only Graphicle tools. |
+| `orchestration:call-sites` | Haiku subagent. Finds every call site, import and override of a symbol from the graph and from Grep, and marks each result as found by both or by one source. Tools: Read, Grep, Glob and five read-only Graphicle tools. |
 | `orchestration:api-docs` | Haiku subagent. Fetches current library documentation with source URLs. Tools: WebSearch, WebFetch, Read. |
 | `/orchestration:delegate` | Skill. Tells the main session when a lookup is worth a subagent and when it is not. |
 | `/orchestration:setup` | Skill. Writes the main and advisor models, the Flightdeck marketplace and options, the CLAUDE.md rules and a read rule into your files. |
-| `.mcp.json` | Starts `codebase-memory-mcp --tool-profile=analysis`, the 13-tool read-only profile. It has no index, delete or ADR-write tool. |
-| `PreToolUse` graph hook | Before `repo-map` or `call-sites` starts, indexes the git repository root without persistence and puts the index counts in the main session's context. |
+| `.mcp.json` | Starts `graphicle mcp --tools all --project .`. The server publishes 23 tools, one of which (`graph_link`) persists edges, so the read-only guarantee rests on the agents' tool lists and the per-tool permission rules, not on the server. |
 | `SessionStart` hook | States which subagents and skill exist, as facts. |
 | `PreToolUse` gate | Asks Sonnet about Bash commands that start with `rm`, `sudo`, `git push`, `git reset`, `git clean` or `curl`. A denial goes back to Claude as the tool error and the turn continues. |
 | `Stop` check | One Sonnet agent hook. It checks that a reply reporting code changes also reports which tests or checks ran, and that the prose follows the writing rules in your global `~/.claude/CLAUDE.md`. A failing reply goes back to Claude once. |
@@ -35,15 +34,18 @@ Without that rule the Stop check cannot read your writing rules in a headless or
 
 ## Code graph
 
-The graph agents use [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp), which indexes a repository with tree-sitter into a local SQLite graph.
-Install it once with `uv tool install codebase-memory-mcp`. The package is a wrapper that downloads the native binary on first run and verifies its checksum.
+The graph agents use [Graphicle](https://github.com/Graphicle-AI/graphicle), a Rust program that builds a code graph with tree-sitter into a local SQLite store and serves it over MCP.
+Install it with Homebrew (`graphicle-ai/tap/graphicle`).
 The `setup` skill checks whether it is installed first and installs it only when it is missing and you agree.
 
-- **Local.** The README says it runs fully locally with no telemetry. Indexing and querying worked with all IP traffic blocked by `sandbox-exec`. This is a test of two operations and not an audit.
-- **Where the index lives.** Under `~/.cache/codebase-memory-mcp/`. A repository gets a `.codebase-memory/graph.db.zst` snapshot only when someone calls `index_repository` with `persistence: true`, which the read-only profile cannot do. Before the first graph agent in a repository, `orchestration:delegate` asks whether to add `.codebase-memory/` to that repository's `.gitignore`. Remove the line by hand where committing the snapshot is fine.
-- **It can be wrong.** The package has missed files and produced wrong edges before, so both agents check it. `repo-map` compares the graph's file count with a Glob count, calls `check_index_coverage` for every path it cites, and confirms at least two edges against the source. `call-sites` compares graph callers with Grep and reads every graph-only result. In a test on this repository the graph held 204 file nodes against 208 tracked files while `index_status` reported no unindexed files, so the count comparison shows a gap that the status does not. I did not identify the four files, and some may be types it does not parse. `query_graph` also returns at most 200 rows per call and ignores a larger `LIMIT`, so the agents read `truncated` and report a truncated result as partial.
-- **Retention.** Indexes of client code stay on your machine until `codebase-memory-mcp cli delete_project` removes them.
-- **Headless runs.** A subagent cannot answer a permission prompt, so without `mcp__plugin_orchestration_codebase-memory` in `permissions.allow` the graph agents fall back to Grep and say so in their first line. The `setup` skill adds the rule.
+- Each repository opts in. `graphicle mcp --project .` serves a folder that was synced with `graphicle sync .`, or a subfolder of one. In any other folder the server exits with "No project is registered for ...; sync it first", and the agents say so in their first line and use Glob and Grep. Without `--project` the server would silently serve the last synced project, which is why `.mcp.json` sets it. Syncing a parent folder covers every repository below it.
+- The store holds source text, not only graph nodes. The data folder (`~/Library/Application Support/Graphicle` on macOS) keeps the synced files of every opted-in repository. `graphicle offboard --project <folder>` prints a plan to remove one project, and `--apply <plan hash>` carries it out. Sync respects `.gitignore` and skips folders such as `.git`, `node_modules` and `.venv` and credential files such as `.env`. In a test, `graphicle setup --clients none` wrote nothing into the repository.
+- The server is not read-only by itself. With `--tools all` it publishes 23 tools, and `graph_link` persists cross-repository edges for every readable project. The agents list at most six read tools, and `setup` grants those one by one. I have not traced whether a read call also syncs changed files into the store, which the vendor documents, so assume the store changes under every call.
+- On local operation, the vendor's README limits network use to a configured model or connector, a full `graph extract`, the GitHub tools and a daily release check that `GRAPHICLE_NO_UPDATE_NOTIFIER=1` turns off. I did not observe network traffic.
+- The tool is young. It is at 0.1.x, release builds are not signed with a trusted certificate, and the benchmarks are the vendor's own. In its SWE-bench file-finding benchmark it tied grep and used 16% more tokens. I have no coverage figures for it on a real repository yet.
+- The agents check the graph against the source. `repo-map` compares `repository_files` with a Glob count (minus the folders sync skips) and confirms at least two relations. `call-sites` compares `get_neighbors` callers with Grep and reads every graph-only result. `query_graph` marks ranges that were not checked against the current file, and the agents treat those as unconfirmed.
+- A subagent cannot answer a permission prompt, so without the six per-tool rules in `permissions.allow` the graph agents fall back to Grep and say so in their first line. The `setup` skill adds the rules.
+- The server needs `graphicle` on the `PATH` that Claude Code sees. I have not verified that for a desktop-app launch.
 
 ## Version and model requirements
 
@@ -88,6 +90,7 @@ The subagents, the gate and the Stop check do not depend on the advisor.
 
 The plugin sends no prompts or code to any processor other than Anthropic.
 The gate and the Stop check run on Anthropic models inside Claude Code.
+The graph agents read from Graphicle's local store, which holds the source text of the repositories you synced.
 The `orchestration:api-docs` agent fetches public documentation pages, so the sites it visits see the library name and version it asks for.
 Do not put client data in an `api-docs` brief.
 

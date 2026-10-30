@@ -1,7 +1,7 @@
 ---
 name: call-sites
-description: Read-only search for every call site, import and override of a named symbol, using the codebase-memory call graph cross-checked with Grep. Use before renaming a symbol or changing a function signature, and when the user asks for every call, every usage or where something is used.
-tools: Read, Grep, Glob, mcp__plugin_orchestration_codebase-memory__list_projects, mcp__plugin_orchestration_codebase-memory__index_status, mcp__plugin_orchestration_codebase-memory__check_index_coverage, mcp__plugin_orchestration_codebase-memory__search_graph, mcp__plugin_orchestration_codebase-memory__trace_path, mcp__plugin_orchestration_codebase-memory__query_graph, mcp__plugin_orchestration_codebase-memory__get_code_snippet, mcp__savvy-progress__step
+description: Read-only search for every call site, import and override of a named symbol, using the Graphicle code graph of a synced repository cross-checked with Grep. Use before renaming a symbol or changing a function signature, and when the user asks for every call, every usage or where something is used.
+tools: Read, Grep, Glob, mcp__plugin_orchestration_graphicle__repository_status, mcp__plugin_orchestration_graphicle__repository_files, mcp__plugin_orchestration_graphicle__query_graph, mcp__plugin_orchestration_graphicle__get_node, mcp__plugin_orchestration_graphicle__get_neighbors, mcp__savvy-progress__step
 model: haiku
 maxTurns: 40
 omitClaudeMd: true
@@ -15,21 +15,26 @@ If the tool is not available, skip reporting silently.
 The calls only draw a progress bar, so leave them out of your returned result.
 
 Find every reference to the symbol you are given.
-Use two independent sources and compare them, because the codebase-memory graph has missed files and calls before.
+Use two independent sources and compare them, because a graph can miss files and calls.
 Do not edit files. Do not consult the advisor.
 
 When invoked:
 
 1. Graph.
-Call `index_status`, resolve the symbol's qualified name with `search_graph`, then list its callers with `trace_path` (inbound).
-Graph results can be truncated, so read `truncated` and `has_more`, and report a truncated result as partial.
-If the graph tools are unavailable or the repository is not indexed, say so and use Grep alone.
+Call `repository_status`.
+The Graphicle server stops at start in a folder that is not a synced project, so missing graph tools mean the repository is not synced.
+In that case begin your answer with this line, word for word: "Graphicle graph unavailable: the repository is probably not synced (`graphicle sync .` opts it in) or `graphicle` is not on the PATH. Searched with Grep only."
+Then use Grep alone.
+Otherwise resolve the symbol with `get_node`, then list its callers with `get_neighbors`, and use `query_graph` for references that neither shows.
+Report a result as partial when the tool says it is partial or marks its range as not checked against the current file.
+If a tool reports that the code graph is not built yet, call it once more, and use Grep alone if it is still not built.
 2. Text.
 Grep for the symbol name, including imports, overrides, string references in config or decorators, and tests.
 3. Compare.
 Mark each reference as found by both, graph only or grep only.
 Read the line for every graph-only result to confirm it.
-A grep-only call that the graph missed is a coverage gap: call `check_index_coverage` for that file and report what it says.
+A grep-only call that the graph missed is a coverage gap: call `repository_files` with that file's path as the prefix and report whether the file is synced.
+Sync skips files that `.gitignore` excludes, `node_modules`, `.venv`, `build`, `dist` and credential files such as `.env`, so a hit in one of those is not a graph gap.
 
 Return path:line plus the calling function name, grouped by module, with the source mark on each line.
 End with one line of counts: both, graph only, grep only, and graph-only results that failed confirmation.

@@ -1,5 +1,5 @@
 {
-    "description": "Session context for the orchestration subagents, a code-graph refresh before the graph agents start, a Sonnet gate on six risky Bash command families, and a Stop check for missing test reports and breaches of the global CLAUDE.md writing rules.",
+    "description": "Session context for the orchestration subagents, a Sonnet gate on six risky Bash command families, and a Stop check for missing test reports and breaches of the global CLAUDE.md writing rules.",
     "hooks": {
         "SessionStart": [
             {
@@ -74,22 +74,6 @@
                         "timeout": 30,
                         "statusMessage": "Sonnet gate",
                         "prompt": "You are a safety gate for a Bash command that Claude Code is about to run on a developer's laptop. The hook input follows as JSON: the command is in tool_input.command and the working directory in cwd. Reply {\"ok\": true} unless the command does one of these: deletes files outside cwd or deletes uncommitted work inside it; force-pushes or rewrites published history; discards uncommitted changes; escalates privileges; sends local files, environment variables or credentials to a remote host. Deleting build artefacts, caches or virtual environments inside cwd is fine. If the command is risky, reply {\"ok\": false, \"reason\": \"<one sentence naming what is risky and a safer alternative>\"}. $ARGUMENTS"
-                    }
-                ]
-            },
-            {
-                "matcher": "Agent",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "uv",
-                        "args": [
-                            "run",
-                            "--script",
-                            "${CLAUDE_PLUGIN_ROOT}/hooks/graph-index.py"
-                        ],
-                        "timeout": 120,
-                        "statusMessage": "Refreshing the code graph"
                     }
                 ]
             }
