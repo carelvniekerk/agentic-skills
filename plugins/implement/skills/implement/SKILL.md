@@ -1,7 +1,7 @@
 ---
 name: implement
 description: >-
-  Build an approved Python design in a test-first loop.
+  Build an approved Python or TypeScript/JavaScript design in a test-first loop.
   Writes acceptance tests from the design's criteria, has them reviewed before locking them with a hook, implements in the main session, and runs three read-only reviewers for tests, code and architecture in a clean context, for at most three rounds.
   Run it after architecture-design has produced a design the user approved.
 when_to_use: >-
@@ -9,7 +9,7 @@ when_to_use: >-
   Designing comes first and belongs to implement:architecture-design, and a small change with no design document does not need the loop.
 argument-hint: "[design document path]"
 disable-model-invocation: true
-allowed-tools: Read Write Edit Glob Grep Agent Bash(uv run *) Bash(uvx ty *) Bash(ruff *) Bash(git diff *) Bash(git status *) Bash(git ls-files *) Bash(git rev-parse *) Bash(shasum *) Bash(mkdir *) Bash(rm .implement/loop.json) mcp__savvy-progress__progress
+allowed-tools: Read Write Edit Glob Grep Agent Bash(uv run *) Bash(uvx ty *) Bash(ruff *) Bash(node_modules/.bin/vitest *) Bash(node_modules/.bin/biome *) Bash(node_modules/.bin/tsc *) Bash(node_modules/.bin/eslint *) Bash(node_modules/.bin/prettier *) Bash(node_modules/.bin/depcruise *) Bash(node_modules/.bin/jest *) Bash(node --test *) Bash(git diff *) Bash(git status *) Bash(git ls-files *) Bash(git rev-parse *) Bash(shasum *) Bash(mkdir *) Bash(rm .implement/loop.json) mcp__savvy-progress__progress
 ---
 
 # Implement
@@ -49,7 +49,7 @@ Implement progress:
 - [ ] 0. Design found, approved and carrying numbered criteria (else stop)
 - [ ] 1. Acceptance tests written from the criteria, failing for the right reason, and reviewed before the lock
 - [ ] 2. Locked paths recorded in .implement/loop.json and shown to the user
-- [ ] 3. Round N: implement until the locked tests, ruff and ty are green
+- [ ] 3. Round N: implement until the locked tests, the linter and the type checker are green
 - [ ] 4. Round N: three reviewers spawned from the fixed brief template
 - [ ] 5. Round N: findings triaged and logged, stop rules checked (not met: next round)
 - [ ] 6. Marker removed and the final report written
@@ -83,12 +83,29 @@ After the user agrees, remove it with `rm .implement/loop.json` and then write t
 Run `git status --short` and name any change that is not part of this work, since the reviewers' diff would include it.
 
 Record the base with `git rev-parse HEAD`.
-Take the test, lint and type-check commands from the project's `CLAUDE.md`, and default to `uv run pytest`, `ruff check`, `ruff format --check` and `uvx ty check`.
+Fix the language from the design's `language` frontmatter, and infer it from `pyproject.toml` or `package.json` only when the field is missing, saying so.
+Take the test, lint and type-check commands from the project's `CLAUDE.md`, and fall back to the defaults for the language:
+
+| | Python | TypeScript and JavaScript |
+| --- | --- | --- |
+| Tests | `uv run pytest` | `node_modules/.bin/vitest run --allowOnly=false` |
+| Lint and format | `ruff check`, `ruff format --check` | `node_modules/.bin/biome check .` |
+| Types | `uvx ty check` | `node_modules/.bin/tsc -p . --noEmit --pretty false` |
+| Acceptance test file | `tests/acceptance/test_*.py` | `tests/acceptance/*.test.ts` |
+| Criterion ID in the name | `test_ac_1_empty_cart_raises` | `it("AC-1 rejects an empty cart", ...)` |
+
+For TypeScript and JavaScript, detect what the project uses before you fall back.
+Use Jest or `node --test` when `package.json` names them, and ESLint with Prettier when the project configures those and not Biome.
+A MERN project often has separate `client/` and `server/` packages, each with its own `package.json` and `tsconfig.json`.
+The design names the target package, and you run every command from that package's directory with paths relative to it.
+Resolve every binary from `node_modules/.bin`, and do not use `npx`, `npm run` or `npm install`.
+If a tool the project needs is not installed, stop and ask, because installing it changes `package.json` and the lockfile.
+Plain JavaScript has no type-check step unless `tsconfig.json` sets `allowJs` and `checkJs`, so say in the report which of the three checks ran.
 
 ## Phase 1: acceptance tests first, and their review
 
 Write one test per acceptance criterion under `tests/acceptance/`, or under the project's own convention if it has one.
-Put the criterion ID in each test name (`test_ac_1_empty_cart_raises`), so a reviewer can map tests to criteria.
+Put the criterion ID in each test name (`test_ac_1_empty_cart_raises` in Python, `it("AC-1 rejects an empty cart", ...)` in TypeScript), so a reviewer can map tests to criteria.
 Write the tests against the design's interfaces, and do not look at an implementation first.
 Add no test that a criterion does not require, because everything in the locked set is frozen for the loop.
 Unit tests for your own code come later, are not locked, and are read by the test reviewer like the rest.
@@ -138,10 +155,11 @@ Use the orchestration agents, with a brief that states the task, what to return 
 - `orchestration:api-docs` before you write against an external library API that has not been verified in this session.
 
 Run the locked tests, the linter and the type checker after each logical step.
-Follow the Python conventions in the `CLAUDE.md` files.
+Follow the language conventions in the `CLAUDE.md` files.
 Run the boundary checks from the design when it names them.
+For a dependency-cruiser check, confirm that the output reports more than zero modules, because it passes silently on a project with TypeScript 7.
 
-You are done with a round's implementation when the locked tests, `ruff check`, `ruff format --check` and the type checker are green.
+You are done with a round's implementation when the locked tests, the linter, the formatter check and the type checker are green.
 Do not start the Phase 4 review on a red suite.
 If you cannot make a locked test pass without changing the test or departing from the design, take the abort path in Phase 5.
 
@@ -202,6 +220,13 @@ Suggest `/git:commit` as the next step and do not run it.
 - The hook ignores a marker older than 12 hours, so a long loop needs a new marker, and a crashed loop leaves one that does nothing.
 - The hook guards Edit, Write and NotebookEdit.
 Deliberate circumvention through Bash is outside it and outside this skill's rules.
+- Vitest transpiles without type checking, so a type error in a TypeScript test does not fail the test run, and only the `tsc` step catches it.
+Include the test files in the `tsconfig.json` that `tsc -p .` reads.
+- Outside CI, Vitest exits 0 when a test file contains `.only` and reports the other tests as skipped `[probed]`.
+The default command passes `--allowOnly=false`, and the test reviewer treats `.only`, `.skip` and `.todo` in a locked file as a finding.
+- A Vitest run that matches no test files exits 1, and `--passWithNoTests` turns that into 0, so do not add the flag to make an empty suite pass.
+- `tsc` in TypeScript 7 refuses file arguments when a `tsconfig.json` is present, so type-check the project with `-p .`.
+- Biome exits 1 for findings and for a broken `biome.json`, so read the output before you call a red run a code problem.
 
 ## Progress reporting
 
@@ -230,6 +255,8 @@ End every path, an abort included, with `finished: true` and `phase: "close"`, s
 | Starting another round after a stop other than success without the user | The loop's limits are the user's safeguard |
 | `git commit`, `git push` or any history change | Hand over to the user's commit workflow |
 | `--no-verify` or any hook bypass | It hides what the checks found |
+| `npx`, `npm install`, `npm run` or any package script | They can fetch code from the network, run arbitrary scripts and change `package.json` or the lockfile |
+| `--passWithNoTests` or `--allowOnly=true` to reach green | An empty or narrowed suite proves nothing |
 
 ## Reference files
 

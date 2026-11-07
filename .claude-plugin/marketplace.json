@@ -78,7 +78,7 @@
       "name": "implement",
       "source": "./plugins/implement",
       "category": "development",
-      "tags": ["architecture", "design-patterns", "python", "code-review", "tdd", "subagents", "hooks"]
+      "tags": ["architecture", "design-patterns", "python", "typescript", "javascript", "mern", "code-review", "tdd", "subagents", "hooks"]
     }
   ]
 }

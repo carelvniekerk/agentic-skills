@@ -1,12 +1,12 @@
 ---
 name: architecture-design
 description: >-
-  Design the architecture of a Python feature or system and write a design document with testable acceptance criteria, ending at a human approval gate.
-  Chooses module boundaries and dependency direction, and chooses a design pattern only when a named force justifies it, checking the Python idiom first.
+  Design the architecture of a Python or TypeScript/JavaScript feature or system, including MERN and Node APIs, and write a design document with testable acceptance criteria, ending at a human approval gate.
+  Chooses module boundaries and dependency direction, and chooses a design pattern only when a named force justifies it, checking the language idiom first.
   A read-only architecture reviewer in a clean context checks the draft for up to three rounds before the human sees it.
   Use when the user asks to design, architect or structure something before building it, which design pattern fits a problem, how to split a codebase into modules, or for an ADR or a design document ahead of implementation, even if they do not say "architecture".
 when_to_use: >-
-  Trigger phrases: "design this", "architecture for", "how should I structure", "which design pattern", "should I use a factory", "draft an ADR", "design doc before we build", "module boundaries for", "review this design".
+  Trigger phrases: "design this", "architecture for", "how should I structure", "which design pattern", "should I use a factory", "draft an ADR", "design doc before we build", "module boundaries for", "review this design", "design a MERN app", "structure this Express API", "MVC or service layer", "how should I lay out this Node backend".
   Building the design belongs to implement:implement, a plain explanation of one pattern is answered directly, and refactoring a single function is not this skill.
 allowed-tools: Read Grep Glob Write Edit Agent Bash(mkdir *) mcp__savvy-progress__progress
 ---
@@ -16,6 +16,8 @@ allowed-tools: Read Grep Glob Write Edit Agent Bash(mkdir *) mcp__savvy-progress
 You turn a requirement into a design document that a person approves and that `implement:implement` can build from.
 The design names its forces, its module boundaries, the direction of every dependency, each pattern it uses and why, and the acceptance criteria that the implementation will be tested against.
 You write no code and no tests.
+The skill covers Python and TypeScript/JavaScript, and Phase 0 fixes the language.
+The text below describes the Python rules, and `${CLAUDE_SKILL_DIR}/references/typescript.md` holds the TypeScript and JavaScript counterparts, including the MERN and MVC layout.
 The document goes to `<design dir>/<slug>.md`, where the design directory comes from the project's `CLAUDE.md` and defaults to `docs/design/`.
 
 A read-only reviewer, `implement:architecture-reviewer` in design mode, checks the draft before you present it, for at most three rounds.
@@ -89,11 +91,19 @@ The book itself is cited by title, authors, publisher and year, and its text is 
 Extract what you can from the conversation, then ask in one batched message only for the gaps:
 
 1. What must the system do, in observable behaviour?
-2. What are the constraints: Python version, dependencies already in use, deployment, data protection (DSGVO) where personal data is involved, and anything that must not change?
+2. What are the constraints: language and runtime version, dependencies already in use, deployment, data protection (DSGVO) where personal data is involved, and anything that must not change?
 3. What is out of scope?
 4. Is there an existing codebase, and which part does this touch?
 
 If the requirement is a single function with one caller, say so and stop, because a design document adds nothing there.
+
+Fix the language before Phase 1.
+An existing codebase decides it: `pyproject.toml` or `.py` files mean Python, and `package.json` or `tsconfig.json` mean TypeScript or JavaScript.
+For a greenfield design, take it from the request, and when a request names Node, Express, React or MERN without a language, design for TypeScript, because strict typing is the stated preference.
+Design for plain JavaScript only when the existing code is JavaScript or the user asks for it, and then read the JavaScript notes in `typescript.md`.
+When the codebase holds both languages, design for the part the requirement touches and say which.
+Record the language in the design's frontmatter and pass it to the reviewer on the `Language:` line of its brief.
+For TypeScript or JavaScript, read `${CLAUDE_SKILL_DIR}/references/typescript.md` now and keep it for Phases 2 to 5.
 
 ## Phase 1: survey the codebase
 
@@ -120,9 +130,11 @@ A quality attribute without a target stays out of the criteria and goes under un
 
 Read `${CLAUDE_SKILL_DIR}/references/architecture-checks.md` before this phase.
 Choose the packages, assign each to a layer, and draw every dependency towards the domain.
-Define ports as `typing.Protocol` where a boundary needs one, and build concrete classes in one composition root.
+In Python, define ports as `typing.Protocol` where a boundary needs one, and build concrete classes in one composition root.
 Use the `src` layout for a package.
-Record the boundaries as checks that a tool can run, with import-linter contracts as the default mechanism, because a boundary that only exists in a diagram erodes.
+In TypeScript, define ports as interfaces or type aliases owned by the inner layer, build the concrete classes in one composition root, and read `typescript.md` for the layouts, including MVC.
+Record the boundaries as checks that a tool can run, with import-linter contracts as the Python default and Biome import patterns as the TypeScript default, because a boundary that only exists in a diagram erodes.
+dependency-cruiser is the alternative for cycles and whole-graph rules, and it passes silently on a TypeScript 7 project, so follow the caveat in `typescript.md` before you record it as the check.
 Do not set numeric limits for coupling or cohesion, since the evidence behind such limits is for fault prediction on specific datasets and not for one change.
 
 ## Phase 4: the pattern gate
@@ -132,7 +144,9 @@ For each pattern you consider, run the gate in this order, and stop at the first
 
 1. Name the force in this requirement that the pattern resolves.
 No named force means rejection.
-2. Check the Python idiom first (a function, a dataclass, a module, a generator, a `Protocol`).
+2. Check the language idiom first.
+In Python that is a function, a dataclass, a module, a generator or a `Protocol`.
+In TypeScript that is a function, a closure, a plain module, a discriminated union, an interface or a `Map`, and `typescript.md` lists the idiom per pattern.
 If the idiom resolves the force, use the idiom and record the pattern as replaced.
 3. Check that the variation exists now.
 Two real variants today, or a stated near-term need in the requirement, justify an abstraction, and an imagined one does not.
@@ -153,7 +167,7 @@ Create the design directory with `mkdir -p` if it does not exist, and read any e
 
 Read `${CLAUDE_SKILL_DIR}/references/design-review-brief.md` before this phase.
 Spawn one `implement:architecture-reviewer` per round with the fixed brief from that file.
-The brief holds the design document verbatim and the repository path, and leaves out your summary, your reasoning, your opinion of the design and the earlier rounds' findings, because the reviewer is meant to judge the document as a reader would.
+The brief holds the design document verbatim, the repository path and the `Language:` line, and leaves out your summary, your reasoning, your opinion of the design and the earlier rounds' findings, because the reviewer is meant to judge the document as a reader would.
 Every round spawns a fresh reviewer.
 
 Handle the verdict this way:
@@ -191,6 +205,8 @@ Do not start implementing, and do not treat silence or a general "continue" as a
 - Interpreter and Mediator have no Python treatment in the sources, and Adapter, Bridge, Composite, Facade, Proxy and several behavioural patterns rest on one source or on inference.
 - Dependency inversion is optional for the data layer in one source and defining in four, so state which rule the design adopts.
 - Several primary sources behind the architecture checks were never read, among them Martin's dependency inversion text, the ISO/IEC 25010 standard and the ATAM report.
+- `patterns.md` and `architecture-checks.md` were researched for Python.
+The TypeScript idioms and layouts in `typescript.md` come from the author's reading of the tool documentation and from inference, with no research brief behind them, so mark a TypeScript recommendation that rests on an `[inferred]` row as such in the design.
 
 ## Progress reporting
 
@@ -226,7 +242,10 @@ End every path, an abort included, with `finished: true` and `phase: "close"`, s
 - `${CLAUDE_SKILL_DIR}/references/patterns.md`: the 23 patterns with the force that justifies each, its cost, the Python idiom to check first and an evidence tag, plus when not to apply a pattern and the gaps in the sources.
 Read before Phase 4.
 - `${CLAUDE_SKILL_DIR}/references/architecture-checks.md`: dependency direction, coupling and cohesion, decision records, quality attributes, fitness functions and Python practice, with what a reviewer can check from a diff.
+The language-neutral sections apply to TypeScript too.
 Read before Phase 3.
+- `${CLAUDE_SKILL_DIR}/references/typescript.md`: the TypeScript and JavaScript counterpart of the Python rules: the idiom to check first per pattern, ports and the composition root, project layouts including MERN with MVC as background only, boundary checks with Biome import patterns or dependency-cruiser, and JavaScript notes.
+Read in Phase 0 when the language is TypeScript or JavaScript.
 - `${CLAUDE_SKILL_DIR}/references/design-template.md`: the design document structure and the acceptance criteria format.
 Read before Phase 5.
 - `${CLAUDE_SKILL_DIR}/references/design-review-brief.md`: the fixed brief for the design review, what stays out of it, and the format of the review log.

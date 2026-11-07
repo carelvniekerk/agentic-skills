@@ -16,12 +16,14 @@ A section that has nothing to say is deleted and not filled with a placeholder.
 ```yaml
 ---
 title: <what is being designed>
+language: python
 status: draft
 date: YYYY-MM-DD
 approved-by: ""
 ---
 ```
 
+`language` is `python`, `typescript` or `javascript`, and the implement skill takes its commands and conventions from it.
 `status` is `draft` until the user approves it, and then `approved`.
 The implement skill refuses a design whose status is `draft` unless the user confirms in the conversation that they approve it.
 
@@ -35,9 +37,9 @@ The conflicts the design resolves, each with the quality attribute it affects an
 The packages and the layer each belongs to, the direction of every dependency, the ports and the composition root.
 Add a diagram only where it shows something the prose does not, and use C4 level names if it does.
 4. Boundary checks.
-The import-linter contracts or equivalent checks that keep the structure, written so that a tool can run them.
+The import-linter contracts, dependency-cruiser rules or equivalent checks that keep the structure, written so that a tool can run them.
 5. Pattern decisions.
-A table with one row per candidate: the pattern, the named force, the Python idiom considered, the decision (used, idiom instead, rejected) and the evidence tag of the row in the pattern guide.
+A table with one row per candidate: the pattern, the named force, the language idiom considered, the decision (used, idiom instead, rejected) and the evidence tag of the row in the pattern guide.
 State when no pattern is used.
 6. Decisions and rejected alternatives.
 One entry per significant decision, in the ADR shape: context, decision, consequences and the alternatives considered.
@@ -59,6 +61,7 @@ Delete the section if no review ran, and say why under evidence limits.
 | ID | Given | When | Then | Test level |
 | --- | --- | --- | --- | --- |
 | AC-1 | An empty cart | The user checks out | The call raises `EmptyCartError` and no order is stored | Unit |
+| AC-3 | A request to `POST /orders` with an empty cart | The route handler runs | The response is 422 with code `empty_cart` and no order is stored | Integration |
 | AC-2 | A stored order | The order is loaded through the repository port | The loaded order equals the stored one | Integration |
 
 Each criterion is one observable behaviour, written so that a failing test would show it broken.

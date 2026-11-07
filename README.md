@@ -59,8 +59,9 @@ Each runs a draft, test, review and iterate loop against the current reference d
 Inside a plugin marketplace repository they follow the `plugins/<plugin>/` layout; elsewhere they default to personal or project scope.
 See [Guard hooks](#guard-hooks) below.
 
-- **`implement`**: design and build in a loop, for Python.
-`architecture-design` picks module boundaries and dependency direction and picks a design pattern only when a named force justifies it, with the Python idiom checked first.
+- **`implement`**: design and build in a loop, for Python and for TypeScript or JavaScript.
+`architecture-design` picks module boundaries and dependency direction and picks a design pattern only when a named force justifies it, with the language idiom checked first.
+For TypeScript it designs for `strict` mode by default and knows the Node and MERN layouts, including MVC, which it treats as background: it surveys an existing MVC codebase and never proposes MVC for a new design unless you ask.
 A read-only architecture reviewer checks the draft for up to three rounds, and the skill then ends at a human approval gate.
 `implement` writes acceptance tests from the design, has a test reviewer check them for up to three rounds, locks them with a hook, implements in the main session and runs three read-only reviewers (tests, code, architecture) in a clean context for up to three rounds.
 The pattern guide is paraphrased from open sources, marks its thin rows, and contains no text from the book.
