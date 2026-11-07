@@ -29,6 +29,10 @@ agentic-skills/
     ├── python-quality/
     │   ├── .claude-plugin/plugin.json
     │   └── hooks/            hooks.json + the shell scripts it points at
+    ├── nodejs-quality/
+    │   ├── .claude-plugin/plugin.json
+    │   ├── hooks/            hooks.json + the shell scripts it points at
+    │   └── tests/            acceptance.sh
     ├── chezmoi/
     │   ├── .claude-plugin/plugin.json
     │   ├── hooks/            hooks.json + chezmoi-guard.sh
@@ -64,7 +68,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 
 ---
 
-## The Twelve Plugins
+## The Thirteen Plugins
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -75,6 +79,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `langchain`      | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
 | `research`       | deep-research, external-research, literature-review, source-comparison, eli5, tldr, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
 | `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
+| `nodejs-quality` | secrets-guard, fix-on-write, turn-gate: hooks only, no skills or agents                                                     | nothing; hooks fire on events  |
 | `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |
 | `uv`             | uv-redirect — hook only, no skills or agents                                                                               | nothing; hooks fire on events  |
 | `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: Bash gate, Stop check, session context | `/orchestration:setup`         |
