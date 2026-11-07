@@ -85,6 +85,12 @@
       "source": "./plugins/implement",
       "category": "development",
       "tags": ["architecture", "design-patterns", "python", "typescript", "javascript", "mern", "code-review", "tdd", "subagents", "hooks"]
+    },
+    {
+      "name": "dreaming",
+      "source": "./plugins/dreaming",
+      "category": "workflow",
+      "tags": ["memory", "auto-memory", "consolidation", "subagents", "hooks", "sessionstart"]
     }
   ]
 }
