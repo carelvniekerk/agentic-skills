@@ -51,13 +51,20 @@ agentic-skills/
     ├── meta/
     │   ├── .claude-plugin/plugin.json
     │   └── skills/           create-skill, create-hook, create-agent, create-instructions
-    └── implement/
+    ├── implement/
+    │   ├── .claude-plugin/plugin.json
+    │   ├── skills/           architecture-design, implement
+    │   ├── agents/           test-reviewer.md, code-reviewer.md, architecture-reviewer.md
+    │   ├── hooks/            hooks.json + test-lock.py
+    │   ├── tests/            acceptance.sh
+    │   └── evals/            trigger and near-miss cases for architecture-design
+    └── dreaming/
         ├── .claude-plugin/plugin.json
-        ├── skills/           architecture-design, implement
-        ├── agents/           test-reviewer.md, code-reviewer.md, architecture-reviewer.md
-        ├── hooks/            hooks.json + test-lock.py
+        ├── skills/           dream
+        ├── agents/           dreamer.md
+        ├── hooks/            hooks.json + dream-gate.sh, staging-guard.sh
         ├── tests/            acceptance.sh
-        └── evals/            trigger and near-miss cases for architecture-design
+        └── evals/            trigger and near-miss cases for dream
 ```
 
 Every plugin directory is self-contained.
@@ -68,7 +75,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 
 ---
 
-## The Thirteen Plugins
+## The Fourteen Plugins
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -85,6 +92,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: Bash gate, Stop check, session context | `/orchestration:setup`         |
 | `meta`           | create-skill, create-hook, create-agent, create-instructions                                                               | `/meta:create-skill`           |
 | `implement`      | architecture-design, implement + 3 read-only reviewer agents (tests, code, architecture) + hook: test lock; depends on `orchestration` | `/implement:architecture-design` |
+| `dreaming`       | dream + 1 agent (dreamer, writes only to a staging directory) + hooks: SessionStart gate that starts the agent in the current session, PreToolUse staging guard. Works on native auto memory only| `/dreaming:dream`                |
 
 Plugin skills are **always** namespaced by the plugin name.
 The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.

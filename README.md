@@ -23,6 +23,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
 | `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
 | `implement`      | `architecture-design`, `implement`                                                                                        | `test-reviewer`, `code-reviewer`, `architecture-reviewer` | `PreToolUse`                |
+| `dreaming`       | `dream`                                                                                                                   | `dreamer`                                  | `SessionStart`, `PreToolUse`               |
 
 ### What each one does
 
@@ -71,6 +72,13 @@ A read-only architecture reviewer checks the draft for up to three rounds, and t
 `implement` writes acceptance tests from the design, has a test reviewer check them for up to three rounds, locks them with a hook, implements in the main session and runs three read-only reviewers (tests, code, architecture) in a clean context for up to three rounds.
 The pattern guide is paraphrased from open sources, marks its thin rows, and contains no text from the book.
 It needs the `orchestration` plugin for its lookups.
+
+- **`dreaming`**: consolidates Claude Code native auto memory, with no install script and no background process.
+A `SessionStart` hook checks whether memory changed since the last pass and at least seven days have passed, or whether `MEMORY.md` exceeds 80 lines, and then tells the session to start the `dreamer` subagent where you can see it.
+The agent writes a proposal and a report to a staging directory beside the memory directory, and a `PreToolUse` hook refuses any other write by that agent.
+`/dreaming:dream apply` shows the diff, snapshots memory in a git repository inside the memory directory, and applies the changes only on your approval, with deletions approved one by one.
+`/dreaming:dream all` runs each project on its own, and `/dreaming:dream revert` undoes a pass.
+It needs `jq`, and the hook gate is tested by `plugins/dreaming/tests/acceptance.sh`.
 
 ---
 

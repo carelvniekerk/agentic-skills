@@ -1,0 +1,30 @@
+{
+    "description": "Starts a visible memory consolidation subagent at session start when native memory is due for one, and confines that subagent's writes to a staging directory.",
+    "hooks": {
+        "SessionStart": [
+            {
+                "matcher": "startup",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dream-gate.sh",
+                        "timeout": 10,
+                        "statusMessage": "checking memory"
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/staging-guard.sh",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ]
+    }
+}

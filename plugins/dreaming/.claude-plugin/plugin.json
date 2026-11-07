@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "dreaming",
+  "description": "Consolidates Claude Code native auto memory. A SessionStart hook decides when a pass is due and has the main session start a visible dreaming:dreamer subagent, which writes a proposal and a report to a staging directory. The dreaming:dream skill shows the diff, snapshots memory in git and applies it only on approval, and a PreToolUse hook confines the subagent to staging. Requires jq.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["memory", "auto-memory", "consolidation", "subagents", "hooks", "sessionstart"]
+}
