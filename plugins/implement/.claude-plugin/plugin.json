@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "implement",
-  "description": "Design and build in a loop. An architecture design skill picks module boundaries and design patterns from named forces, has a reviewer check the draft and ends at a human gate. An implement skill then writes acceptance tests first, has them reviewed, locks them with a hook, implements in the main session and runs three read-only reviewers in a clean context.",
+  "description": "Design and build in a loop, for Python and for TypeScript or JavaScript (Node.js, MERN). An architecture design skill picks module boundaries and design patterns from named forces, has a reviewer check the draft and ends at a human gate. An implement skill then writes acceptance tests first, has them reviewed, locks them with a hook, implements in the main session and runs three read-only reviewers in a clean context.",
   "author": {
     "name": "Carel van Niekerk",
     "email": "code@carelvniekerk.com",
@@ -10,6 +10,6 @@
   "homepage": "https://github.com/carelvniekerk/agentic-skills",
   "repository": "https://github.com/carelvniekerk/agentic-skills",
   "license": "MIT",
-  "keywords": ["architecture", "design-patterns", "python", "code-review", "tdd", "agent-loop"],
+  "keywords": ["architecture", "design-patterns", "python", "typescript", "javascript", "mern", "code-review", "tdd", "agent-loop"],
   "dependencies": ["orchestration"]
 }

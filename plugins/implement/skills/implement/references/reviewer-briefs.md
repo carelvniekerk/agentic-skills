@@ -52,6 +52,19 @@ uvx ty check 2>&1 | tail -n 40
 shasum -a 256 <each locked path>
 ```
 
+The three lines from `uv run pytest` to `uvx ty check` are the Python commands.
+For TypeScript and JavaScript, take the same three outputs from the project's local binaries, with the defaults below:
+
+```bash
+node_modules/.bin/vitest run --allowOnly=false tests/acceptance 2>&1 | tail -n 60
+node_modules/.bin/biome check . 2>&1 | tail -n 40
+node_modules/.bin/tsc -p . --noEmit --pretty false 2>&1 | tail -n 40
+```
+
+`--allowOnly=false` makes a stray `.only` fail the run, because without it Vitest exits 0 outside CI and reports the other tests only as skipped `[probed]`.
+Replace the Biome line with `node_modules/.bin/eslint .` and `node_modules/.bin/prettier --check .` when the project configures those instead.
+Replace the Vitest line with the project's own runner when `package.json` names Jest or `node --test`.
+
 Use the project's own commands where `CLAUDE.md` names them.
 Paste the output as it came, and do not summarise it.
 The criteria and the design excerpt come from the design file by copying, and the locked paths come from `.implement/loop.json`.
@@ -63,6 +76,7 @@ A changed locked test is a stop for you before the review, so a `CHANGED` line r
 
 ```text
 Mode: change
+Language: <python, typescript or javascript, from the design's frontmatter>
 This is review round <N>. Return the format in your instructions.
 
 ## Task
@@ -82,7 +96,7 @@ New files, not in git yet: <paths>
 <output of git diff HEAD>
 
 ## Test output
-<pytest, ruff and ty output as it came>
+<test runner, linter and type-check output as it came>
 
 ## Locked tests
 Paths: <the protected globs>
@@ -93,14 +107,16 @@ Progress reporting: before any other work, call mcp__savvy-progress__step with t
 
 The `Mode: change` line is for `implement:test-reviewer` and `implement:architecture-reviewer`, which read it.
 Omit it from the brief for `implement:code-reviewer`.
+All three reviewers read the `Language:` line, so keep it in every brief.
 
 ## The pre-lock test review brief
 
 The tests are written and failing, and no implementation exists, so the brief has no diff, no changed-file list and no lock status.
-Take the test output from `uv run pytest -q 2>&1 | tail -n 60`, and paste it as it came.
+Take the test output from `uv run pytest -q 2>&1 | tail -n 60` for Python, or from the Vitest command above for TypeScript and JavaScript, and paste it as it came.
 
 ```text
 Mode: pre-lock
+Language: <python, typescript or javascript, from the design's frontmatter>
 This is pre-lock test review round <N>. Return the format in your instructions.
 
 ## Task
@@ -116,7 +132,7 @@ Decide whether these tests prove every acceptance criterion before they are lock
 <paths>
 
 ## Test output
-<pytest output as it came>
+<test runner output as it came>
 
 Progress reporting: before any other work, call mcp__savvy-progress__step with total (your plan in 3-8 steps) and done: 0 and call it again with done and a few-word note as each step finishes. It only draws a progress bar.
 ```
@@ -134,7 +150,7 @@ Decide whether the tests prove every acceptance criterion. Map each criterion ID
 For `implement:code-reviewer`:
 
 ```text
-Decide whether the implementation is correct against the acceptance criteria and the design, and whether it is simple and idiomatic Python. Read the changed files and the code around them yourself.
+Decide whether the implementation is correct against the acceptance criteria and the design, and whether it is simple and idiomatic in the language named on the Language line. Read the changed files and the code around them yourself.
 ```
 
 For `implement:architecture-reviewer`:

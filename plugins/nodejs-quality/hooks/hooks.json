@@ -1,0 +1,43 @@
+{
+    "description": "Node.js quality gates: secret refusal on write, auto-fix after write, lint, format and type-check gate at end of turn.",
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/secrets-guard.sh",
+                        "timeout": 15,
+                        "statusMessage": "checking for secrets"
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/fix-on-write.sh",
+                        "timeout": 30,
+                        "statusMessage": "fixing"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/turn-gate.sh",
+                        "timeout": 180,
+                        "statusMessage": "quality gate"
+                    }
+                ]
+            }
+        ]
+    }
+}

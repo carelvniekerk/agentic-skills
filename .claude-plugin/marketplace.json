@@ -51,6 +51,12 @@
       "tags": ["hooks", "python", "ruff", "ty", "type-checking", "quality-gate", "secrets"]
     },
     {
+      "name": "nodejs-quality",
+      "source": "./plugins/nodejs-quality",
+      "category": "workflow",
+      "tags": ["hooks", "nodejs", "typescript", "javascript", "biome", "eslint", "tsc", "quality-gate", "secrets"]
+    },
+    {
       "name": "chezmoi",
       "source": "./plugins/chezmoi",
       "category": "configuration",
@@ -78,7 +84,7 @@
       "name": "implement",
       "source": "./plugins/implement",
       "category": "development",
-      "tags": ["architecture", "design-patterns", "python", "code-review", "tdd", "subagents", "hooks"]
+      "tags": ["architecture", "design-patterns", "python", "typescript", "javascript", "mern", "code-review", "tdd", "subagents", "hooks"]
     }
   ]
 }

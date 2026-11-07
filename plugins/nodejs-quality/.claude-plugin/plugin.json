@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "nodejs-quality",
+  "description": "Deterministic JavaScript and TypeScript quality gates as hooks. They refuse writes containing private keys, auto-fix formatting and lint after every edit, and block the turn until the files changed in it pass Biome (or ESLint and Prettier when the project configures those) and the tsc type check. Requires jq. Every tool is taken from the project's node_modules/.bin and never from npx.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["hooks", "nodejs", "typescript", "javascript", "biome", "eslint", "prettier", "tsc", "quality-gate", "secrets"]
+}

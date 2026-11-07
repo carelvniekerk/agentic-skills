@@ -74,6 +74,8 @@ expect_deny "Write creating a new protected file" Write file_path "$PROJECT/test
 expect_deny "Edit on an exact protected path" Edit file_path "$PROJECT/tests/test_spec.py" "$PROJECT"
 expect_deny "directory glob with a trailing slash" Write file_path "$PROJECT/docs/design.md" "$PROJECT"
 expect_deny "NotebookEdit through notebook_path" NotebookEdit notebook_path "$PROJECT/tests/acceptance/nb.ipynb" "$PROJECT"
+expect_deny "TypeScript test file under the glob" Edit file_path "$PROJECT/tests/acceptance/orders.test.ts" "$PROJECT"
+expect_deny "new TypeScript test in a subdirectory" Write file_path "$PROJECT/tests/acceptance/api/cart.test.tsx" "$PROJECT"
 expect_deny "the marker itself" Write file_path "$MARKER" "$PROJECT"
 expect_deny "relative path from a subdirectory" Edit file_path "../../tests/test_spec.py" "$PROJECT/src/pkg"
 expect_deny "cwd in a subdirectory finds the marker" Edit file_path "$PROJECT/tests/acceptance/test_a.py" "$PROJECT/src/pkg"
@@ -83,6 +85,7 @@ check "denial reason names the file" true "$([[ "$reason" == *"tests/acceptance/
 check "denial reason says stop and ask the user" true "$([[ "$reason" == *"ask the user"* ]] && echo true || echo false)"
 
 expect_allow "implementation file" Edit file_path "$PROJECT/src/pkg/module.py" "$PROJECT"
+expect_allow "TypeScript implementation file" Edit file_path "$PROJECT/src/pkg/orders.ts" "$PROJECT"
 expect_allow "test outside the globs" Edit file_path "$PROJECT/tests/test_other.py" "$PROJECT"
 expect_allow "bare glob does not reach subdirectories" Edit file_path "$PROJECT/tests/sub/test_spec.py" "$PROJECT"
 expect_allow "path outside the project" Edit file_path "/tmp/not-in-project/tests/test_spec.py" "$PROJECT"
