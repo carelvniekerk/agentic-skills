@@ -17,6 +17,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `langchain`      | `langgraph-multi-agent-architect`                                                                                         | —                                          | —                                          |
 | `research`       | `deep-research`, `external-research`, `literature-review`, `source-comparison`, `eli5`, `tldr`, `paper-draft`, `peer-review`, `paper-code-audit` | `researcher`, `writer`, `verifier`, `reviewer` | —                                          |
 | `python-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
+| `nodejs-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
 | `chezmoi`        | —                                                                                                                         | —                                          | `PreToolUse`                               |
 | `uv`             | —                                                                                                                         | —                                          | `PreToolUse`                               |
 | `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
@@ -45,6 +46,10 @@ Ships four subagents (`researcher` → `writer` → `verifier` → `reviewer`) t
 - **`python-quality`** — no skills and no agents.
 It ships three hooks that enforce Python hygiene without asking Claude to remember to.
 See [Python quality hooks](#python-quality-hooks) below.
+
+- **`nodejs-quality`**: no skills and no agents.
+The same three hooks as `python-quality`, for JavaScript and TypeScript, built on Biome, or on ESLint and Prettier when the project configures those, plus the `tsc` type check.
+See [Node.js quality hooks](#nodejs-quality-hooks) below.
 
 - **`chezmoi`** — one hook that refuses to edit a chezmoi-managed dotfile in the working tree and names the source file to edit instead.
 See [Guard hooks](#guard-hooks) below.
@@ -224,6 +229,51 @@ Silencing it is a project decision, not the plugin's, so it goes in your own `py
 [tool.ty.rules]
 unresolved-import = "ignore"
 ```
+
+---
+
+## Node.js quality hooks
+
+The `nodejs-quality` plugin carries no skills and no agents.
+It has the same three hooks as `python-quality`, for `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs` and `.cjs` files.
+
+| Event         | Script             | Does                                                                                          |
+| ------------- | ------------------ | --------------------------------------------------------------------------------------------- |
+| `PreToolUse`  | `secrets-guard.sh` | Denies an `Edit`, `Write`, or `NotebookEdit` to a JavaScript or TypeScript file whose content holds a private key |
+| `PostToolUse` | `fix-on-write.sh`  | Runs `biome check --write`, or `eslint --fix` and `prettier --write`, then tells Claude the file on disk changed |
+| `Stop`        | `turn-gate.sh`     | Blocks the turn while the files changed in it fail the lint and format check, the `tsc` type check or the private-key check |
+
+```bash
+claude plugin install nodejs-quality@agentic-skills
+```
+
+### What it needs
+
+`jq` is the only hard requirement on PATH.
+The tools come from the project's own `node_modules/.bin`, searched from the working directory upwards so that a workspace root install is found.
+The hooks never call `npx`, `npm exec` or `pnpm exec`, because `npx` can prompt for or fetch a package, and a hook must not touch the network.
+A tool that is configured but not installed is reported on stderr and skipped.
+
+A MERN layout with `client/` and `server/` packages and no `package.json` at the root works: the gate groups the changed files by their nearest `package.json` and checks each package from inside it, with its own configuration and `tsconfig.json`.
+
+Toolchain choice defers to the project.
+Biome is used when a `biome.json` or `biome.jsonc` exists.
+Otherwise ESLint (flat config only, as ESLint 10 reads nothing else) and Prettier are used for whichever of them the project configures.
+A project with no configuration at all gets Biome with its defaults, but only when Biome is installed.
+
+### Behaviour worth knowing
+
+The type check runs `tsc -p . --noEmit` over the whole project and keeps the diagnostics in files changed this turn.
+TypeScript 7 refuses file arguments when a `tsconfig.json` is present, so a per-file run is not possible.
+Errors in other files go to stderr and do not block, so an old backlog cannot hold up unrelated work.
+The check is skipped when there is no `tsconfig.json` in the project root, so a plain JavaScript project is not type-checked unless that file sets `allowJs` and `checkJs`.
+The build cache lives in `$TMPDIR`.
+
+Biome exits 1 both for findings and for a broken `biome.json`, so the gate reads the output to tell them apart and reports a broken configuration on stderr instead of blocking.
+Biome also reports an absolute file path through a symlinked directory as "Checked 0 files" with exit 0, so the write hook passes a path relative to the project.
+
+The `Stop` gate blocks at most twice per session before letting the turn end, with the counter in `$TMPDIR`, as in `python-quality`.
+The acceptance tests in `plugins/nodejs-quality/tests/acceptance.sh` use stub tools and run the real Biome when one is on PATH.
 
 ---
 

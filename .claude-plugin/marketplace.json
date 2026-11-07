@@ -51,6 +51,12 @@
       "tags": ["hooks", "python", "ruff", "ty", "type-checking", "quality-gate", "secrets"]
     },
     {
+      "name": "nodejs-quality",
+      "source": "./plugins/nodejs-quality",
+      "category": "workflow",
+      "tags": ["hooks", "nodejs", "typescript", "javascript", "biome", "eslint", "tsc", "quality-gate", "secrets"]
+    },
+    {
       "name": "chezmoi",
       "source": "./plugins/chezmoi",
       "category": "configuration",
