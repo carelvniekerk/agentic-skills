@@ -91,6 +91,12 @@
       "source": "./plugins/dreaming",
       "category": "workflow",
       "tags": ["memory", "auto-memory", "consolidation", "subagents", "hooks", "sessionstart"]
+    },
+    {
+      "name": "desktop-dreamer",
+      "source": "./plugins/desktop-dreamer",
+      "category": "workflow",
+      "tags": ["memory", "desktop", "consolidation", "backup", "revert"]
     }
   ]
 }

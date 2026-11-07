@@ -58,12 +58,16 @@ agentic-skills/
     │   ├── hooks/            hooks.json + test-lock.py
     │   ├── tests/            acceptance.sh
     │   └── evals/            trigger and near-miss cases for architecture-design
-    └── dreaming/
+    ├── dreaming/
+    │   ├── .claude-plugin/plugin.json
+    │   ├── skills/           dream
+    │   ├── agents/           dreamer.md
+    │   ├── hooks/            hooks.json + dream-gate.sh, staging-guard.sh
+    │   ├── tests/            acceptance.sh
+    │   └── evals/            trigger and near-miss cases for dream
+    └── desktop-dreamer/
         ├── .claude-plugin/plugin.json
         ├── skills/           dream
-        ├── agents/           dreamer.md
-        ├── hooks/            hooks.json + dream-gate.sh, staging-guard.sh
-        ├── tests/            acceptance.sh
         └── evals/            trigger and near-miss cases for dream
 ```
 
@@ -75,7 +79,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 
 ---
 
-## The Fourteen Plugins
+## The Fifteen Plugins
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -93,6 +97,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `meta`           | create-skill, create-hook, create-agent, create-instructions                                                               | `/meta:create-skill`           |
 | `implement`      | architecture-design, implement + 3 read-only reviewer agents (tests, code, architecture) + hook: test lock; depends on `orchestration` | `/implement:architecture-design` |
 | `dreaming`       | dream + 1 agent (dreamer, writes only to a staging directory) + hooks: SessionStart gate that starts the agent in the current session, PreToolUse staging guard. Works on native auto memory only| `/dreaming:dream`                |
+| `desktop-dreamer` | dream: backs up the desktop app's memory store to a text file, then consolidates it and restores it on request. Skill only, no agents or hooks. Needs the `mcp__memory__` tools, so it does not work in the CLI | `/desktop-dreamer:dream` |
 
 Plugin skills are **always** namespaced by the plugin name.
 The plugin's `name` field is therefore the slash prefix your future self types every day — keep it short.

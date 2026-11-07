@@ -24,6 +24,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
 | `implement`      | `architecture-design`, `implement`                                                                                        | `test-reviewer`, `code-reviewer`, `architecture-reviewer` | `PreToolUse`                |
 | `dreaming`       | `dream`                                                                                                                   | `dreamer`                                  | `SessionStart`, `PreToolUse`               |
+| `desktop-dreamer` | `dream`                                                                                                          | —                                          | —                                          |
 
 ### What each one does
 
@@ -79,6 +80,13 @@ The agent writes a proposal and a report to a staging directory beside the memor
 `/dreaming:dream apply` shows the diff, snapshots memory in a git repository inside the memory directory, and applies the changes only on your approval, with deletions approved one by one.
 `/dreaming:dream all` runs each project on its own, and `/dreaming:dream revert` undoes a pass.
 It needs `jq`, and the hook gate is tested by `plugins/dreaming/tests/acceptance.sh`.
+
+- **`desktop-dreamer`**: consolidates the memory store of the Claude desktop app, which `dreaming` cannot reach because the store is a set of files behind the `mcp__memory__` tools and not a directory on disk.
+`/desktop-dreamer:dream` reads every memory file, writes them verbatim to `desktop-memory-backup-<timestamp>.txt`, sends you that file and waits until you confirm you have saved it.
+It then proposes merges, removals and new facts from the current conversation, shows the diff, and writes only what you approve, with deletions approved separately.
+`/desktop-dreamer:dream revert <backup-file>` restores the store from a backup.
+It needs the desktop app's memory tools and stops with a message in the CLI.
+The apply and revert paths cannot be tested by `claude plugin eval`, so only the trigger and near-miss cases are in `plugins/desktop-dreamer/evals`.
 
 ---
 
