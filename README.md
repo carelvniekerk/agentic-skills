@@ -77,7 +77,11 @@ It needs the `orchestration` plugin for its lookups.
 - **`dreaming`**: consolidates Claude Code native auto memory, with no install script and no background process.
 A `SessionStart` hook checks whether memory changed since the last pass and at least seven days have passed, or whether `MEMORY.md` exceeds 80 lines, and then tells the session to start the `dreamer` subagent where you can see it.
 The agent writes a proposal and a report to a staging directory beside the memory directory, and a `PreToolUse` hook refuses any other write by that agent.
-`/dreaming:dream apply` shows the diff, snapshots memory in a git repository inside the memory directory, and applies the changes only on your approval, with deletions approved one by one.
+The agent also reads the project's `CLAUDE.md` and `.claude/rules/`.
+It drops memories that a project file already states, merges rules that two project files state twice, flags contradictions without resolving them, and proposes moving a memory into `CLAUDE.md` when it is a rule for the whole team.
+It never promotes a `user` memory and leaves `CLAUDE.local.md` and `~/.claude/CLAUDE.md` alone.
+`/dreaming:dream apply` shows the diff, snapshots memory in a git repository inside the memory directory, and applies the changes only on your approval, with project files and deletions approved in separate questions.
+It leaves project file changes uncommitted in the working tree, so `git diff` shows them and your own workflow commits them.
 `/dreaming:dream all` runs each project on its own, and `/dreaming:dream revert` undoes a pass.
 It needs `jq`, and the hook gate is tested by `plugins/dreaming/tests/acceptance.sh`.
 
