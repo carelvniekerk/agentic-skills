@@ -24,6 +24,7 @@ When invoked:
 Call `repository_status`.
 The Graphicle server stops at start when its data folder is missing or the folder is not a synced project, so missing graph tools mean the repository is not set up.
 In that case begin your answer with this line, word for word: "Graphicle graph unavailable: the repository is probably not set up for Graphicle (`graphicle setup` does that) or `graphicle` is not on the PATH. Mapped with Glob and Grep only."
+Follow that line with a second line: "Most likely fix: run `graphicle setup` for the repository, then restart the `plugin:orchestration:graphicle` server (reconnect it in `/mcp` or start a new session)."
 Then map with Glob and Grep only.
 If a tool reports that the code graph is not built yet, call it once more, and treat the graph as unavailable if it is still not built.
 2. Check coverage.

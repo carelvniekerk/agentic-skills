@@ -34,6 +34,12 @@ Do not add the command to `permissions.allow`, because each repository should ge
 Spawn the graph agent again after that, and carry on with the Grep-based result until then.
 5. When it fails, report the error line verbatim and carry on with the Grep-based result.
 
+## When the Graphicle tools are missing
+
+Missing `mcp__plugin_orchestration_graphicle__*` tools, a failed `repository_status` or a server that is not connected are not a reason to skip the agent and search yourself.
+The most likely cause is that the repository has not been set up, so run `graphicle setup` as described above and restart the server.
+Spawn the agent anyway while you wait, because it falls back to Glob and Grep and still returns paths and line numbers without filling your context.
+
 ## Decide before the first search
 
 Choose before your first Grep, Glob or Read on the task.
