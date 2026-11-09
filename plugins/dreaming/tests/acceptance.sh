@@ -220,6 +220,27 @@ out=$(printf '%s' '{"hook_event_name":"SessionStart","source":"startup"}' |
 check "DREAMING_PROJECT_DIR replaces transcript_path" fires \
   "$([[ -n "$out" ]] && echo "fires:$out" || echo silent)" "$p/memory"
 
+project 3 10 0 10
+p=$PROJ
+check "cwd outside a git repository gives Project root: none" fires \
+  "$(run_gate "$(gate_event "$p")")" "Project root: none"
+
+project 3 10 0 10
+p=$PROJ
+if command -v git >/dev/null 2>&1; then
+  repo="$ROOT/repo$n"
+  mkdir -p "$repo/sub/dir"
+  git -C "$repo" init -q
+  expected=$(git -C "$repo" rev-parse --show-toplevel)
+  check "cwd in a repository subdirectory gives the repository root" fires \
+    "$(run_gate "$(gate_event "$p" "$repo/sub/dir")")" "Project root: $expected"
+fi
+
+project 3 10 0 10
+p=$PROJ
+check "cwd that does not exist still fires" fires \
+  "$(run_gate "$(gate_event "$p" "$ROOT/missing")")" "Project root: none"
+
 out=$(printf 'not json' | "$GATE" 2>/dev/null)
 rc=$?
 check "garbage on stdin" silent "$([[ -z "$out" && $rc -eq 0 ]] && echo silent || echo "error:$out/$rc")"
@@ -250,6 +271,17 @@ check "dreamer uses a relative path from memory/" deny \
   "$(run_guard "$(guard_event $AGENT fact_0.md "$g/memory")")"
 check "dreamer uses a relative path from staging" allow \
   "$(run_guard "$(guard_event $AGENT fact_0.md "$g/dream-staging")")"
+
+check "dreamer stages a project CLAUDE.md under staging" allow \
+  "$(run_guard "$(guard_event $AGENT "$g/dream-staging/project/CLAUDE.md")")"
+check "dreamer stages a rules file under staging" allow \
+  "$(run_guard "$(guard_event $AGENT "$g/dream-staging/project/.claude/rules/python.md")")"
+check "dreamer writes the project CLAUDE.md directly" deny \
+  "$(run_guard "$(guard_event $AGENT "$ROOT/repo/CLAUDE.md")")" "dream-staging"
+check "dreamer writes a project rules file directly" deny \
+  "$(run_guard "$(guard_event $AGENT "$ROOT/repo/.claude/rules/python.md")")" "dream-staging"
+check "main session writes the project CLAUDE.md" allow \
+  "$(run_guard "$(guard_event "" "$ROOT/repo/CLAUDE.md")")"
 
 ln -s "$g/memory" "$g/dream-staging/link"
 check "dreamer writes through a symlink to memory/" deny \

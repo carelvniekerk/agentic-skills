@@ -103,14 +103,25 @@ fi
 
 touch "$lock" 2>/dev/null || exit 0
 
+# The dreamer also reads the project's CLAUDE.md and .claude/rules/, which live
+# at the repository root and not at cwd. Without a root the agent skips those
+# steps, so a failed lookup degrades the pass and never blocks it.
+root=none
+if [[ -n "$cwd" ]] && command -v git >/dev/null 2>&1; then
+  root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || root=""
+  [[ -n "$root" ]] || root=none
+fi
+
 context="Native memory for this project is due a consolidation pass ($reason).
 The dreaming plugin runs the pass in three stages.
 First, this session starts the dreaming:dreamer subagent in the background with the Agent tool, briefed with these paths.
 Memory directory: $mem
 Staging directory: $stage
 State file: $state
+Project root: $root
 Second, the agent writes a proposal and a report only under the staging directory, and the user's own request does not wait for it.
-Third, when the agent reports back, the dreaming:dream skill (argument: apply) shows the diff and asks the user, and nothing is written to the memory directory before that approval."
+It may propose changes to the project's CLAUDE.md and .claude/rules/ files as well, including moving a memory that is a team-wide rule into CLAUDE.md.
+Third, when the agent reports back, the dreaming:dream skill (argument: apply) shows the diff and asks the user, and nothing is written to the memory directory or to a project file before that approval."
 
 jq -n --arg c "$context" '{
   hookSpecificOutput: {
