@@ -81,6 +81,35 @@ The Konjunktiv I is the right tool for a stakeholder statement, because it marks
 | Schachtelsatz | "Die Tabellen, die, da die Quelle, die nachts geladen wird, oft verspätet ist, nicht rechtzeitig fertig werden, blockieren den Lauf." | "Die Quelle wird nachts geladen und ist oft verspätet. Deshalb werden die Tabellen nicht rechtzeitig fertig und blockieren den Lauf." |
 | Weite Satzklammer | "Wir werden die Ergebnisse nach Abschluss der dritten Phase und der Abstimmung mit dem Lenkungskreis im Rahmen einer Präsentation vorstellen." | "Nach der dritten Phase stimmen wir die Ergebnisse mit dem Lenkungskreis ab und stellen sie vor." |
 
+### Verben und Subjekte
+
+The lint cannot find these, because the sentences contain no listed word.
+The diagnosis step in the skill looks for them sentence by sentence.
+
+| Pattern | Before | After |
+| --- | --- | --- |
+| Menschliches Verb bei einer Sache | "Jede Box trägt den Wortlaut der Folie, und ihr Panel benennt die vorgeschlagene Technologie." | "Jede Box übernimmt den Wortlaut der Folie, und ihr Feld zeigt die vorgeschlagene Technologie." |
+| Menschliches Verb, Akteur verfügbar | "Jedes Werkzeug erhält zwei Bewertungen von 1 bis 5 für das Merkmal, das die Fähigkeit trägt." | "Wir bewerten jedes Werkzeug zweimal auf einer Skala von 1 bis 5, und zwar für das Merkmal, das die Fähigkeit bereitstellt." |
+| Layout statt Aussage | "Vier Spalten, acht nummerierte Zonen, entnommen der Zielfolie vom 14.09.2026." | "Das Schaubild hat vier Spalten und acht nummerierte Zonen aus der Zielfolie vom 14.09.2026." |
+| Leseregel in geliehenen Verben | "Fett markiert ein Werkzeug, das mehr als eine Zone oder Aufgabe abdeckt." | "Ein fett gesetztes Werkzeug unterstützt mehr als eine Zone oder Aufgabe." |
+| Position beschrieben | "Optionen mit gleichen Bewertungen stehen nebeneinander, und Cloud Run taucht unter Zone 2 und Zone 4 auf, weil es beide bedient." | "Optionen mit gleichen Bewertungen stehen nebeneinander. Cloud Run steht unter Zone 2 und Zone 4, weil es beide unterstützt." |
+
+Verbs to check when the subject is a thing, a part of the document or a feature: trägt, hält, nennt oder benennt (for a box or a panel), nimmt auf, erhält, sitzt, liegt in, deckt ab, bedient, adressiert, bildet ab, greift, taucht auf, steht für, spricht an, kommt vor, entnommen.
+They are `check` candidates and not errors.
+"Cloud Run betreibt Anwendungen" and "der Server speichert Läufe" describe what the system does and stay.
+"Eine Box trägt Wortlaut" and "ein Panel benennt eine Technologie" do not.
+
+Replacements, in order of preference:
+
+1. The person as subject, where the source supports one: "wir bewerten", "das Team prüft".
+2. A literal verb that keeps the thing as the subject: ist, hat, zeigt, listet, wiederholt, enthält, nutzt, unterstützt, stellt bereit.
+3. A sentence about the fact instead of the structure, when the sentence only describes the layout.
+
+A sentence that opens a section or caption without a verb ("Vier Spalten, acht Zonen.") becomes a full sentence.
+A fragment is fine in a list item, a table cell and a slide title.
+
+Do not move the subject to a person without checking the source: a slide that names a technology and a team that names it are different statements.
+
 ### Paragraphs
 
 - A one-sentence paragraph used for emphasis joins the paragraph it belongs to, or becomes its first sentence.

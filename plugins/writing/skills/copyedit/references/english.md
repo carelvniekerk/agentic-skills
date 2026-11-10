@@ -82,6 +82,35 @@ Keep them apart in wording: "The client's team states that the maintainer has mo
 | Broken sentence | "The mechanism could be is a skipped sensor chain." | "The mechanism could be a skipped sensor chain." |
 | Compression | "Rebuild-heavy-dataset retention-window shortening precedes billing-model switching." | "Shorten the retention window on rebuild-heavy datasets before switching their billing model." |
 
+### Verbs and subjects
+
+The lint cannot find these, because the sentences contain no listed word.
+They read as fluent and say less than they seem to, so the diagnosis step in the skill looks for them sentence by sentence.
+
+| Pattern | Before | After |
+| --- | --- | --- |
+| Human verb on a thing | "Each box carries the slide's wording, and its panel names the suggested technology." | "Each box repeats the slide's wording, and its panel gives the suggested technology." |
+| Human verb on a thing, actor available | "Each tool receives two scores from 1 to 5 for the feature that carries the capability." | "We score each tool twice on a scale of 1 to 5, for the feature that provides the capability." |
+| Layout described instead of the fact | "Four columns, eight numbered zones, drawn from the 2026-09-14 target slide." | "The diagram has four columns and eight numbered zones, taken from the target slide of 2026-09-14." |
+| Reading rule in borrowed verbs | "Bold marks a tool that covers more than one zone or job." | "A tool in bold supports more than one zone or job." |
+| Position described | "Options with the same scores sit side by side, and Cloud Run appears under both Zone 2 and Zone 4 because it serves both." | "Options with the same scores are listed side by side. Cloud Run is listed under Zone 2 and Zone 4 because it supports both." |
+
+Verbs to check when the subject is a thing, a part of the document or a feature: carries, holds, names, receives, sits, lives in, covers, houses, hosts (for a non-technical subject), serves, marks, lands, feeds, gates, backs, answers, speaks to, reads as, stands for, appears under, drawn from.
+They are `check` candidates and not errors.
+"Cloud Run hosts applications" and "the server stores runs" describe what the system does and stay.
+"A box carries wording" and "a panel names a technology" do not.
+
+Replacements, in order of preference:
+
+1. The person as subject, where the source supports one: "we score", "the team reviews".
+2. A literal verb that keeps the thing as the subject: is, has, shows, lists, repeats, gives, contains, uses, supports, provides.
+3. A sentence about the fact instead of the structure, when the sentence only describes the layout.
+
+A sentence that opens a section or caption without a verb ("Four columns, eight numbered zones.") becomes a full sentence.
+A fragment is fine in a list item, a table cell and a slide title.
+
+Do not move the subject to a person without checking the source: a slide that names a technology and a team that names it are different statements.
+
 ### Paragraphs
 
 - A one-sentence paragraph used for emphasis joins the paragraph it belongs to, or becomes its first sentence.

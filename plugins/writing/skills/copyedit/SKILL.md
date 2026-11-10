@@ -38,7 +38,7 @@ Copyedit progress:
 - [ ] 2. Original kept
 - [ ] 3. Original linted
 - [ ] 4. Whole document read once, nothing edited yet
-- [ ] 5. Four editing passes done
+- [ ] 5. Sentence diagnosis listed, then four editing passes done
 - [ ] 6. Edited file linted and compared (an unexplained difference sends you back to 5)
 - [ ] 7. Independent check done
 - [ ] 8. Report written
@@ -75,16 +75,29 @@ The two density lines matter more than any single hit: a "rather than" tic or a 
 Note the canonical form of each defined term, the actor convention, the number and date formats in use, and which statements are findings, hypotheses, recommendations or commitments.
 Note every anomaly for the report as you meet it: figures that do not add up, a broken sentence, a numbering gap, a claim with no evidence, a heading that promises more than its section delivers.
 
-**5. Edit in four passes, in this order.**
+**5. Diagnose every sentence, then edit in four passes, in this order.**
+
+The lint finds listed tells and cannot find a sentence that is vague without containing one.
+Before the first edit, go through each chapter sentence by sentence and write down, in your working notes, every sentence that fails one of these four tests:
+
+- **Actor and action.** Name who or what does the thing, and what the thing is. If the subject is a box, a column, a table, a tool, a panel, a section or a feature, and the verb is one a person would use (carries, receives, names, sits, speaks to), the sentence fails.
+- **Layout or fact.** If the sentence tells the reader how the figure, table or page is built instead of stating what is true, it fails. Cut it when the heading or caption already says it, and otherwise state the fact.
+- **Full sentence.** A verbless fragment that opens a section or caption ("Four columns, eight numbered zones, drawn from the slide.") fails, unless it is a list item or a table cell.
+- **Plain restatement.** Say in plain words what the sentence claims. If you cannot, or the plain version is much shorter, the sentence fails.
+
+A sentence that is grammatical, free of banned words and still fails a test gets rewritten.
+Write the note as "sentence, test failed", then fix the sentences in passes 2 and 3.
+The notes are working material and do not go into the report except as counts.
 
 1. Mechanics: dashes, locale formats applied across the whole document including tables, spelling variety, heading case, MULTIPLAI in capitals, punctuation and quotation marks.
-2. Words: banned and watch vocabulary, intensifiers, filler, copula avoidance, nominalisation, and in German Floskeln, Amtsdeutsch and Anglicisms.
-3. Sentences: antithesis framing, colon-then-reveal, trailing participle clauses, signposts, punchline endings, one-line aphorism paragraphs, vague authority, impersonal evaluation, hidden actors and compression that needs a second read.
+2. Words: banned and watch vocabulary, intensifiers, filler, copula avoidance, nominalisation, figurative or human verbs on things (the verb list is in the reference), and in German Floskeln, Amtsdeutsch and Anglicisms.
+3. Sentences: every sentence on the diagnosis list, then antithesis framing, colon-then-reveal, trailing participle clauses, signposts, punchline endings, one-line aphorism paragraphs, vague authority, impersonal evaluation, hidden actors, layout descriptions, verbless fragments and compression that needs a second read.
 4. Consistency: one form per defined term, one actor convention, one tense per section, parallel lists and closed scope lists.
 
 Edit minimally.
 Change the phrase, not the paragraph, and keep the author's vocabulary level and sentence order wherever nothing is wrong with them.
 A passage with no problems stays as it is, because editing to a quota makes the text read as if a second author wrote it.
+A sentence is a problem when it fails a diagnosis test, even if it is grammatical and uses no listed word, so "nothing is wrong with it" is judged by the four tests and not by whether the lint was silent.
 In Markdown and LaTeX keep one sentence per line and leave frontmatter, Marp directives, code, links and LaTeX commands untouched.
 
 **6. Lint the edited file and compare it with the original.**
@@ -132,6 +145,19 @@ Use the active voice, and the passive only where the actor is irrelevant or unkn
 In contracts and statements of work the company name is the subject ("MULTIPLAI validates").
 In reports MULTIPLAI is "we" and the client appears by name.
 Replace "it is recommended" and "es wird empfohlen" with the party that recommends.
+
+**Give things literal verbs.**
+A person decides, scores, names and receives.
+A box, a panel or a feature does not, so name the person or use a verb that is literally true: is, has, shows, lists, repeats, gives, contains, uses, supports.
+"Each box carries the slide's wording" becomes "Each box repeats the slide's wording".
+"Each tool receives two scores" becomes "We score each tool twice".
+Technical verbs that describe what a system does in its own field stay: a service stores, runs, writes, reads and sends.
+The test is whether the verb describes what the subject does or is only borrowed for variety.
+
+**State the fact, not the layout.**
+Do not describe how the figure, table or page is built when the caption or heading does that already.
+"Four columns, eight numbered zones, drawn from the 2026-09-14 target slide." becomes "The diagram has four columns and eight numbered zones, taken from the target slide of 2026-09-14."
+Keep a statement of source or reading rule that the reader acts on, in full sentences.
 
 **Hold terms constant.**
 One form per defined term, product name and proper noun, everywhere in the document.
@@ -210,6 +236,9 @@ Work chapter by chapter, about 1,500 words at a time, and lint each chapter as y
 - A heading may be the client's own section name in their template, so check the template before sentence-casing it.
 - Do not remove a qualifier just because the lint flagged a hedge.
 The question is whether the evidence supports the stronger claim, and the report says when it does not.
+- When you replace a figurative verb, do not change who does what.
+"The slide names the technology" and "we name the technology" are different claims, so check the source before you choose the new actor, and prefer a verb that keeps the thing as the subject ("The panel gives the technology") when you are unsure.
+- The lint does not detect figurative verbs, layout descriptions or fragments yet, so a clean lint says nothing about them.
 - Several copyediting habits from personal-voice style guides are wrong here: pervasive softening, exclamation marks, humour, a spaced hyphen as a dash and "etc." in closed lists.
 
 ## Strict prohibitions
