@@ -1,4 +1,7 @@
 [codespell]
 # "retuned" is correct in context — re-tuning a configuration, not a return value.
-ignore-words-list = retuned
-skip = ./.git,./.pre-commit-cache
+# "sie" is the German polite form, which the writing plugin's English text names.
+ignore-words-list = retuned,sie
+# The writing plugin's German reference, German eval case and lint patterns are
+# German text or regular expressions over it, which codespell reads as misspelt English.
+skip = ./.git,./.pre-commit-cache,./plugins/writing/skills/copyedit/references/german.md,./plugins/writing/skills/copyedit/scripts/prose-lint.py,./plugins/writing/evals/de-angebot-copyedit

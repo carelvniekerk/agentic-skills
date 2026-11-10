@@ -97,6 +97,12 @@
       "source": "./plugins/desktop-dreamer",
       "category": "workflow",
       "tags": ["memory", "desktop", "consolidation", "backup", "revert"]
+    },
+    {
+      "name": "writing",
+      "source": "./plugins/writing",
+      "category": "writing",
+      "tags": ["writing", "copyedit", "proofreading", "consulting", "german", "style"]
     }
   ]
 }

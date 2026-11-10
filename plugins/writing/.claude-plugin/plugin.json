@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "writing",
+  "description": "Writing for client deliverables: a copyedit pass for English and German reports, assessments, proposals, statements of work, emails and slide text that removes AI tells, fixes locale formats and consistency, keeps every number and commitment intact and reports what changed. Ships a deterministic prose lint with a compare mode.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["writing", "copyedit", "proofreading", "consulting", "german", "style"]
+}

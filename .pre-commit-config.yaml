@@ -41,6 +41,9 @@ repos:
       hooks:
           - id: codespell
             additional_dependencies: [tomli]
+            # pre-commit passes files by name, which makes codespell ignore the
+            # skip list in .codespellrc, so the German text is excluded here too.
+            exclude: ^plugins/writing/(skills/copyedit/(references/german\.md|scripts/prose-lint\.py)|evals/de-angebot-copyedit/)
 
     # Markdown structure — every skill and agent is Markdown, so lint the
     # bodies for broken tables, bad fences, and malformed links.

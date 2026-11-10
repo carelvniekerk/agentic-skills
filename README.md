@@ -25,6 +25,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `implement`      | `architecture-design`, `implement`                                                                                        | `test-reviewer`, `code-reviewer`, `architecture-reviewer` | `PreToolUse`                |
 | `dreaming`       | `dream`                                                                                                                   | `dreamer`                                  | `SessionStart`, `PreToolUse`               |
 | `desktop-dreamer` | `dream`                                                                                                          | —                                          | —                                          |
+| `writing`        | `copyedit`                                                                                                                | —                                          | —                                          |
 
 ### What each one does
 
@@ -91,6 +92,12 @@ It then proposes merges, removals and new facts from the current conversation, s
 `/desktop-dreamer:dream revert <backup-file>` restores the store from a backup.
 It needs the desktop app's memory tools and stops with a message in the CLI.
 The apply and revert paths cannot be tested by `claude plugin eval`, so only the trigger and near-miss cases are in `plugins/desktop-dreamer/evals`.
+
+- **`writing`**: copyedits a finished client deliverable in English or German before it goes out.
+`/writing:copyedit` lints the draft with `prose-lint.py`, edits in four passes (mechanics, words, sentences, consistency), lints again and runs `prose-lint.py --compare` against the original to confirm that numbers, negations, modals and quotations survived.
+It reports the weak points it did not fix before the changes it made, and it never adds claims or changes a commitment.
+The checks are deterministic, and in Claude Code it asks the advisor tool, when `/advisor` is on, whether any edit changed the strength of a statement.
+The trigger, effect and near-miss cases are in `plugins/writing/evals`.
 
 ---
 
