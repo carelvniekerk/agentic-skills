@@ -6,6 +6,7 @@ description: >-
   For a first draft generated from a fresh codebase the built-in init skill is the starting point, and this skill takes over to review, split and maintain the result.
   A one-off preference such as "remember that I prefer X" belongs to auto memory, and skills, hooks and subagents on their own belong to the sibling create-skill, create-hook and create-agent skills.
 allowed-tools: Read Write Edit Glob Grep Bash(ls *) Bash(wc *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(chezmoi managed *) Bash(chezmoi source-path *) Bash(chezmoi diff *)
+effort: high
 ---
 
 # Instruction file author

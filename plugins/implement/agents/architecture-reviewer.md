@@ -3,6 +3,7 @@ name: architecture-reviewer
 description: Reviews either a design document for Python or TypeScript/JavaScript code before the human gate (design mode) or a change in either language against its design document (change mode), in a clean context that sees only the brief. Design mode checks that the design is complete, testable and justified. Change mode checks dependency direction, module boundaries, weakened architecture checks and pattern use that lacks a named force. Returns a verdict with BLOCKING and MINOR findings and says what it could not judge. Read-only. Spawned by implement:architecture-design before the approval gate and by implement:implement in every review round, and not for code or test review.
 tools: Read, Grep, Glob, mcp__savvy-progress__step
 model: sonnet
+effort: high
 maxTurns: 30
 color: purple
 ---

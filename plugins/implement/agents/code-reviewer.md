@@ -3,6 +3,7 @@ name: code-reviewer
 description: Reviews the implementation diff of a Python or TypeScript/JavaScript change for correctness, edge cases, swallowed errors, unnecessary abstraction and style, in a clean context that sees only the brief. Returns a verdict with BLOCKING and MINOR findings. Read-only. Spawned by implement:implement in every review round, and not for review of tests, architecture or pull requests.
 tools: Read, Grep, Glob, mcp__savvy-progress__step
 model: sonnet
+effort: high
 maxTurns: 30
 color: blue
 ---

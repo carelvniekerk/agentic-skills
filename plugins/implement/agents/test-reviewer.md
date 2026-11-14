@@ -3,6 +3,7 @@ name: test-reviewer
 description: Reviews whether the tests of a Python or TypeScript/JavaScript change verify its acceptance criteria, in a clean context that sees only the brief. Maps each criterion to a test, flags weak assertions and special-casing in the implementation, and returns a verdict with BLOCKING and MINOR findings. Works in change mode on a finished implementation or in pre-lock mode on tests written before any code. Read-only. Spawned by implement:implement before the tests are locked and in every review round, and not for writing tests or for general code review.
 tools: Read, Grep, Glob, mcp__savvy-progress__step
 model: sonnet
+effort: high
 maxTurns: 30
 color: yellow
 ---

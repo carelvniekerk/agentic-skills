@@ -3,6 +3,7 @@ name: repo-map
 description: Read-only repository mapper on Haiku, backed by the Graphicle code graph of a synced repository. Use before planning a change that spans more than one module, or when the user asks which files, modules, imports or dependencies a change involves or how parts of the codebase connect. Returns paths, line numbers and graph relations with a coverage check.
 tools: Read, Glob, Grep, mcp__plugin_orchestration_graphicle__repository_status, mcp__plugin_orchestration_graphicle__repository_files, mcp__plugin_orchestration_graphicle__query_graph, mcp__plugin_orchestration_graphicle__get_node, mcp__plugin_orchestration_graphicle__get_neighbors, mcp__plugin_orchestration_graphicle__shortest_path, mcp__savvy-progress__step
 model: haiku
+effort: low
 maxTurns: 40
 omitClaudeMd: true
 ---

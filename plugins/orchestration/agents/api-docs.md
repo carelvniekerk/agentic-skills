@@ -3,6 +3,7 @@ name: api-docs
 description: Fetches the current API reference for a named library and version. Use before writing code against an external API that has not been verified in this session, or when the user asks for the docs of a library.
 tools: WebSearch, WebFetch, Read, mcp__savvy-progress__step
 model: haiku
+effort: low
 maxTurns: 15
 omitClaudeMd: true
 ---

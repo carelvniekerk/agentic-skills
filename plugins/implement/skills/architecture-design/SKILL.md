@@ -9,6 +9,7 @@ when_to_use: >-
   Trigger phrases: "design this", "architecture for", "how should I structure", "which design pattern", "should I use a factory", "draft an ADR", "design doc before we build", "module boundaries for", "review this design", "design a MERN app", "structure this Express API", "MVC or service layer", "how should I lay out this Node backend".
   Building the design belongs to implement:implement, a plain explanation of one pattern is answered directly, and refactoring a single function is not this skill.
 allowed-tools: Read Grep Glob Write Edit Agent Bash(mkdir *) mcp__savvy-progress__progress
+effort: high
 ---
 
 # Architecture design
@@ -167,6 +168,7 @@ Create the design directory with `mkdir -p` if it does not exist, and read any e
 
 Read `${CLAUDE_SKILL_DIR}/references/design-review-brief.md` before this phase.
 Spawn one `implement:architecture-reviewer` per round with the fixed brief from that file.
+The reviewer's definition sets `effort: high`, which is what design mode wants, so do not pass an `effort` override here.
 The brief holds the design document verbatim, the repository path and the `Language:` line, and leaves out your summary, your reasoning, your opinion of the design and the earlier rounds' findings, because the reviewer is meant to judge the document as a reader would.
 Every round spawns a fresh reviewer.
 

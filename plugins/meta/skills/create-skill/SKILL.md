@@ -6,6 +6,7 @@ description: >-
     Also use for skill frontmatter (allowed-tools, disable-model-invocation, context fork, paths), skillOverrides and the skill listing budget, dynamic context injection, skill instructions lost after compaction, packaging skills in a plugin (plugin.json, marketplace.json, plugin names, claude plugin validate), and testing skills with claude plugin eval cases, graders or skill-creator, even if the user does not say "skill".
     Hooks and subagents on their own belong to the sibling create-hook and create-agent skills.
 allowed-tools: Read Write Edit Glob Grep Bash(mkdir *) Bash(ls *) Bash(cat *) Bash(git *) Bash(claude *) Bash(uv *)
+effort: high
 ---
 
 # Skill author

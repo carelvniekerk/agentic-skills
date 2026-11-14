@@ -9,6 +9,7 @@ when_to_use: >-
   Designing comes first and belongs to implement:architecture-design, and a small change with no design document does not need the loop.
 argument-hint: "[design document path]"
 disable-model-invocation: true
+effort: high
 allowed-tools: Read Write Edit Glob Grep Agent Bash(uv run *) Bash(uvx ty *) Bash(ruff *) Bash(node_modules/.bin/vitest *) Bash(node_modules/.bin/biome *) Bash(node_modules/.bin/tsc *) Bash(node_modules/.bin/eslint *) Bash(node_modules/.bin/prettier *) Bash(node_modules/.bin/depcruise *) Bash(node_modules/.bin/jest *) Bash(node --test *) Bash(git diff *) Bash(git status *) Bash(git ls-files *) Bash(git rev-parse *) Bash(shasum *) Bash(mkdir *) Bash(rm .implement/loop.json) mcp__savvy-progress__progress
 ---
 
@@ -167,6 +168,8 @@ If you cannot make a locked test pass without changing the test or departing fro
 
 Before the reviewers, recompute the hashes of the locked files and compare them with the marker, so that the brief can state the result.
 Then spawn all three reviewers in one message so they run in parallel: `implement:test-reviewer`, `implement:code-reviewer` and `implement:architecture-reviewer`.
+The two reviewers for tests and code run at `high` effort from their definitions, so do not pass an `effort`.
+Pass `effort: "medium"` on the `Agent` call for `implement:architecture-reviewer`, because change mode checks a diff against a design that is already fixed, and the definition's `high` is meant for design mode.
 
 Build each brief from the fixed templates in `${CLAUDE_SKILL_DIR}/references/reviewer-briefs.md`.
 A brief holds the criteria, the design excerpt that reviewer needs, the changed files, the diff, the test output and the lock status, and nothing else.

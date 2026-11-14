@@ -6,6 +6,7 @@ description: >-
   Also use for agent frontmatter (tools, disallowedTools, model, permissionMode, skills, mcpServers, hooks, memory, background, isolation, effort), agents Claude never delegates to or picks wrongly, agents that dump raw output into the main conversation, plugin agents whose fields are ignored, and whole-session agents run with --agent, even if the user does not say "subagent".
   Skills and hooks on their own belong to the sibling create-skill and create-hook skills.
 allowed-tools: Read Write Edit Glob Grep Bash(mkdir *) Bash(ls *) Bash(cat *) Bash(chmod *) Bash(git *) Bash(claude *) Bash(jq *) Bash(uv *) Bash(echo *)
+effort: high
 ---
 
 # Agent author
