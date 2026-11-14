@@ -1,6 +1,24 @@
 {
-    "description": "Refuses direct pip install and pip uninstall in Bash commands and points at the uv equivalent.",
+    "description": "Refuses direct pip install and pip uninstall in Bash commands and points at the uv equivalent. Adds the project's launch facts when /verify, /run or /run-skill-generator starts.",
     "hooks": {
+        "UserPromptExpansion": [
+            {
+                "matcher": "verify|run|run-skill-generator",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "uv",
+                        "args": [
+                            "run",
+                            "--script",
+                            "${CLAUDE_PLUGIN_ROOT}/hooks/launch-manifest.py"
+                        ],
+                        "timeout": 10,
+                        "statusMessage": "reading uv launch facts"
+                    }
+                ]
+            }
+        ],
         "PreToolUse": [
             {
                 "matcher": "Bash",

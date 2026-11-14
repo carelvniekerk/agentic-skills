@@ -19,7 +19,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `python-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
 | `nodejs-quality` | —                                                                                                                         | —                                          | `PreToolUse`, `PostToolUse`, `Stop`        |
 | `chezmoi`        | —                                                                                                                         | —                                          | `PreToolUse`                               |
-| `uv`             | —                                                                                                                         | —                                          | `PreToolUse`                               |
+| `uv`             | —                                                                                                                         | —                                          | `PreToolUse`, `UserPromptExpansion`        |
 | `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
 | `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
 | `implement`      | `architecture-design`, `implement`                                                                                        | `test-reviewer`, `code-reviewer`, `architecture-reviewer` | `PreToolUse`                |
@@ -57,7 +57,7 @@ See [Node.js quality hooks](#nodejs-quality-hooks) below.
 - **`chezmoi`** — one hook that refuses to edit a chezmoi-managed dotfile in the working tree and names the source file to edit instead.
 See [Guard hooks](#guard-hooks) below.
 
-- **`uv`** — one hook that refuses `pip install` and `pip uninstall` in a Bash command and names the uv equivalent.
+- **`uv`** — a hook that refuses `pip install` and `pip uninstall` in a Bash command and names the uv equivalent, and a `UserPromptExpansion` hook that adds the project's launch facts when `/verify`, `/run` or `/run-skill-generator` starts.
 
 - **`orchestration`** — three read-only Haiku subagents for lookups (two of them query a local [Graphicle](https://github.com/Graphicle-AI/graphicle) code graph and check it against the source), a `delegate` skill that tells the main session when to use them, a `setup` skill that writes the main and advisor models, the Flightdeck options and the CLAUDE.md rules into your own files, and hooks: a Sonnet gate on six risky Bash command families and a Sonnet Stop check.
 See [`plugins/orchestration/README.md`](./plugins/orchestration/README.md).
@@ -306,9 +306,9 @@ The acceptance tests in `plugins/nodejs-quality/tests/acceptance.sh` use stub to
 
 ## Guard hooks
 
-`chezmoi` and `uv` are single-hook plugins.
-Each exists to stop one correction repeating: editing a dotfile that `chezmoi apply` will silently revert, and reaching for pip in a uv project.
-Both are `PreToolUse` deny hooks, both need only `jq`, and both are installed independently:
+`chezmoi` and `uv` each start from a `PreToolUse` deny hook that stops one correction repeating: editing a dotfile that `chezmoi apply` will silently revert, and reaching for pip in a uv project.
+Both deny hooks need only `jq`, and both plugins are installed independently.
+The `uv` plugin also ships the `UserPromptExpansion` hook described under its heading below, which needs `uv`:
 
 ```bash
 claude plugin install chezmoi@agentic-skills
@@ -361,7 +361,22 @@ Only the bare `python` and `python3` spellings are matched.
 Only the first delimiter on a line is tracked.
 - `<<` used as an arithmetic left shift outside `$(( ))`, which is read as a heredoc and drops the following lines until a matching delimiter that never arrives.
 
-Both hooks are covered by an acceptance suite that feeds real event JSON on stdin:
+#### Launch facts for `/verify`, `/run` and `/run-skill-generator`
+
+`launch-manifest.py` runs on `UserPromptExpansion`, which fires when you type a slash command.
+A `PreToolUse` hook on the `Skill` tool would miss that case, because the hooks reference says typing `/skillname` bypasses `PreToolUse`.
+When `command_name` is `verify`, `run` or `run-skill-generator`, the hook walks up from `cwd` to the nearest `pyproject.toml` and adds a summary of at most 40 lines and 9,000 characters, under the documented cap of 10,000.
+The summary lists the console scripts, packages with a `__main__.py`, PEP 723 scripts in the project root and in `scripts/`, the dependency groups, `.uvgroups`, `.python-version` and the variable names exported in `.envrc`.
+It never prints an `.envrc` value, because that file often holds secrets.
+Nothing is run, so the text says that its lines are declarations and not proof that a launch works.
+
+One point is not yet confirmed against Claude Code itself.
+The hooks reference says the event covers "skill and custom commands" but does not name the bundled skills, so `/verify`, `/run` and `/run-skill-generator` may not fire it.
+The matcher is an exact list, because the reference treats a string of only letters, digits, hyphens and `|` that way.
+The status line `reading uv launch facts` appears when the hook fires, which is the quickest check.
+The hook does not cover the model calling the `Skill` tool, because the hooks reference gives no input shape for that call.
+
+All three hooks are covered by acceptance suites that feed real event JSON on stdin:
 
 ```bash
 plugins/chezmoi/tests/acceptance.sh
