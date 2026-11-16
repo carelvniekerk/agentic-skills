@@ -1,6 +1,6 @@
 # German reference
 
-How German client documents at MULTIPLAI should read, and how to get a draft there.
+How German client documents should read, and how to get a draft there.
 The explanations are in English and the examples in German.
 No German exemplar document was supplied, so the exemplars in section 8 carry the patterns of the English exemplars over into German and are illustrative.
 Replace them with lines from a German deliverable the team rates when one is available.
@@ -20,7 +20,7 @@ Replace them with lines from a German deliverable the team rates when one is ava
 
 | Genre | Actor | Verbs | Qualifiers | Lists | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Vertrag oder Leistungsbeschreibung | The defined parties: "MULTIPLAI", "der Auftraggeber", "die Parteien" | Present tense for services ("MULTIPLAI prüft"), "verpflichtet sich" or "hat ... zu" for obligations | None on commitments | Closed, parallel, verb-first or noun-first throughout | Restating a clause can be deliberate, so leave it and flag it |
+| Vertrag oder Leistungsbeschreibung | The defined parties: "Acme", "der Auftraggeber", "die Parteien" | Present tense for services ("Acme prüft"), "verpflichtet sich" or "hat ... zu" for obligations | None on commitments | Closed, parallel, verb-first or noun-first throughout | Restating a clause can be deliberate, so leave it and flag it |
 | Angebot | "wir" and the client by name, the reader as "Sie" | Present tense with a date for commitments ("Wir liefern bis 09.10.2026") | Only on assumptions and dependencies | Closed for scope and deliverables | Order each section as client need, then what we do, then proof |
 | Assessment oder Bericht | "wir" or "das Assessment", one of the two throughout | Perfekt or Präteritum for what was measured, present for what holds | On hypotheses and on evidence gaps, said once | Parallel | Every finding carries its evidence and a cross-reference |
 | Management Summary | "wir" | Present and imperative | As in the body, never fewer | Short, ranked | Answer in the first two sentences, plainer words than the body |
@@ -29,7 +29,7 @@ Replace them with lines from a German deliverable the team rates when one is ava
 
 Use "Sie" in every client document unless the user writes "du" to that client.
 Capitalise "Sie", "Ihr" and "Ihnen" in the polite form.
-Write MULTIPLAI in capitals.
+Write the company name in its official spelling, the same way throughout.
 Humour, exclamation marks and decorative images stay out of client documents.
 
 ## 2. Calibrating claims
@@ -38,7 +38,7 @@ The test for every sentence is what the evidence supports.
 
 | Kind | Overstated | Softened | Calibrated |
 | --- | --- | --- | --- |
-| Zusage | "MULTIPLAI garantiert eine nahtlose Migration." | "MULTIPLAI könnte die Migration gegebenenfalls unterstützen." | "MULTIPLAI liefert den Migrationsplan bis zum 09.10.2026." |
+| Zusage | "Acme garantiert eine nahtlose Migration." | "Acme könnte die Migration gegebenenfalls unterstützen." | "Acme liefert den Migrationsplan bis zum 09.10.2026." |
 | Befund | "Die Plattform ist grundlegend kaputt." | "Es scheint gewisse Zuverlässigkeitsprobleme zu geben." | "Drei von 30 nächtlichen Läufen endeten nach weniger als zehn Minuten und meldeten Erfolg." |
 | Hypothese | "Die Läufe überspringen ihre Sensoren." | "Es könnte eventuell möglicherweise sein, dass Sensoren übersprungen werden." | "Eine übersprungene Sensorkette würde das erklären. Das ist eine Hypothese, und wir empfehlen, sie zuerst zu prüfen." |
 | Empfehlung | "Der Kunde muss Airflow sofort ersetzen." | "Man sollte vielleicht über Alternativen nachdenken." | "Behalten Sie Airflow für die Orchestrierung und verlagern Sie die Transformationen während des Data-Vault-Aufbaus in ein Framework." |
@@ -58,7 +58,7 @@ The Konjunktiv I is the right tool for a stakeholder statement, because it marks
 | --- | --- | --- |
 | Füllwort | "Das ist eigentlich durchaus ein wichtiger Punkt." | "Zwei Staging-Tabellen blockieren 96 nachgelagerte Objekte." |
 | Copula avoidance | "Die Data-Vault-Schicht stellt das Herzstück der Architektur dar." | "Die Data-Vault-Schicht ist der Kern der Architektur." |
-| Nominalstil | "Die Durchführung der Bewertung erfolgt durch MULTIPLAI." | "MULTIPLAI bewertet die Optionen." |
+| Nominalstil | "Die Durchführung der Bewertung erfolgt durch Acme." | "Acme bewertet die Optionen." |
 | Funktionsverbgefüge | "Die Lösung kommt zum Einsatz." | "Das Team setzt die Lösung ein." |
 | Funktionsverbgefüge | "Wir bringen die Migration zur Umsetzung." | "Wir setzen die Migration um." |
 | Buzzword | "ein ganzheitlicher, zukunftssicherer Ansatz mit echtem Mehrwert" | the measurable property: "ein Ansatz, der alle fünf Schichten abdeckt" |
@@ -231,7 +231,7 @@ Use the client's term consistently and decline it as German grammar requires.
 
 A Leistungsbeschreibung mixes a description of services with obligations, and the verbs show which is which.
 
-- "MULTIPLAI prüft", "MULTIPLAI liefert": present tense describes the services.
+- "Acme prüft", "Acme liefert": present tense describes the services.
 - "verpflichtet sich", "hat ... zu", "muss": an obligation on a named party.
 - "ist berechtigt", "kann": discretion.
 - "gilt als abgenommen": a legal fiction, as in deemed acceptance after five business days.
@@ -263,7 +263,7 @@ They are illustrative, not quotations.
 "Diese Leistungsbeschreibung umfasst ausschließlich Beratungsleistungen. Installation, Konfiguration und Deployment sind nicht Teil des Umfangs. Umsetzung und Rollout können gesondert beauftragt werden."
 
 **Begründung vor den Tätigkeiten.**
-"Bevor über Architektur und Technologie entschieden wird, strukturiert MULTIPLAI die Ausgangslage und erstellt eine priorisierte Anforderungsliste. So richtet sich die Bewertung nach dem Bedarf des Kunden und nicht nach Herstellerargumenten."
+"Bevor über Architektur und Technologie entschieden wird, strukturiert Acme die Ausgangslage und erstellt eine priorisierte Anforderungsliste. So richtet sich die Bewertung nach dem Bedarf des Kunden und nicht nach Herstellerargumenten."
 Then three verb-first bullets: erfassen, strukturieren, priorisieren.
 
 **Ehrliche Größenangabe.**

@@ -1,6 +1,6 @@
 # English reference
 
-How English client documents at MULTIPLAI should read, and how to get a draft there.
+How English client documents should read, and how to get a draft there.
 The rules are British English in a German business context.
 The exemplars are anonymised from a signed statement of work and a 90-page data architecture assessment that the team considers good writing.
 Where the two documents slip, the slip is shown as a before and after.
@@ -20,14 +20,14 @@ Where the two documents slip, the slip is shown as a before and after.
 
 | Genre | Actor | Verbs | Qualifiers | Lists | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Contract or statement of work | The defined parties: "MULTIPLAI", "the client", "the parties" | Present tense for services ("MULTIPLAI validates"), "shall" for obligations | None on commitments | Closed, parallel, verb-first | Restating a clause can be deliberate, so leave it and flag it |
+| Contract or statement of work | The defined parties: "Acme", "the client", "the parties" | Present tense for services ("Acme validates"), "shall" for obligations | None on commitments | Closed, parallel, verb-first | Restating a clause can be deliberate, so leave it and flag it |
 | Proposal | "we" and the client by name | "will" for what we commit to | Only on assumptions and dependencies | Closed for scope and deliverables | Order each section as client need, then what we do, then proof |
 | Assessment or report | "we" or "the assessment", one of the two throughout | Past tense for what was measured, present for what holds | On hypotheses and on evidence gaps, said once | Parallel, open lists allowed in prose | Every finding carries its evidence and a cross-reference |
 | Executive summary | "we" | Present and imperative | As in the body, never fewer | Short, ranked | Answer in the first two sentences, plainer words than the body |
 | Email | "I" or "we" | Imperative for requests, with a date | Minimal | Rarely | Recommendation or request in the first two lines |
 | Slide text | Implicit | Titles are full assertions of at most about 15 words | As in the source | Bullets prove the title | Every bullet supports its title, and the titles read in sequence tell the story |
 
-Write MULTIPLAI in capitals in every genre.
+Write the company name in its official spelling, the same way in every genre.
 Humour, exclamation marks and analogies used for colour stay out of client documents.
 An analogy that explains a mechanism is allowed in a report or a workshop document, but never in a contract.
 
@@ -37,7 +37,7 @@ The test for every sentence is what the evidence supports.
 
 | Kind | Overstated | Softened | Calibrated |
 | --- | --- | --- | --- |
-| Commitment | "MULTIPLAI guarantees a seamless migration." | "MULTIPLAI can usually support the migration." | "MULTIPLAI delivers the migration plan by 2026-10-09." |
+| Commitment | "Acme guarantees a seamless migration." | "Acme can usually support the migration." | "Acme delivers the migration plan by 2026-10-09." |
 | Finding | "The platform is fundamentally broken." | "The platform might have some reliability issues." | "Three of 30 nightly runs finished in under ten minutes while reporting success." |
 | Hypothesis | "The runs skip their sensors." | "It could potentially be the case that sensors may be skipped." | "A skipped sensor chain would explain this. It is a hypothesis, and we recommend verifying it first." |
 | Recommendation | "The client must immediately replace Airflow." | "It might be worth considering looking at alternatives." | "Keep Airflow for orchestration and move the transformations to a framework during the Data Vault build." |
@@ -59,7 +59,7 @@ Keep them apart in wording: "The client's team states that the maintainer has mo
 | Intensifier | "has enabled a genuinely broad portfolio of use cases" | "has enabled a broad portfolio of use cases" |
 | Intensifier as evidence substitute | "This is a really important dependency." | "Two staging tables gate 96 downstream objects." |
 | Copula avoidance | "The workbook serves as the reconciliation contract." | "The workbook is the reconciliation contract." |
-| Nominalisation | "MULTIPLAI performs an evaluation of the options." | "MULTIPLAI evaluates the options." |
+| Nominalisation | "Acme performs an evaluation of the options." | "Acme evaluates the options." |
 | Inflated vocabulary | "a pivotal step in the client's data journey" | "the step that the SAP cutover depends on" |
 | Metaphor where the noun works | "a permanent tax on developer machines" | "a permanent cost on every developer machine: emulation and architecture workarounds" |
 | Vague magnitude | "significant savings" | "a saving of 35 to 70 % on the affected datasets" |
@@ -235,7 +235,7 @@ A German address keeps its German spelling, but write it the same way everywhere
 
 A statement of work mixes a description of services with obligations, and the verbs show which is which.
 
-- "MULTIPLAI validates", "MULTIPLAI delivers": present tense describes the services.
+- "Acme validates", "Acme delivers": present tense describes the services.
 - "shall" imposes an obligation on the subject of the sentence: "Invoices shall be paid within 30 calendar days of receipt" is weaker than "The client shall pay each invoice within 30 calendar days of receipt", because the second names who is obliged.
 - "may" grants discretion: "Either party may terminate".
 - "is deemed" or "shall be considered" creates a legal fiction, as in deemed acceptance after five business days.
@@ -268,7 +268,7 @@ Named tools and named gaps do the work that "immature MLOps capabilities" would 
 The exclusion carries the same weight as the inclusion, and the reader knows where the excluded work goes.
 
 **A reason before the activities.**
-"Before any decision on architecture and technology, MULTIPLAI structures the starting point and engineers an actionable requirements list. This ensures the evaluation is driven by the client's needs and not by vendor narratives."
+"Before any decision on architecture and technology, Acme structures the starting point and engineers an actionable requirements list. This ensures the evaluation is driven by the client's needs and not by vendor narratives."
 Then three verb-first bullets: capture, structure, prioritise.
 
 **Honest sizing.**
@@ -276,7 +276,7 @@ Then three verb-first bullets: capture, structure, prioritise.
 It admits a constraint and ties it to the client's reason.
 
 **Decision logic the reader can predict.**
-"Where the preferred platform is good enough, it remains the default. Where material gaps exist, MULTIPLAI assesses their severity and the options to close them."
+"Where the preferred platform is good enough, it remains the default. Where material gaps exist, Acme assesses their severity and the options to close them."
 
 **Status kept apart from recommendation.**
 "None of the items in this table is a recommendation of this report."

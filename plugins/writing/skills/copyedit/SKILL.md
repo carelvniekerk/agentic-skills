@@ -89,7 +89,7 @@ A sentence that is grammatical, free of banned words and still fails a test gets
 Write the note as "sentence, test failed", then fix the sentences in passes 2 and 3.
 The notes are working material and do not go into the report except as counts.
 
-1. Mechanics: dashes, locale formats applied across the whole document including tables, spelling variety, heading case, MULTIPLAI in capitals, punctuation and quotation marks.
+1. Mechanics: dashes, locale formats applied across the whole document including tables, spelling variety, heading case, the company name in its official spelling, punctuation and quotation marks.
 2. Words: banned and watch vocabulary, intensifiers, filler, copula avoidance, nominalisation, figurative or human verbs on things (the verb list is in the reference), and in German Floskeln, Amtsdeutsch and Anglicisms.
 3. Sentences: every sentence on the diagnosis list, then antithesis framing, colon-then-reveal, trailing participle clauses, signposts, punchline endings, one-line aphorism paragraphs, vague authority, impersonal evaluation, hidden actors, layout descriptions, verbless fragments and compression that needs a second read.
 4. Consistency: one form per defined term, one actor convention, one tense per section, parallel lists and closed scope lists.
@@ -123,7 +123,7 @@ The acceptance checks are the lint, the comparison and the diff.
 
 **Calibrate, do not soften.**
 Sort every claim into one of four kinds and write each at its actual strength.
-A commitment is firm: "MULTIPLAI delivers", "will", "liefert".
+A commitment is firm: "Acme delivers", "will", "liefert".
 A finding is stated with its evidence and no qualifier: "212 of 530 nightly tasks rebuild their table in full."
 A hypothesis is labelled once, in plain words: "This is a hypothesis, and we recommend verifying it first."
 A recommendation is an imperative with its condition: "Switch the second group of datasets once retention has expired."
@@ -142,8 +142,8 @@ More than about one "rather than" per 1,000 words is a tic, so keep the instance
 
 **Name the actor.**
 Use the active voice, and the passive only where the actor is irrelevant or unknown.
-In contracts and statements of work the company name is the subject ("MULTIPLAI validates").
-In reports MULTIPLAI is "we" and the client appears by name.
+In contracts and statements of work the company name is the subject ("Acme validates").
+In reports the author's company is "we" and the client appears by name.
 Replace "it is recommended" and "es wird empfohlen" with the party that recommends.
 
 **Give things literal verbs.**

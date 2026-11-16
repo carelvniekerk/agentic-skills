@@ -11,7 +11,7 @@ Quick language pass on the scope section of the SoW for Example Logistik before 
 ```markdown
 ## Module 2 - Validation gate
 
-MULTIPLAI validates the client's preferred cloud platform as the default path. The focus is not a broad vendor selection but a fit-for-purpose gate; where the platform is good enough, it remains the default.
+Acme validates the client's preferred cloud platform as the default path. The focus is not a broad vendor selection but a fit-for-purpose gate; where the platform is good enough, it remains the default.
 
 - Assess whether the platform covers the required capabilities across data, development, integration, consumption, operations etc.
 - Identify and rate material gaps by severity and mitigation effort
