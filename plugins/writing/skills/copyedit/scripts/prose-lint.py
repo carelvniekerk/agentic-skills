@@ -146,14 +146,6 @@ RULES: tuple[Rule, ...] = (
         "Emoji or pictograph",
     ),
     _rule(
-        "brand",
-        FIX,
-        BOTH,
-        r"\b(?!MULTIPLAI\b)[Mm][Uu][Ll][Tt][Ii][Pp][Ll][Aa][Ii]\b(?!\.\w)",
-        "Write MULTIPLAI in capitals",
-        flags=CS,
-    ),
-    _rule(
         "space-punct",
         CHECK,
         BOTH,
