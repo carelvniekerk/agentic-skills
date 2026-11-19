@@ -103,6 +103,12 @@
       "source": "./plugins/writing",
       "category": "writing",
       "tags": ["writing", "copyedit", "proofreading", "consulting", "german", "style"]
+    },
+    {
+      "name": "tidy",
+      "source": "./plugins/tidy",
+      "category": "workflow",
+      "tags": ["audit", "cleanup", "skills", "memory", "connectors", "desktop"]
     }
   ]
 }

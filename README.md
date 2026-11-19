@@ -26,6 +26,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `dreaming`       | `dream`                                                                                                                   | `dreamer`                                  | `SessionStart`, `PreToolUse`               |
 | `desktop-dreamer` | `dream`                                                                                                          | —                                          | —                                          |
 | `writing`        | `copyedit`                                                                                                                | `copyedit-reviewer`                        | —                                          |
+| `tidy`           | `tidy`                                                                                                                    | —                                          | —                                          |
 
 ### What each one does
 
@@ -101,6 +102,13 @@ The skill then ends only when `writing:copyedit-reviewer`, a read-only agent in 
 The trigger, effect and near-miss cases are in `plugins/writing/evals`.
 
 ---
+
+- **`tidy`**: audits a Claude desktop setup in five parts (interface, memory and context, skills, connectors, scheduled tasks) and builds one dark checklist page, Dracula-based, where you tick what to change.
+Memory, `CLAUDE.md` and `.claude/rules/` proposals come from `/dreaming:dream propose`, which starts the dreamer without applying anything, so the page lists each merge, promotion and deletion as its own row.
+On the desktop app it also offers to run `/desktop-dreamer:dream` for the app's memory store.
+After you type "go", tidy lists the ticked rows and applies them only after a yes in chat, and dream shows its own diff before it writes.
+It needs the `dreaming` plugin and the desktop app's session and sidebar tools for chat and section changes, and its scripts run with `uv run --script` on Python 3.14.
+The scripts and the page were adapted from a third-party skill called detox, with its branding removed.
 
 ## Install
 
