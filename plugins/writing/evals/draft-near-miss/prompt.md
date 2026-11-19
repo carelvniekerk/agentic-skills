@@ -1,7 +1,7 @@
 ---
 description: Near miss. Drafting a new client email from bullet notes shares the vocabulary of client writing but is authoring, not a copyedit of a finished draft, so the skill should stay unloaded.
 max_turns: 10
-allowed_tools: [Read, Write, Edit, Glob, Grep, Skill]
+allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Agent]
 tags: [negative]
 ---
 

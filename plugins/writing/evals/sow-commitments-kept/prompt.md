@@ -2,7 +2,7 @@
 description: Statement of work scope section in good shape apart from an open list, a spaced hyphen and a semicolon. The skill should fix those, keep the obligations firm, add no hedges and keep the scope contrast that defines the module.
 max_turns: 30
 timeout_seconds: 600
-allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Bash]
+allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Agent, Bash]
 tags: [copyedit, en, contract, effect]
 ---
 

@@ -3,7 +3,7 @@ name: copyedit
 description: Copyedit a finished client deliverable or business document in English or German so it reads as written by an experienced consultant, fixing wording, AI tells, punctuation, locale formats and consistency while keeping every number, claim and commitment intact, then report the changes and the weak points left. Use when the user asks to copyedit, proofread, polish, tighten, clean up or fix the language of a report, assessment, proposal, statement of work, executive summary, memo, email or slide text, says a draft reads like AI or ChatGPT, or asks to Korrektur lesen, sprachlich überarbeiten, glätten or lektorieren, even if they do not say copyedit. Not for drafting from notes, translating or building the branded file.
 license: MIT
 compatibility: The lint script needs Python 3.10 or later and only the standard library. It runs with uv run, or with python3 when uv is not installed.
-allowed-tools: Read Edit Write Grep Glob Bash(uv run *) Bash(python3 *) Bash(cp *) Bash(diff *) Bash(git diff *) Bash(git status *)
+allowed-tools: Read Edit Write Grep Glob Agent Bash(uv run *) Bash(python3 *) Bash(cp *) Bash(diff *) Bash(git diff *) Bash(git show *) Bash(git status *)
 metadata:
   source: "github.com/carelvniekerk/agentic-skills, plugins/writing/skills/copyedit"
 ---
@@ -40,13 +40,15 @@ Copyedit progress:
 - [ ] 4. Whole document read once, nothing edited yet
 - [ ] 5. Sentence diagnosis listed, then four editing passes done
 - [ ] 6. Edited file linted and compared (an unexplained difference sends you back to 5)
-- [ ] 7. Independent check done
+- [ ] 7. writing:copyedit-reviewer returned CLEAR (at most three rounds)
 - [ ] 8. Report written
 ```
 
 **1. Settle language, genre and overrides.**
 Read [references/english.md](references/english.md) for English text and [references/german.md](references/german.md) for German text, and both for a bilingual document.
-Each opens with a register table: find the genre (contract or statement of work, proposal, assessment or report, executive summary, email, slide text) and apply its row.
+Each opens with a register table: find the genre (contract or statement of work, proposal, assessment or report, executive summary, email, slide text, procedure or work instruction) and apply its row.
+Also read [references/ai-tells.md](references/ai-tells.md) for English text and [references/ai-tells-de.md](references/ai-tells-de.md) for German text.
+They list the AI tells for passes 2 and 3, each with its reason and a before and after.
 Look for a client brief, glossary or style guide in the conversation and beside the file.
 Where the client requires a convention that differs from the reference, such as US spelling, keep the client's convention and say so in the report.
 
@@ -74,6 +76,8 @@ The two density lines matter more than any single hit: a "rather than" tic or a 
 **4. Read the whole document once before editing.**
 Note the canonical form of each defined term, the actor convention, the number and date formats in use, and which statements are findings, hypotheses, recommendations or commitments.
 Note every anomaly for the report as you meet it: figures that do not add up, a broken sentence, a numbering gap, a claim with no evidence, a heading that promises more than its section delivers.
+Also note, for each chapter, which decision or action it should support, which claim matters most, what evidence backs that claim and which uncertainty has to stay visible.
+A chapter where you cannot recover these is a weak point for the report, and polishing its wording only hides the problem.
 
 **5. Diagnose every sentence, then edit in four passes, in this order.**
 
@@ -88,11 +92,15 @@ Before the first edit, go through each chapter sentence by sentence and write do
 A sentence that is grammatical, free of banned words and still fails a test gets rewritten.
 Write the note as "sentence, test failed", then fix the sentences in passes 2 and 3.
 The notes are working material and do not go into the report except as counts.
+For a sentence that reads as polished and is still vague, also ask the questions in section 7 of the ai-tells file for the document's language: the spoken test, the deletion test and the information test.
+They are prompts for your judgement and never an acceptance check.
 
 1. Mechanics: dashes, locale formats applied across the whole document including tables, spelling variety, heading case, the company name in its official spelling, punctuation and quotation marks.
 2. Words: banned and watch vocabulary, intensifiers, filler, copula avoidance, nominalisation, figurative or human verbs on things (the verb list is in the reference), and in German Floskeln, Amtsdeutsch and Anglicisms.
 3. Sentences: every sentence on the diagnosis list, then antithesis framing, colon-then-reveal, trailing participle clauses, signposts, punchline endings, one-line aphorism paragraphs, vague authority, impersonal evaluation, hidden actors, layout descriptions, verbless fragments and compression that needs a second read.
 4. Consistency: one form per defined term, one actor convention, one tense per section, parallel lists and closed scope lists.
+
+The ai-tells file for the document's language holds the vocabulary, phrases, openers and sentence patterns for passes 2 and 3.
 
 Edit minimally.
 Change the phrase, not the paragraph, and keep the author's vocabulary level and sentence order wherever nothing is wrong with them.
@@ -111,11 +119,23 @@ Every `fix` hit that remains must be deliberate and named in the report with its
 In the comparison, each missing or added number, each change in the count of negations, modals or hedges, each changed quotation and each missing term needs an explanation.
 Revert any change you cannot explain.
 
-**7. Get an independent check.**
-In Claude Code with the advisor tool on (`/advisor`), consult the advisor before you write the report, and ask one question: did any edit change a claim, a number, a commitment or the strength of a statement?
-Without the advisor, read the word diff yourself with that question and nothing else (`git diff --word-diff` or `diff`).
+**7. Run the independent check, and finish only when it is clear.**
+Spawn a `writing:copyedit-reviewer` agent in the foreground.
+It works in a clean context, so give it the brief and nothing else: the path of the original, the path of the edited file, the language, the genre, the output of the compare command and any client convention that overrides this skill.
+Do not tell it what you changed or that you think the edit is safe.
+The agent reads files and cannot run git, so if git holds the original, save it first with `git show HEAD:report.md > report.orig.md` and name the copy in the report.
+A `Verdict: CLEAR` ends the check, and you go on to step 8.
+A `Verdict: BLOCKED` comes with findings.
+For each one, change the edit until the meaning returns, or say in the judgement calls why you disagree.
+Reverting to the original wording is the last resort, because it restores the defect you fixed.
+When the finding is a new actor ("wir bewerten" where the source names none), keep the thing as the subject and use a literal verb such as is, has, shows, lists or contains, as the gotcha on figurative verbs says.
+A finding about a number, a negation, an obligation or a quotation is different: restore the original there.
+Then repeat step 6 and spawn a new reviewer on the corrected file.
+After three rounds without `CLEAR`, stop and hand the open findings to the user, and do not write a report that reads as if the check had passed.
+If the agent cannot be spawned, consult the advisor with the same question, or read the word diff yourself (`git diff --word-diff` or `diff`), and say in the report that the agent did not run.
+The reviewer returns findings about changes of meaning and no score.
 Do not score the text with a rubric or ask a model to rate it.
-The acceptance checks are the lint, the comparison and the diff.
+The acceptance checks are the lint, the comparison, the diff and the reviewer's findings.
 
 **8. Write the report** in the format below.
 
@@ -178,6 +198,10 @@ Scope, deliverable and requirement lists are closed: "including" followed by the
 Remove "key", "significant", "substantial" and "critical" unless a figure or a consequence follows.
 Do not upgrade a modest result, and do not understate a strong one ("results were satisfactory" for a 40 % reduction).
 
+**Do not add warmth.**
+Do not add a wind-up, a hedge or a personal reaction ("I was surprised to find") to make the text sound human.
+A plain statement of the finding reads as more human than any of them.
+
 ## What never changes
 
 | Element | Why |
@@ -208,6 +232,9 @@ Copyedit of report.md (English, assessment)
 
 Weak points the copyedit did not fix:
 - <structural problem, unsupported claim, figure that does not reconcile, numbering gap>
+- <a defect that recurs because of a template, glossary or style guide, with the source to fix>
+- <anything you could not verify, named as unverified>
+
 
 Changes:
 - Mechanics (n): <two or three representative examples>
@@ -218,7 +245,7 @@ Changes:
 Judgement calls:
 - <a convention you kept or chose, a lint hit you left on purpose and why>
 
-Checks: fix-level hits a -> b; "rather than" x -> y per 1,000 words; numbers, negations and modals unchanged (or the explained differences); advisor consulted or diff reviewed.
+Checks: fix-level hits a -> b; "rather than" x -> y per 1,000 words; three-item lists x -> y per 1,000 words; hits inside quotations not reported: n; numbers, negations and modals unchanged (or the explained differences); reviewer verdict CLEAR in n rounds, with its MINOR findings and how you handled them (or the fallback you used and why).
 Original kept at report.orig.md.
 ````
 
@@ -238,7 +265,12 @@ Work chapter by chapter, about 1,500 words at a time, and lint each chapter as y
 The question is whether the evidence supports the stronger claim, and the report says when it does not.
 - When you replace a figurative verb, do not change who does what.
 "The slide names the technology" and "we name the technology" are different claims, so check the source before you choose the new actor, and prefer a verb that keeps the thing as the subject ("The panel gives the technology") when you are unsure.
-- The lint does not detect figurative verbs, layout descriptions or fragments yet, so a clean lint says nothing about them.
+- The lint does not detect figurative verbs, layout descriptions or a single verbless fragment, so a clean lint says nothing about them.
+It finds only two very short sentences in a row (`fragment-run`).
+- The lint does not report a hit inside quotation marks, because a quotation belongs to the person quoted, and it prints how many it skipped.
+Read that count when a document quotes people at length, because a stray or unpaired straight quotation mark can hide prose between two quotations.
+- The three-item list marker is provisional, because no client document has been measured against it.
+Treat it as a prompt to look at the lists, and keep every list that has three real items.
 - Several copyediting habits from personal-voice style guides are wrong here: pervasive softening, exclamation marks, humour, a spaced hyphen as a dash and "etc." in closed lists.
 
 ## Strict prohibitions
@@ -249,7 +281,8 @@ The question is whether the evidence supports the stronger claim, and the report
 | Changing a number's value, a negation, an obligation or a quotation without saying so | It changes what the client is told or promised |
 | Adding claims, figures, sources or examples | The author would answer for text they did not write |
 | Editing a PDF or a signed contract in place | A PDF has no editable source, and a signed contract is a legal record |
-| Using a model's score or rating as the acceptance check | The acceptance checks are deterministic: lint, comparison and diff |
+| Using a model's score or rating as the acceptance check | The acceptance checks are the lint, the comparison, the diff and the reviewer's findings about meaning |
+| Writing the report before the reviewer returns `CLEAR`, or presenting a `BLOCKED` result as passed | The reviewer is the last check that a claim, number or commitment survived |
 | Committing, pushing, uploading or sending the document | Hand over to the user |
 
 ## Files in this skill
@@ -257,6 +290,10 @@ The question is whether the evidence supports the stronger claim, and the report
 - [references/english.md](references/english.md): register by genre, calibration, before and after patterns, vocabulary lists, British locale rules, German interference in English, contract language and annotated exemplars.
 Read it for any English text.
 - [references/german.md](references/german.md): the same structure for German, with Sie, Nominalstil, Floskeln, Anglicisms, DIN 5008 formats and German exemplars.
+Read it for any German text.
+- [references/ai-tells.md](references/ai-tells.md): the English catalogue of AI tells, with the reason for each word, openers and closers, sentence patterns with before and after, plain-word substitutions, worked examples, the extra diagnosis questions and the sources.
+Read it for any English text.
+- [references/ai-tells-de.md](references/ai-tells-de.md): the German counterpart, written by transfer from the English patterns.
 Read it for any German text.
 - `scripts/prose-lint.py`: the deterministic lint and the `--compare` check.
 Run it, do not read it.

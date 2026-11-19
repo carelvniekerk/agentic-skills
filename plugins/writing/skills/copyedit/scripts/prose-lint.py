@@ -53,6 +53,12 @@ TITLE_CASE_RATIO = 0.5
 TITLE_CASE_MIN = 2
 MIN_TERM_LENGTH = 12
 PER_THOUSAND = 1000
+FRAGMENT_MAX_WORDS = 4
+# Provisional: no client document has been measured yet, so treat the marker as a
+# prompt to look and not as a verdict.
+THREE_ITEM_PER_1000 = 4.0
+THREE_ITEM_MIN = 3  # one list in a short text is not a pattern
+QUOTE_EXEMPT = frozenset({"quotes-de"})
 
 
 @dataclass(frozen=True)
@@ -101,6 +107,17 @@ def _rule(  # noqa: PLR0913
 
 CS = 0  # case-sensitive flag value for readability in the table below
 
+# Adjectives that models stack in threes as near-synonyms. Plain technical words
+# such as "scalable" are left out because they are often literally true.
+ADJECTIVES_EN = (
+    "comprehensive|sophisticated|robust|innovative|seamless|holistic|compelling|"
+    "powerful|dynamic|concise|clear|elegant|intuitive"
+)
+ADJECTIVES_DE = (
+    "umfassend|innovativ|nachhaltig|ganzheitlich|robust|zukunftssicher|"
+    "leistungsstark|nahtlos|zielführend|modern"
+)
+
 RULES: tuple[Rule, ...] = (
     # Punctuation and symbols, both languages.
     _rule(
@@ -146,6 +163,13 @@ RULES: tuple[Rule, ...] = (
         "Emoji or pictograph",
     ),
     _rule(
+        "arrow",
+        CHECK,
+        BOTH,
+        r"[←-⇿]|(?<![-<])->(?!>)|=>",
+        "Arrow in running text: write the relation as a word",
+    ),
+    _rule(
         "space-punct",
         CHECK,
         BOTH,
@@ -175,7 +199,8 @@ RULES: tuple[Rule, ...] = (
         r"best[- ]in[- ]class|world[- ]class"
         r"|future[- ]proof\w*|vibrant|meticulous\w*|intricate\w*|multifaceted|quietly|"
         r"ecosystems?"
-        r"|navigat\w*|streamlin\w*|tackl\w*)\b",
+        r"|navigat\w*|streamlin\w*|tackl\w*|utilis\w*|utiliz\w*|innovative(?:ly)?|"
+        r"sophisticated|groundbreaking|revolutionary|bombshell)\b",
         "Banned or inflated vocabulary: use the plain word or the specific fact",
     ),
     _rule(
@@ -185,6 +210,7 @@ RULES: tuple[Rule, ...] = (
         r"\b(?:robust\w*|steady|dependable|notably|moreover|furthermore|additionally|"
         r"actionable"
         r"|insights?|evolving|comprehensive|significant(?:ly)?|overarching|drive[sn]?|"
+        r"substantial(?:ly)?|critical(?:ly)?|facilitat\w*|rich(?= [a-z])|"
         r"key(?= [a-z]))\b",
         "Watch word: keep only in its precise or technical sense",
     ),
@@ -211,7 +237,9 @@ RULES: tuple[Rule, ...] = (
         r"|in terms of|the fact that|a (?:wide )?(?:range|variety|number) of|"
         r"in the context of"
         r"|the aforementioned|in the event that|as such|going forward|"
-        r"moving forward)\b",
+        r"moving forward|prior to|subsequent to|in close proximity to|"
+        r"(?:has|have) the ability to|a large number of|due to the fact that|"
+        r"at this point in time|as we all know|without further ado)\b",
         "Filler or bureaucratic phrase",
     ),
     _rule(
@@ -221,7 +249,9 @@ RULES: tuple[Rule, ...] = (
         r"\b(?:in conclusion|in summary|to summari[sz]e|to sum up|i hope this helps|"
         r"let me know if"
         r"|great question|you'?re absolutely right|feel free to|we are (?:excited|"
-        r"delighted|thrilled))\b",
+        r"delighted|thrilled)"
+        r"|that makes a lot of sense|there are several ways to look at this|"
+        r"here'?s the thing|and that'?s (?:a good thing|okay)|i'?m here for it)\b",
         "Stock opener or closer",
     ),
     _rule(
@@ -264,6 +294,63 @@ RULES: tuple[Rule, ...] = (
         EN,
         r"\brather than\b",
         "'rather than': fine once, a tic in bulk (see the density line)",
+    ),
+    _rule(
+        "opener-en",
+        CHECK,
+        EN,
+        r"(?:^\s*(?:[-*+>]\s+)?|[.!?]\s+)"
+        r"(?:So|Well|Now|Look|Listen|Basically|Essentially),",
+        "Filler opener: start with the point ('Now' is fine when it is about time)",
+        flags=CS,
+    ),
+    _rule(
+        "closer-en",
+        CHECK,
+        EN,
+        r",? (?:right|you know)\?|\bif you will\b",
+        "Conversational tag at the end of a sentence",
+    ),
+    _rule(
+        "empty-transition-en",
+        CHECK,
+        EN,
+        r"\b(?:with that in mind|building on this foundation|"
+        r"taking this (?:a )?step further|the (?:reality|truth) is|"
+        r"to be (?:fair|honest)|when it comes to|let'?s dive|dive into)\b",
+        "Empty transition or framing opener: make the next point directly",
+    ),
+    _rule(
+        "fundamental-en",
+        CHECK,
+        EN,
+        r"\bfundamentally (?:transform|chang|reshap|alter|shift)\w*"
+        r"|\b(?:a|the) fundamental (?:shift|change|transformation)\b"
+        r"|\brepresents? a fundamental\b",
+        "Inflated change claim: describe the actual change",
+    ),
+    _rule(
+        "inflated-claim-en",
+        CHECK,
+        EN,
+        r"\b(?:major|real|true) milestone\b|\bturning point\b|\bwake-?up call\b|"
+        r"\bwatershed\b|\bsea change\b",
+        "Inflated claim: state the fact and let the reader judge its size",
+    ),
+    _rule(
+        "synonym-list-en",
+        CHECK,
+        EN,
+        rf"\b(?:{ADJECTIVES_EN}), (?:{ADJECTIVES_EN}),? (?:and|or) "
+        rf"(?:{ADJECTIVES_EN})\b",
+        "List of near-synonyms: pick the one that is true, or give the evidence",
+    ),
+    _rule(
+        "scare-label-en",
+        CHECK,
+        EN,
+        r"\bso-called\b",
+        "Invented label: say what the thing is and drop the label",
     ),
     _rule(
         "colon-reveal",
@@ -459,7 +546,9 @@ RULES: tuple[Rule, ...] = (
         r"\bAbschließend lässt sich\b"
         r"|\bLast but not least\b|\bAn dieser Stelle sei\b|\bWie bereits erwähnt\b|"
         r"\bIch hoffe, (?:das|dies) hilft\b"
-        r"|\bLassen Sie uns\b|\bFakt ist\b|\bKurz gesagt\b",
+        r"|\bLassen Sie uns\b|\bFakt ist\b|\bKurz gesagt\b|\bHier ist der Punkt\b|"
+        r"\bUnd das ist (?:gut|okay) so\b|\bOhne weitere Umschweife\b|"
+        r"\bWie wir alle wissen\b",
         "Floskel am Anfang oder Ende",
     ),
     _rule(
@@ -472,13 +561,75 @@ RULES: tuple[Rule, ...] = (
         "Ankündigung oder Verbindungsfloskel: mit dem Inhalt beginnen",
     ),
     _rule(
+        "opener-de",
+        CHECK,
+        DE,
+        r"(?:^\s*(?:[-*+>]\s+)?|[.!?]\s+)"
+        r"(?:Nun|Also|Tja|Ehrlich gesagt|Im Grunde),",
+        "Füllwort am Satzanfang: mit der Aussage beginnen",
+        flags=CS,
+    ),
+    _rule(
+        "closer-de",
+        CHECK,
+        DE,
+        r", (?:oder|nicht wahr|richtig)\?|\bwie man so schön sagt\b",
+        "Gesprächsfloskel am Satzende",
+    ),
+    _rule(
+        "empty-transition-de",
+        CHECK,
+        DE,
+        r"\b(?:Vor diesem Hintergrund|Darauf aufbauend|Mit diesem Wissen|"
+        r"Einen Schritt weiter|Um ehrlich zu sein|Die (?:Realität|Wahrheit) ist|"
+        r"Wenn es um [^.\n]{1,40} geht)\b",
+        "Leerer Übergang: den nächsten Punkt direkt machen",
+    ),
+    _rule(
+        "fundamental-de",
+        CHECK,
+        DE,
+        r"\bgrundlegend (?:verändert|verändern|veränderte\w*|transformier\w*|"
+        r"wandel\w*)\b"
+        r"|\b(?:verändert|verändern|veränderte\w*|transformier\w*|wandel\w*) "
+        r"(?:\w+ ){0,3}grundlegend\b"
+        r"|\bgrundlegende[nr]? (?:Wandel|Wechsel|Veränderung|Verschiebung)\b",
+        "Aufgeblähte Veränderungsbehauptung: die tatsächliche Änderung beschreiben",
+    ),
+    _rule(
+        "inflated-claim-de",
+        CHECK,
+        DE,
+        r"\bMeilenstein\w*|\bWendepunkt\w*|\bWeckruf\w*|\bPaukenschlag\w*|"
+        r"\bBombe\b|\bwegweisend\w*|"
+        r"\brevolutionär\w*",
+        "Aufgeblähte Behauptung: den Sachverhalt nennen, die Größe beurteilt der Leser",
+    ),
+    _rule(
+        "synonym-list-de",
+        CHECK,
+        DE,
+        rf"\b(?:{ADJECTIVES_DE})\w*, (?:{ADJECTIVES_DE})\w*,? (?:und|oder) "
+        rf"(?:{ADJECTIVES_DE})\w*",
+        "Aufzählung bedeutungsähnlicher Adjektive: das zutreffende wählen oder belegen",
+    ),
+    _rule(
+        "scare-label-de",
+        CHECK,
+        DE,
+        r"\bsogenannte\w*",
+        "Erfundene Bezeichnung: sagen, was die Sache ist, und das Etikett streichen",
+    ),
+    _rule(
         "bureaucratic-de",
         CHECK,
         DE,
         r"\b(?:im Rahmen (?:von|des|der|dieses|dieser)|im Hinblick auf|hinsichtlich|"
         r"bezüglich|in Bezug auf"
         r"|seitens|mittels|vonseiten|zwecks|diesbezüglich|vorgenannt\w*|"
-        r"obige[nmrs]?)\b|\bo\. ?g\.",
+        r"obige[nmrs]?|zum jetzigen Zeitpunkt|zu diesem Zeitpunkt|"
+        r"aufgrund der Tatsache|im Falle,? dass|eine (?:große Anzahl|Vielzahl) von|"
+        r"in der Lage|in unmittelbarer Nähe)\b|\bo\. ?g\.",
         "Amtsdeutsch: einfacher formulieren",
     ),
     _rule(
@@ -603,6 +754,14 @@ DE_STOP = re.compile(
     re.IGNORECASE,
 )
 WORD = re.compile(r"[A-Za-zÄÖÜäöüß][\wÄÖÜäöüß'\u2019-]*")
+QUOTED_SPAN = re.compile(
+    r"\"[^\"\n]{3,200}\"|\u201c[^\u201d\n]{3,200}\u201d"
+    r"|\u201e[^\u201c\u201d\n]{3,200}[\u201c\u201d]|\u00ab[^\u00bb\n]{3,200}\u00bb",
+)
+THREE_ITEM = {
+    EN: re.compile(r"\b[A-Za-z-]+, [A-Za-z-]+,? (?:and|or) [A-Za-z-]+\b"),
+    DE: re.compile(r"\b[A-Za-zÄÖÜäöüß-]+, [A-Za-zÄÖÜäöüß-]+ (?:und|oder) \w+\b"),
+}
 ABBREVIATIONS = re.compile(
     r"\b(?:e\.g|i\.e|etc|vs|cf|approx|no|Nr|ca|bzw|z\. ?B|d\. ?h|u\. ?a|s\. ?o|Abs|Dr|"
     r"Prof|Fig|Tab)\.",
@@ -679,6 +838,7 @@ class Document:
     lines: list[str]
     headings: list[tuple[int, str]]
     paragraphs: list[tuple[int, str]]
+    quotes: list[list[tuple[int, int]]]
 
 
 def _heading_text(raw: str, masked: str) -> str | None:
@@ -730,7 +890,8 @@ def load(path: Path, lang: str) -> Document:
             headings.append((number, text))
     paragraphs = _paragraphs(lines, {number for number, _ in headings})
     resolved = detect_language(masked) if lang == "auto" else lang
-    return Document(path, resolved, raw_lines, lines, headings, paragraphs)
+    quotes = [[m.span() for m in QUOTED_SPAN.finditer(line)] for line in lines]
+    return Document(path, resolved, raw_lines, lines, headings, paragraphs, quotes)
 
 
 def sentences(paragraph: str) -> list[str]:
@@ -759,9 +920,23 @@ def _snippet(line: str, start: int, end: int) -> str:
     return f"{prefix}{line[left:right].strip()}{suffix}"
 
 
-def apply_rules(doc: Document) -> list[Hit]:
-    """Run every regular-expression rule that covers the document's language."""
+def _in_quotation(spans: list[tuple[int, int]], column: int) -> bool:
+    return any(start <= column < end for start, end in spans)
+
+
+def apply_rules(doc: Document) -> tuple[list[Hit], int]:
+    """Run every regular-expression rule that covers the document's language.
+
+    A quotation belongs to the person quoted, so a hit inside quotation marks is
+    not reported. The second value counts those skipped hits, so that the report
+    can show how many there were.
+
+    Returns:
+        The hits, and the number of hits skipped inside quotations.
+
+    """
     hits: list[Hit] = []
+    skipped = 0
     tex = doc.path.suffix.lower() == ".tex"
     for rule in RULES:
         if doc.lang not in rule.langs.split() or (
@@ -770,6 +945,12 @@ def apply_rules(doc: Document) -> list[Hit]:
             continue
         for number, line in enumerate(doc.lines, 1):
             for match in rule.pattern.finditer(line):
+                if rule.rule_id not in QUOTE_EXEMPT and _in_quotation(
+                    doc.quotes[number - 1],
+                    match.start(),
+                ):
+                    skipped += 1
+                    continue
                 before = line[: match.start()]
                 if rule.guard and rule.guard.search(
                     before if rule.rule_id.startswith("number") else match.group(0),
@@ -786,7 +967,7 @@ def apply_rules(doc: Document) -> list[Hit]:
                         text,
                     ),
                 )
-    return hits
+    return hits, skipped
 
 
 def heading_hits(doc: Document) -> list[Hit]:
@@ -859,6 +1040,24 @@ def paragraph_hits(doc: Document) -> list[Hit]:
                     parts[-1],
                 ),
             )
+        hits.extend(
+            Hit(
+                "fragment-run",
+                CHECK,
+                "Two very short sentences in a row: fragment used for emphasis?",
+                number,
+                1,
+                f"{first} {second}",
+            )
+            for first, second, n_first, n_second in zip(
+                parts,
+                parts[1:],
+                counts,
+                counts[1:],
+                strict=False,
+            )
+            if 0 < n_first <= FRAGMENT_MAX_WORDS and 0 < n_second <= FRAGMENT_MAX_WORDS
+        )
         for sentence, count in zip(parts, counts, strict=True):
             if count > long_limit:
                 note = f"Sentence of {count} words: split it if it needs a second read"
@@ -951,7 +1150,11 @@ def mixed_forms(doc: Document) -> list[Hit]:
     return hits
 
 
-def statistics_block(doc: Document, hits: list[Hit]) -> dict[str, object]:
+def statistics_block(
+    doc: Document,
+    hits: list[Hit],
+    quoted_skipped: int,
+) -> dict[str, object]:
     """Compute rhythm and density figures for the summary."""
     lengths = [word_count(s) for _, p in doc.paragraphs for s in sentences(p)]
     words = sum(word_count(line) for line in doc.lines)
@@ -960,6 +1163,7 @@ def statistics_block(doc: Document, hits: list[Hit]) -> dict[str, object]:
     sd = statistics.pstdev(lengths) if lengths else 0.0
     per_k = PER_THOUSAND / max(words, 1)
     by_rule = Counter(h.rule_id for h in hits)
+    three_items = len(THREE_ITEM[doc.lang].findall("\n".join(doc.lines)))
     return {
         "language": doc.lang,
         "words": words,
@@ -970,22 +1174,27 @@ def statistics_block(doc: Document, hits: list[Hit]) -> dict[str, object]:
         "uniform_rhythm": in_band >= UNIFORM_SHARE and sd < UNIFORM_SD,
         "rather_than_per_1000": round(by_rule["rather-than"] * per_k, 2),
         "rather_than_tic": by_rule["rather-than"] * per_k > RATHER_THAN_PER_1000,
+        "three_item_per_1000": round(three_items * per_k, 2),
+        "three_item_tic": three_items >= THREE_ITEM_MIN
+        and three_items * per_k > THREE_ITEM_PER_1000,
         "fix_per_1000": round(sum(h.level == FIX for h in hits) * per_k, 2),
+        "quoted_hits_skipped": quoted_skipped,
     }
 
 
 def lint(path: Path, lang: str) -> tuple[dict[str, object], list[Hit]]:
     """Run every check on one file."""
     doc = load(path, lang)
+    rule_hits, quoted_skipped = apply_rules(doc)
     hits = (
-        apply_rules(doc)
+        rule_hits
         + heading_hits(doc)
         + paragraph_hits(doc)
         + term_hits(doc)
         + mixed_forms(doc)
     )
     hits.sort(key=lambda h: (h.level != FIX, h.rule_id, h.line, h.col))
-    return statistics_block(doc, hits), hits
+    return statistics_block(doc, hits, quoted_skipped), hits
 
 
 def render_lint(
@@ -1006,9 +1215,16 @@ def render_lint(
         + (" [uniform rhythm]" if stats["uniform_rhythm"] else ""),
         f"density: 'rather than' {stats['rather_than_per_1000']} per 1,000 words"
         + (" [tic]" if stats["rather_than_tic"] else "")
+        + f", three-item lists {stats['three_item_per_1000']} per 1,000 words"
+        + (" [tic]" if stats["three_item_tic"] else "")
         + f", fix-level hits {stats['fix_per_1000']} per 1,000 words",
-        "",
     ]
+    if stats["quoted_hits_skipped"]:
+        lines.append(
+            f"quotations: {stats['quoted_hits_skipped']} hits inside quotation marks "
+            "were not reported",
+        )
+    lines.append("")
     by_rule: dict[str, list[Hit]] = {}
     for hit in hits:
         by_rule.setdefault(hit.rule_id, []).append(hit)

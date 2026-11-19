@@ -4,6 +4,7 @@ How German client documents should read, and how to get a draft there.
 The explanations are in English and the examples in German.
 No German exemplar document was supplied, so the exemplars in section 8 carry the patterns of the English exemplars over into German and are illustrative.
 Replace them with lines from a German deliverable the team rates when one is available.
+The wider catalogue of AI tells, with before and after examples, is in [ai-tells-de.md](ai-tells-de.md).
 
 ## Contents
 
@@ -26,11 +27,15 @@ Replace them with lines from a German deliverable the team rates when one is ava
 | Management Summary | "wir" | Present and imperative | As in the body, never fewer | Short, ranked | Answer in the first two sentences, plainer words than the body |
 | E-Mail | "ich" or "wir", the reader as "Sie" | Imperative or a direct request with a date | Minimal | Rarely | Recommendation or request in the first two lines |
 | Folientext | Implicit | Titles are full assertions of at most about 15 words | As in the source | Bullets prove the title | Every bullet supports its title |
+| Verfahrens- oder Arbeitsanweisung | The reader, addressed with "Sie" or in the imperative | One action per sentence | None, except a stated condition | Numbered when order matters | Condition before action, warning before the risky step, about 20 words per sentence at most |
 
 Use "Sie" in every client document unless the user writes "du" to that client.
 Capitalise "Sie", "Ihr" and "Ihnen" in the polite form.
 Write the company name in its official spelling, the same way throughout.
 Humour, exclamation marks and decorative images stay out of client documents.
+
+For a Verfahrensanweisung, a runbook or a handover note the same rules apply as in the English reference: one instruction per sentence, the condition before the action, the warning before the risky step, and about 20 words per instruction at most.
+In German, split a long Satzklammer so that the verb comes early: "Prüfen Sie die Summe gegen die Quelle. Stoppen Sie den Import, wenn die Summen nicht übereinstimmen."
 
 ## 2. Calibrating claims
 
@@ -165,6 +170,11 @@ Keep these only in their precise sense: robust (Statistik), innovativ, umfassend
 | mittels, zwecks | mit, für, um ... zu |
 | vorgenannt, obige, o. g. | dieser, the name |
 | Fakt ist | delete |
+| Ohne weitere Umschweife, wie wir alle wissen | delete |
+| zum jetzigen Zeitpunkt, zu diesem Zeitpunkt | jetzt, or a date |
+| aufgrund der Tatsache, dass | weil |
+| eine große Anzahl von, eine Vielzahl von | viele, or the number |
+| in der Lage sein zu | können |
 | eigentlich, ziemlich, irgendwie, durchaus, tatsächlich, wirklich, absolut, definitiv, letztendlich, quasi, sozusagen | delete |
 
 ## 5. Locale and mechanics

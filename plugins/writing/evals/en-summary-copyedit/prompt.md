@@ -2,7 +2,7 @@
 description: English executive summary with planted AI tells, German number formats and a hypothesis. The skill should fix the language, keep every figure and keep the hypothesis labelled.
 max_turns: 30
 timeout_seconds: 600
-allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Bash]
+allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Agent, Bash]
 tags: [copyedit, en, effect]
 ---
 

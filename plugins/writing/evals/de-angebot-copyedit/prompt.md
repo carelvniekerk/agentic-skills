@@ -2,7 +2,7 @@
 description: German proposal section with Floskeln, a Gedankenstrich, a spaced compound, a du-form slip and a Konjunktiv hedge. The skill should fix the German and keep figures and the Sie form.
 max_turns: 30
 timeout_seconds: 600
-allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Bash]
+allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Agent, Bash]
 tags: [copyedit, de, effect]
 ---
 

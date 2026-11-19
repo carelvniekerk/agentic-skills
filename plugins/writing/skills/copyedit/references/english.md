@@ -2,6 +2,7 @@
 
 How English client documents should read, and how to get a draft there.
 The rules are British English in a German business context.
+The wider catalogue of AI tells, with reasons and before and after examples, is in [ai-tells.md](ai-tells.md).
 The exemplars are anonymised from a signed statement of work and a 90-page data architecture assessment that the team considers good writing.
 Where the two documents slip, the slip is shown as a before and after.
 
@@ -26,10 +27,24 @@ Where the two documents slip, the slip is shown as a before and after.
 | Executive summary | "we" | Present and imperative | As in the body, never fewer | Short, ranked | Answer in the first two sentences, plainer words than the body |
 | Email | "I" or "we" | Imperative for requests, with a date | Minimal | Rarely | Recommendation or request in the first two lines |
 | Slide text | Implicit | Titles are full assertions of at most about 15 words | As in the source | Bullets prove the title | Every bullet supports its title, and the titles read in sequence tell the story |
+| Procedure or work instruction | The reader, addressed in the imperative | One action per sentence | None, except a stated condition | Numbered when order matters | Condition before action, warning before the risky step, about 20 words per sentence at most |
 
 Write the company name in its official spelling, the same way in every genre.
 Humour, exclamation marks and analogies used for colour stay out of client documents.
 An analogy that explains a mechanism is allowed in a report or a workshop document, but never in a contract.
+
+### Procedures and work instructions
+
+A procedure, runbook, handover note or work instruction must support one correct reading and one next action.
+Write one instruction or main idea per sentence, and split a sentence that holds two actions, two conditions or two conclusions.
+Name the actor before the action, in the imperative: "Check the total against the source."
+Put a condition first when it decides whether the reader acts: "If the totals do not match, stop the import."
+Put a warning before the step that creates the risk.
+Use a numbered list when order matters and bullets when it does not.
+Use one term for one thing, and do not swap "story", "article" and "piece" for variety.
+About 20 words per instruction and 25 per description are warning points and not limits, because the lint's general limit is 35 words.
+Do not apply these rules to a quotation or a narrative passage, and do not replace a precise domain term with a simpler word that is wrong.
+The rules adapt ASD-STE100, so a client who needs formal compliance has to use the official standard.
 
 ## 2. Calibrating claims
 
@@ -144,7 +159,7 @@ Elsewhere, state the claim alone, or use "instead of" once or twice for variety.
 | landscape, ecosystem, realm, tapestry | estate, set of systems, environment, or the list |
 | journey | programme, transformation, or the phases by name |
 | game-changer, transformative, cutting-edge, state-of-the-art, best-in-class, world-class, future-proof | the measurable advantage, or nothing |
-| synergy | the specific saving or shared component |
+| synergy, paradigm | the specific saving or shared component, or the change itself |
 | navigate, tackle, streamline | handle, resolve, simplify, or the action |
 | boasts | has |
 | meticulous, intricate, multifaceted, vibrant | careful, detailed, complex, or cut |
@@ -164,6 +179,9 @@ Keep these only in their precise sense: key (legitimate in "primary key"), signi
 | a number of | several, or the number |
 | in the context of | in, for, during |
 | it is worth noting that, it is important to note that, it should be noted that | delete |
+| needless to say, it goes without saying, as we all know, without further ado | delete |
+| in today's [anything] landscape | delete |
+| a wide range of, a large number of | many, or the number |
 | the aforementioned | the, this, or the name |
 | in the event that | if |
 | going forward, moving forward | from now on, from Q3, or delete |

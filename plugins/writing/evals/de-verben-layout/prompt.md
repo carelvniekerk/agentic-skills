@@ -2,7 +2,7 @@
 description: German report section with figurative verbs on things, a verbless caption and layout description but no listed Floskel. The skill should rewrite those sentences and keep every figure and date.
 max_turns: 30
 timeout_seconds: 600
-allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Bash]
+allowed_tools: [Read, Write, Edit, Glob, Grep, Skill, Agent, Bash]
 tags: [copyedit, de, effect, verbs]
 ---
 
