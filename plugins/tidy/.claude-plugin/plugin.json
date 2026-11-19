@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "tidy",
+  "description": "Audits a Claude desktop setup in five parts (interface, memory and context, skills, connectors, scheduled tasks) and shows one dark checklist page where you tick what to change. Memory and CLAUDE.md changes come from dreaming:dream in a propose-only run, and nothing changes without a tick and a yes in chat. Needs the desktop app's session tools for chats and sidebar sections. Skill only, no agents or hooks.",
+  "author": {
+    "name": "Carel van Niekerk",
+    "email": "code@carelvniekerk.com",
+    "url": "https://github.com/carelvniekerk"
+  },
+  "homepage": "https://github.com/carelvniekerk/agentic-skills",
+  "repository": "https://github.com/carelvniekerk/agentic-skills",
+  "license": "MIT",
+  "keywords": ["audit", "cleanup", "skills", "memory", "connectors", "desktop"],
+  "dependencies": ["dreaming"]
+}
