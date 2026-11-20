@@ -138,9 +138,9 @@ Add the marketplace once:
 /plugin marketplace add carelvniekerk/agentic-skills
 ```
 
-This repository is **private**, so that command only resolves for an account with read access.
-Claude Code clones over your existing GitHub credentials — `gh auth status` should show a working login, or an SSH key must be loaded for `git@github.com`.
-Without access the command fails at clone time rather than reporting a missing marketplace.
+This repository is **public**, so that command resolves for any account.
+Claude Code clones over HTTPS, or over your GitHub credentials if you have configured them.
+If the clone fails, run `gh auth status` and check that `git@github.com` works from your shell.
 
 Then install the plugins you want.
 Scope decides where they apply:
