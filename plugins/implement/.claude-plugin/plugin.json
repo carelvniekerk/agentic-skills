@@ -11,5 +11,5 @@
   "repository": "https://github.com/carelvniekerk/agentic-skills",
   "license": "MIT",
   "keywords": ["architecture", "design-patterns", "python", "typescript", "javascript", "mern", "code-review", "tdd", "agent-loop"],
-  "dependencies": ["orchestration"]
+  "dependencies": ["orchestration", "egm", "python-quality", "nodejs-quality"]
 }

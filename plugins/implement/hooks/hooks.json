@@ -1,5 +1,5 @@
 {
-    "description": "Denies edits to the acceptance tests listed in .implement/loop.json while an implement loop is running.",
+    "description": "Denies edits to the acceptance tests listed in .implement/loop.json while an implement loop is running, and at session start proposes a drift check when an implemented design's referenced files changed since the last pass.",
     "hooks": {
         "PreToolUse": [
             {
@@ -15,6 +15,25 @@
                         ],
                         "timeout": 10,
                         "statusMessage": "checking the test lock"
+                    }
+                ]
+            }
+        ],
+        "SessionStart": [
+            {
+                "matcher": "startup",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "uv",
+                        "args": [
+                            "run",
+                            "--script",
+                            "${CLAUDE_PLUGIN_ROOT}/skills/drift-check/scripts/drift-scan.py",
+                            "gate"
+                        ],
+                        "timeout": 10,
+                        "statusMessage": "checking design drift"
                     }
                 ]
             }

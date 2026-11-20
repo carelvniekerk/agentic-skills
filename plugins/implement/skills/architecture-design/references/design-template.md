@@ -20,10 +20,12 @@ language: python
 status: draft
 date: YYYY-MM-DD
 approved-by: ""
+ticket: docs/tickets/<slug>.md
 ---
 ```
 
 `language` is `python`, `typescript` or `javascript`, and the implement skill takes its commands and conventions from it.
+`ticket` is optional and holds the path of the `implement:ticket` file the design started from, so delete the line when there is none.
 `status` is `draft` until the user approves it, and then `approved`.
 The implement skill refuses a design whose status is `draft` unless the user confirms in the conversation that they approve it.
 

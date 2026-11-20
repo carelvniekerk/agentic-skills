@@ -89,7 +89,13 @@ The book itself is cited by title, authors, publisher and year, and its text is 
 
 ## Phase 0: requirement and constraints
 
-Extract what you can from the conversation, then ask in one batched message only for the gaps:
+If the user names a ticket, or the conversation holds one written by `implement:ticket`, read it first, with the images listed under its attachments.
+Take the requirement, the constraints, the scope and the codebase from it, and ask only for what the four questions below still leave open.
+Ask again for each open question in the ticket, and stop the design if one is marked as blocking until the user answers it.
+Say so and ask whether to go on if the ticket's status is `draft`.
+The ticket holds no acceptance criteria, so Phase 5 writes them, and the design's frontmatter records the ticket's path under `ticket:`.
+
+Extract what you can from the conversation and the ticket, then ask in one batched message only for the gaps:
 
 1. What must the system do, in observable behaviour?
 2. What are the constraints: language and runtime version, dependencies already in use, deployment, data protection (DSGVO) where personal data is involved, and anything that must not change?
@@ -198,6 +204,7 @@ Present the design as a short summary: the decisions, the rejected alternatives,
 State that nothing has been built.
 Ask the user to approve it or change it, and stop.
 When the user approves, set `status: approved` and fill `approved-by` in the design's frontmatter, so a later session can build from it without asking again, and name the next step as `/implement:implement <design path>`.
+`implement:implement` later sets the status to `implemented`, which is what `implement:drift-check` looks for.
 Do not start implementing, and do not treat silence or a general "continue" as approval of a design they have not read.
 
 ## Gotchas

@@ -4,7 +4,7 @@ description: >-
   Take a finished branch to a pull request: runs the tests, the project's pre-commit hooks, linter and type checker on the changed files, reviews the full branch diff with the user, opens the PR with gh, and on request waits for CI, merges, deletes the branch and resyncs the default branch.
   Use when the user says "open a PR", "create a pull request", "make a PR", "raise a PR", "submit this for review", "send it up for review", "ship it" or "let's merge this", or otherwise says the branch is ready to leave their machine, even if they do not say "pull request".
   Committing without a pull request belongs to the sibling commit skill.
-allowed-tools: Read Grep Glob Bash(git *) Bash(gh pr *) Bash(gh repo view *) Bash(uv *) Bash(uvx *) Bash(npm *) Bash(npx *) Bash(cargo *) Bash(make *) Bash(just *) Bash(pytest *)
+allowed-tools: Read Grep Glob Skill Bash(git *) Bash(gh pr *) Bash(gh repo view *) Bash(uv *) Bash(uvx *) Bash(npm *) Bash(npx *) Bash(cargo *) Bash(make *) Bash(just *) Bash(pytest *)
 ---
 
 # Pull request
@@ -120,6 +120,13 @@ Without pre-commit, run the stack's linter and formatter on the changed files: f
 Then run the type checker the project configures, such as `uv run ty check`, `uv run mypy`, `npx tsc --noEmit` or `cargo clippy`.
 If it reports errors, stop and report them, and do not rewrite code to satisfy the checker without the user's agreement.
 Name every step you skipped and why.
+
+Then, only if the repository has a design document with `status: implemented` in its frontmatter, check the branch for design drift.
+Invoke `implement:drift-check` through the Skill tool with the argument `scan-only <base>`, where `<base>` is the base branch from Phase 1.
+Show its result.
+Run its reviewer only if the scan flags a design and the user says yes.
+Skip this step silently when no design is implemented.
+The `git` plugin depends on `implement`, so the skill is always installed, and it is the design check that decides.
 
 If a fixer changed files, the tree was clean at Phase 1, so every modified file is fixer output.
 Review that diff, then commit it by path:

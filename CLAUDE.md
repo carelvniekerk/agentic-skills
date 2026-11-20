@@ -53,11 +53,12 @@ agentic-skills/
     │   └── skills/           create-skill, create-hook, create-agent, create-instructions
     ├── implement/
     │   ├── .claude-plugin/plugin.json
-    │   ├── skills/           architecture-design, implement
-    │   ├── agents/           test-reviewer.md, code-reviewer.md, architecture-reviewer.md
-    │   ├── hooks/            hooks.json + test-lock.py
+    │   ├── skills/           ticket (references/ticket-template.md, lenses.md), architecture-design, implement, drift-check (references/reviewer-brief.md, scripts/drift-scan.py)
+    │   ├── THIRD_PARTY.md    credit for the Elephant-Goldfish Model ideas the ticket skill adapts
+    │   ├── agents/           test-reviewer.md, code-reviewer.md, architecture-reviewer.md, drift-reviewer.md
+    │   ├── hooks/            hooks.json + test-lock.py (the SessionStart drift gate runs drift-scan.py gate)
     │   ├── tests/            acceptance.sh
-    │   └── evals/            trigger and near-miss cases for architecture-design
+    │   └── evals/            trigger and near-miss cases for architecture-design, drift-check and ticket
     ├── dreaming/
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/           dream
@@ -92,7 +93,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 
 | Plugin           | Contains                                                                                                                   | Invoked as                     |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `git`            | commit, pr                                                                                                                 | `/git:commit`                  |
+| `git`            | commit, pr; depends on `implement` for the drift scan in `pr`                                                              | `/git:commit`                  |
 | `debug`          | bug-discovery                                                                                                              | `/debug:bug-discovery`         |
 | `config`         | dotset                                                                                                                     | `/config:dotset`               |
 | `hf`             | hf + bundled Hugging Face MCP server                                                                                       | `/hf:hf`                       |
@@ -104,7 +105,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `uv`             | uv-redirect, launch-manifest — hooks only, no skills or agents                                                             | nothing; hooks fire on events  |
 | `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: Bash gate, Stop check, session context | `/orchestration:setup`         |
 | `meta`           | create-skill, create-hook, create-agent, create-instructions                                                               | `/meta:create-skill`           |
-| `implement`      | architecture-design, implement + 3 read-only reviewer agents (tests, code, architecture) + hook: test lock; depends on `orchestration` | `/implement:architecture-design` |
+| `implement`      | ticket, architecture-design, implement, drift-check + 4 read-only reviewer agents (tests, code, architecture, drift) + hooks: test lock, SessionStart drift gate; depends on `orchestration`, `egm` (Google, pinned by SHA in the marketplace), `python-quality` and `nodejs-quality` | `/implement:ticket`, `/implement:architecture-design` |
 | `dreaming`       | dream + 1 agent (dreamer, writes only to a staging directory) + hooks: SessionStart gate that starts the agent in the current session, PreToolUse staging guard. Works on native auto memory and on the project's CLAUDE.md and `.claude/rules/`, which it changes only on approval| `/dreaming:dream`                |
 | `desktop-dreamer` | dream: backs up the desktop app's memory store to a text file, then consolidates it and restores it on request. Skill only, no agents or hooks. Needs the `mcp__memory__` tools, so it does not work in the CLI | `/desktop-dreamer:dream` |
 | `writing` | copyedit: a deterministic prose lint with a compare mode, English and German references, English and German catalogues of AI tells, and a four-pass copyedit of finished client deliverables that ends only when the read-only `copyedit-reviewer` agent returns CLEAR. No hooks | `/writing:copyedit` |
@@ -265,7 +266,8 @@ Each `source` is a path from the **repository root**, so it carries the `./plugi
 }
 ```
 
-Relative sources keep every plugin inside this one repository.
+Relative sources keep every plugin inside this one repository, with one exception: `egm` is Google's Elephant-Goldfish Model, listed with a `github` source pinned by `sha` so that `implement` can depend on it by name.
+Bump the SHA by hand and read the upstream diff each time.
 That is what makes the marketplace work from a private repo and avoids a second repository per plugin.
 
 **Do not set `metadata.pluginRoot`.**
@@ -411,6 +413,25 @@ Do not set `hooks`, `mcpServers`, `permissionMode` or `initialPrompt`, because a
 7. Refer to the agent as `<plugin>:<slug>` in every skill that delegates to it.
 
 ## Adding a Plugin — Checklist
+
+## Evaluating a plugin that has dependencies
+
+`claude plugin eval <plugin-dir>` loads a path target without its dependencies.
+The trace's init event then carries `plugin_errors` with `dependency-unsatisfied`, no skill loads, and every trigger case fails in both arms with a delta of 0, which looks like a bad description and is not.
+Measured on 2026-11-20 with `implement` listing only `orchestration`.
+Evaluate a copy with the dependencies removed, and treat the result as a trigger and near-miss measurement only, because the copy cannot show that the dependencies resolve:
+
+```bash
+rsync -a --exclude evals/results plugins/<name>/ "$TMPDIR/evalcopy/<name>/"
+jq 'del(.dependencies)' plugins/<name>/.claude-plugin/plugin.json > "$TMPDIR/p.json"
+mv "$TMPDIR/p.json" "$TMPDIR/evalcopy/<name>/.claude-plugin/plugin.json"
+claude plugin eval "$TMPDIR/evalcopy/<name>" --no-publish --trust-plugin --max-cost-usd <usd>
+```
+
+Check `plugin_errors` in a kept trace (`--keep-temp`) before you trust a run where every trigger case fails.
+Installing `<name>@agentic-skills` resolves the dependencies, but evaluates the installed copy and not the working tree.
+
+---
 
 1. `mkdir -p plugins/<name>/{.claude-plugin,skills}`.
 2. Write `plugins/<name>/.claude-plugin/plugin.json` — no `version` field.

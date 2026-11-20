@@ -84,7 +84,18 @@
       "name": "implement",
       "source": "./plugins/implement",
       "category": "development",
-      "tags": ["architecture", "design-patterns", "python", "typescript", "javascript", "mern", "code-review", "tdd", "subagents", "hooks"]
+      "tags": ["architecture", "design-patterns", "python", "typescript", "javascript", "mern", "code-review", "tdd", "subagents", "hooks", "drift-detection", "ticket"]
+    },
+    {
+      "name": "egm",
+      "source": {
+        "source": "github",
+        "repo": "google/elephant-goldfish-model",
+        "ref": "main",
+        "sha": "70406c4d22cc7ea8299637c2c5b44625c48b3f08"
+      },
+      "category": "development",
+      "tags": ["review", "design", "drift", "third-party", "google"]
     },
     {
       "name": "dreaming",

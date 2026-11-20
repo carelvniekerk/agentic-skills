@@ -53,7 +53,7 @@ Implement progress:
 - [ ] 3. Round N: implement until the locked tests, the linter and the type checker are green
 - [ ] 4. Round N: three reviewers spawned from the fixed brief template
 - [ ] 5. Round N: findings triaged and logged, stop rules checked (not met: next round)
-- [ ] 6. Marker removed and the final report written
+- [ ] 6. Marker removed, design marked implemented with its test list, and the final report written
 ```
 
 ## Stance
@@ -116,7 +116,9 @@ Each must fail, and each must fail because the behaviour is missing and not beca
 A test that passes before any implementation is checking nothing, so fix or remove it, and a test that errors on a typo is not yet a test.
 
 Then review the tests before you lock them, because a wrong test frozen by Phase 2 can only be changed by the user.
-Create `.implement/` with `mkdir -p .implement`, and spawn one `implement:test-reviewer` in pre-lock mode with the brief from `${CLAUDE_SKILL_DIR}/references/reviewer-briefs.md`.
+Create `.implement/` with `mkdir -p .implement`.
+Keep it out of git with `uv run --script ${CLAUDE_PLUGIN_ROOT}/skills/drift-check/scripts/drift-scan.py ignore`, which writes `.git/info/exclude` and touches no tracked file.
+Then spawn one `implement:test-reviewer` in pre-lock mode with the brief from `${CLAUDE_SKILL_DIR}/references/reviewer-briefs.md`.
 The suite is red at this point by design, and the Phase 3 rule against reviewing a red suite does not apply to this review.
 Fix every BLOCKING finding in the tests, which are still yours to edit, and review again with a fresh reviewer.
 Log each round in `.implement/rounds.md` under a `Test review round N` heading, apart from the implementation rounds, so that the counts per round do not mix.
@@ -141,7 +143,8 @@ Create `.implement/` if the pre-lock review has not already, and write `.impleme
 The hook reads `version` and `protected` only, and ignores the rest.
 Take each hash with `shasum -a 256 <path>` and store it under `hashes`, because before every round you recompute them to confirm the locked tests have not changed.
 Show the user the locked paths.
-Tell the user to add `.implement/` to `.gitignore`, and do not edit `.gitignore` yourself, because the project may manage it through `config:dotset`.
+Do not edit `.gitignore`, because the project may manage it through `config:dotset`.
+The `ignore` command from Phase 1 already keeps `.implement/` out of git, so say which of its two results you got if you did not report it earlier.
 
 While the marker exists, the plugin's hook denies Edit, Write and NotebookEdit on the locked paths and on the marker, and ignores a marker older than 12 hours.
 It cannot see Bash, so you do not edit a locked test or the marker through Bash either.
@@ -202,6 +205,19 @@ After any stop other than success, report the state as it is and do not start an
 ## Phase 6: finish
 
 Remove the marker with `rm .implement/loop.json` and keep `.implement/rounds.md`.
+
+When the loop ended in success, mark the design as built, because `implement:drift-check` only checks designs with `status: implemented`.
+Edit the design file named under `design` in the marker, after the marker is gone, since the lock may cover the design's folder.
+Change `status: approved` to `status: implemented`, and add a `tests:` list to the frontmatter with the paths from the marker's `hashes`, one per line and relative to the repository root, so a path from a `server/` package gets the `server/` prefix, because the drift scanner resolves every path from the git root:
+
+```yaml
+status: implemented
+tests:
+  - tests/acceptance/test_cart.py
+```
+
+Leave the status at `approved` after any other stop, because the design is not built.
+Name the edit in the report, since it changes a file the user approved.
 Report in this order:
 
 1. The result and the stop rule that ended the loop.

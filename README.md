@@ -22,7 +22,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `uv`             | —                                                                                                                         | —                                          | `PreToolUse`, `UserPromptExpansion`        |
 | `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
 | `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
-| `implement`      | `architecture-design`, `implement`                                                                                        | `test-reviewer`, `code-reviewer`, `architecture-reviewer` | `PreToolUse`                |
+| `implement`      | `ticket`, `architecture-design`, `implement`, `drift-check`                                                                   | `test-reviewer`, `code-reviewer`, `architecture-reviewer`, `drift-reviewer` | `PreToolUse`, `SessionStart` |
 | `dreaming`       | `dream`                                                                                                                   | `dreamer`                                  | `SessionStart`, `PreToolUse`               |
 | `desktop-dreamer` | `dream`                                                                                                          | —                                          | —                                          |
 | `writing`        | `copyedit`                                                                                                                | `copyedit-reviewer`                        | —                                          |
@@ -68,15 +68,33 @@ Each runs a draft, test, review and iterate loop against the current reference d
 Inside a plugin marketplace repository they follow the `plugins/<plugin>/` layout; elsewhere they default to personal or project scope.
 See [Guard hooks](#guard-hooks) below.
 
-- **`implement`**: design and build in a loop, for Python and for TypeScript or JavaScript.
+- **`implement`**: ticket, design and build in a loop, for Python and for TypeScript or JavaScript.
+`ticket` is the first step.
+You describe what you want, with screenshots if you have them, and it interviews you over several turns, stress-tests the idea with six short lenses (build or buy first) and writes `docs/tickets/<slug>.md` only after you confirm a summary.
+The ticket holds the problem, the observable behaviour, the constraints, what is out of scope, the open questions and the attachments.
+It holds no acceptance criteria and no solution, so `architecture-design` stays the one place that writes them.
+The output is a Markdown file for now, and the delivery step is the place a tracker such as GitHub, Linear, Jira or Asana gets added later.
+The interview and the lenses are adapted from the Elephant-Goldfish Model (Apache-2.0), credited in the plugin's `THIRD_PARTY.md`.
 `architecture-design` picks module boundaries and dependency direction and picks a design pattern only when a named force justifies it, with the language idiom checked first.
 For TypeScript it designs for `strict` mode by default and knows the Node and MERN layouts, including MVC, which it treats as background: it surveys an existing MVC codebase and never proposes MVC for a new design unless you ask.
 A read-only architecture reviewer checks the draft for up to three rounds, and the skill then ends at a human approval gate.
 `implement` writes acceptance tests from the design, has a test reviewer check them for up to three rounds, locks them with a hook, implements in the main session and runs three read-only reviewers (tests, code, architecture) in a clean context for up to three rounds.
+When you name a ticket, `architecture-design` reads it in Phase 0 and asks only for the gaps.
 The pattern guide is paraphrased from open sources, marks its thin rows, and contains no text from the book.
 It needs the `orchestration` plugin for its lookups.
+When a loop succeeds, `implement` sets the design's `status` to `implemented` and lists the acceptance test files under `tests:` in its frontmatter.
+`drift-check` then compares implemented designs with the code.
+A script (`drift-scan.py`) runs the checks a tool can run: backticked paths and identifiers that no longer exist, acceptance criteria with no test whose name carries the ID, test IDs that no criterion names, and the design's import-linter, dependency-cruiser or Biome boundary check when the project has the tool.
+A read-only `drift-reviewer` in a clean context then judges only the designs the script flags or whose referenced files changed since the last pass, and the skill writes a differences-only report to `.implement/drift-report-YYYY-MM-DD.md`.
+A `SessionStart` hook proposes the check when at least seven days have passed since the last pass and a referenced file changed.
+It only tells the session to mention `/implement:drift-check` and starts no agent.
+It remembers its last proposal in `.implement/drift-gate.json` and stays quiet for 24 hours after it, and writes nothing else.
+`.implement/` is kept out of git through `.git/info/exclude`, so none of this state lands in the repository.
+`git:pr` offers a scan of the designs the branch touches, and the `git` plugin depends on `implement` for it.
 
 - **`dreaming`**: consolidates Claude Code native auto memory, with no install script and no background process.
+It also depends on `python-quality` and `nodejs-quality`, so their hooks (secrets guard, fix on write, turn gate) run in every project that installs it, and on Google's `egm` plugin, which the marketplace pins by commit SHA.
+Nothing in `implement` calls `egm` yet.
 A `SessionStart` hook checks whether memory changed since the last pass and at least seven days have passed, or whether `MEMORY.md` exceeds 80 lines, and then tells the session to start the `dreamer` subagent where you can see it.
 The agent writes a proposal and a report to a staging directory beside the memory directory, and a `PreToolUse` hook refuses any other write by that agent.
 The agent also reads the project's `CLAUDE.md` and `.claude/rules/`.
