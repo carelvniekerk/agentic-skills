@@ -79,11 +79,9 @@ The output is a Markdown file for now, and the delivery step is the place a trac
 The interview and the lenses are adapted from the Elephant-Goldfish Model (Apache-2.0), credited in the plugin's `THIRD_PARTY.md`.
 `architecture-design` picks module boundaries and dependency direction and picks a design pattern only when a named force justifies it, with the language idiom checked first.
 For TypeScript it designs for `strict` mode by default and knows the Node and MERN layouts, including MVC, which it treats as background: it surveys an existing MVC codebase and never proposes MVC for a new design unless you ask.
+When you name a ticket, `architecture-design` reads it in Phase 0 and asks only for the gaps.
 A read-only architecture reviewer checks the draft for up to three rounds, and the skill then ends at a human approval gate.
 `implement` writes acceptance tests from the design, has a test reviewer check them for up to three rounds, locks them with a hook, implements in the main session and runs three read-only reviewers (tests, code, architecture) in a clean context for up to three rounds.
-When you name a ticket, `architecture-design` reads it in Phase 0 and asks only for the gaps.
-The pattern guide is paraphrased from open sources, marks its thin rows, and contains no text from the book.
-It needs the `orchestration` plugin for its lookups.
 When a loop succeeds, `implement` sets the design's `status` to `implemented` and lists the acceptance test files under `tests:` in its frontmatter.
 `drift-check` then compares implemented designs with the code.
 A script (`drift-scan.py`) runs the checks a tool can run: backticked paths and identifiers that no longer exist, acceptance criteria with no test whose name carries the ID, test IDs that no criterion names, and the design's import-linter, dependency-cruiser or Biome boundary check when the project has the tool.
@@ -93,10 +91,12 @@ It only tells the session to mention `/implement:drift-check` and starts no agen
 It remembers its last proposal in `.implement/drift-gate.json` and stays quiet for 24 hours after it, and writes nothing else.
 `.implement/` is kept out of git through `.git/info/exclude`, so none of this state lands in the repository.
 `git:pr` offers a scan of the designs the branch touches, and the `git` plugin depends on `implement` for it.
-
-- **`dreaming`**: consolidates Claude Code native auto memory, with no install script and no background process.
+The pattern guide is paraphrased from open sources, marks its thin rows, and contains no text from the book.
+It needs the `orchestration` plugin for its lookups.
 It also depends on `python-quality` and `nodejs-quality`, so their hooks (secrets guard, fix on write, turn gate) run in every project that installs it, and on Google's `egm` plugin, which the marketplace pins by commit SHA.
 Nothing in `implement` calls `egm` yet.
+
+- **`dreaming`**: consolidates Claude Code native auto memory, with no install script and no background process.
 A `SessionStart` hook checks whether memory changed since the last pass and at least seven days have passed, or whether `MEMORY.md` exceeds 80 lines, and then tells the session to start the `dreamer` subagent where you can see it.
 The agent writes a proposal and a report to a staging directory beside the memory directory, and a `PreToolUse` hook refuses any other write by that agent.
 The agent also reads the project's `CLAUDE.md` and `.claude/rules/`.

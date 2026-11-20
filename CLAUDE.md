@@ -414,8 +414,6 @@ Do not set `hooks`, `mcpServers`, `permissionMode` or `initialPrompt`, because a
 6. Measure delegation with `claude plugin eval`: list `Agent` in the case's `allowed_tools`, grade with a `tool_used` grader on `Agent` whose `input_match` matches `"subagent_type"`, and add one near-miss case that must not delegate.
 7. Refer to the agent as `<plugin>:<slug>` in every skill that delegates to it.
 
-## Adding a Plugin — Checklist
-
 ## Evaluating a plugin that has dependencies
 
 `claude plugin eval <plugin-dir>` loads a path target without its dependencies.
@@ -434,6 +432,8 @@ Check `plugin_errors` in a kept trace (`--keep-temp`) before you trust a run whe
 Installing `<name>@agentic-skills` resolves the dependencies, but evaluates the installed copy and not the working tree.
 
 ---
+
+## Adding a Plugin — Checklist
 
 1. `mkdir -p plugins/<name>/{.claude-plugin,skills}`.
 2. Write `plugins/<name>/.claude-plugin/plugin.json` — no `version` field.
