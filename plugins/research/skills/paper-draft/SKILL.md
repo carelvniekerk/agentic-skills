@@ -5,7 +5,7 @@ description: >-
   Use when the user asks to write a paper, draft a report, write up results or turn notes into a paper.
 argument-hint: <topic or slug> [--latex | --markdown]
 disable-model-invocation: true
-allowed-tools: WebSearch WebFetch Read Glob Write Bash(mkdir *) Agent mcp__savvy-progress__progress
+allowed-tools: WebSearch WebFetch Read Glob Write Bash(mkdir *) Agent mcp__savvy-progress__progress Grep Skill Bash(cp *) Bash(shasum *)
 ---
 
 # Paper draft
@@ -30,7 +30,8 @@ Paper draft progress:
 - [ ] 3. Outline written, claims mapped to material
 - [ ] 4. Draft written by research:writer
 - [ ] 5. Draft verified and cited by research:verifier
-- [ ] 6. Delivered with the claims weakened or cut
+- [ ] 6. Verified draft copyedited by writing:copyedit, citations unchanged
+- [ ] 7. Delivered with the claims weakened or cut
 ```
 
 ## 1. Decide the format
@@ -75,7 +76,12 @@ Spawn a `research:verifier` agent with the reporting line from the Progress repo
 - The rules: anchor every factual claim to the pool, weaken or remove any claim stronger than its evidence, and keep limitations and open questions explicit.
 - The full contents of `house-style.md`.
 
-## 6. Deliver
+## 6. Copyedit
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/copyedit-step.md` and follow it on the file the verifier wrote.
+Always run it for this deliverable, and do not deliver before it ends.
+
+## 7. Deliver
 
 Report the path, the material used and the gaps that remain.
 List the claims you weakened or cut for lack of support, and flag implausible numbers, results that are not comparable across sources and sections resting on one source.

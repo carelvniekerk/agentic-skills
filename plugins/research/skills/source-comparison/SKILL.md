@@ -7,7 +7,7 @@ when_to_use: >-
   Trigger phrases: "compare these papers", "compare these methods", "X vs Y" for named methods or tools, "how do these approaches differ", "comparison matrix", "which of these frameworks", "side by side comparison of", "how does X stack up against Y".
   Comparing code, functions or implementation choices inside the current project is not this skill, and Claude answers that directly.
 argument-hint: <the items to compare, and optionally the dimensions>
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress Grep Skill Bash(cp *) Bash(shasum *)
 ---
 
 # Source comparison
@@ -32,7 +32,8 @@ Source comparison progress:
 - [ ] 3. Evidence gathered per item (uneven coverage: gather again for the thin item)
 - [ ] 4. Matrix drafted by research:writer
 - [ ] 5. Draft verified and cited by research:verifier
-- [ ] 6. Delivered: what the evidence decides, what it does not
+- [ ] 6. Verified draft copyedited by writing:copyedit, citations unchanged
+- [ ] 7. Delivered: what the evidence decides, what it does not
 ```
 
 ## 1. Check local knowledge
@@ -79,7 +80,12 @@ Spawn a `research:verifier` agent with the reporting line from the Progress repo
 - The rule that every matrix cell traces to a citation, and a cell resting on one unchecked source is downgraded to `low`.
 - The full contents of `house-style.md`.
 
-## 6. Deliver
+## 6. Copyedit
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/copyedit-step.md` and follow it on the file the verifier wrote.
+Always run it for this deliverable, and do not deliver before it ends.
+
+## 7. Deliver
 
 Report the path, the dimensions the evidence decides and those it does not, and the judgement calls behind the dimensions and confidence labels.
 

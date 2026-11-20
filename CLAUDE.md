@@ -25,7 +25,9 @@ agentic-skills/
     ├── research/
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/           deep-research, literature-review, peer-review, …
-    │   └── agents/           researcher.md, reviewer.md, verifier.md, writer.md
+    │   ├── agents/           researcher.md, reviewer.md, verifier.md, writer.md
+    │   ├── references/       house-style.md, brief-format.md, copyedit-step.md
+    │   └── tests/            acceptance.sh
     ├── python-quality/
     │   ├── .claude-plugin/plugin.json
     │   └── hooks/            hooks.json + the shell scripts it points at
@@ -98,7 +100,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `config`         | dotset                                                                                                                     | `/config:dotset`               |
 | `hf`             | hf + bundled Hugging Face MCP server                                                                                       | `/hf:hf`                       |
 | `langchain`      | langgraph-multi-agent-architect                                                                                            | `/langchain:langgraph-…`       |
-| `research`       | deep-research, external-research, literature-review, source-comparison, eli5, tldr, paper-draft, peer-review, paper-code-audit + 4 agents | `/research:deep-research`      |
+| `research`       | deep-research, external-research, literature-review, source-comparison, eli5, tldr, paper-draft, peer-review, paper-code-audit + 4 agents; depends on `writing`, and the five deliverable skills end in `writing:copyedit` | `/research:deep-research`      |
 | `python-quality` | secrets-guard, fix-on-write, turn-gate — hooks only, no skills or agents                                                    | nothing; hooks fire on events  |
 | `nodejs-quality` | secrets-guard, fix-on-write, turn-gate: hooks only, no skills or agents                                                     | nothing; hooks fire on events  |
 | `chezmoi`        | chezmoi-guard — hook only, no skills or agents                                                                             | nothing; hooks fire on events  |

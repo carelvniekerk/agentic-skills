@@ -6,7 +6,7 @@ description: >-
 when_to_use: >-
   Trigger phrases: "deep research", "research this thoroughly", "write me a research brief on", "multi-source investigation", "I want a full picture of", "research and write up", "give me everything on".
   A survey of academic papers belongs to literature-review, a comparison of named options to source-comparison, and a quick lookup to external-research.
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress Grep Skill Bash(cp *) Bash(shasum *)
 ---
 
 # Deep research
@@ -31,7 +31,8 @@ If the conclusions rest mostly on inference rather than on sources read, say so 
 - 4. Evaluate and loop
 - 5. Write the brief
 - 6. Verify and cite
-- 7. Deliver
+- 7. Copyedit
+- 8. Deliver
 - Progress reporting
 - Strict prohibitions
 
@@ -47,7 +48,8 @@ Deep research progress:
 - [ ] 4. Gaps assessed (significant gaps: return to 3, at most two extra rounds)
 - [ ] 5. Draft written by research:writer
 - [ ] 6. Draft verified and cited by research:verifier
-- [ ] 7. Provenance written, judgement calls and anomalies reported
+- [ ] 7. Verified draft copyedited by writing:copyedit, citations unchanged
+- [ ] 8. Provenance written, judgement calls and anomalies reported
 ```
 
 ## 1. Check local knowledge
@@ -102,7 +104,12 @@ Spawn a `research:verifier` agent with the reporting line from the Progress repo
 - Citation format: Markdown footnotes `[^N]`, never HTML anchors or `[[N]](#ref-N)`, which break Obsidian rendering.
 - The full contents of `house-style.md`, which binds any wording the verifier rewrites.
 
-## 7. Deliver
+## 7. Copyedit
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/copyedit-step.md` and follow it on the file the verifier wrote.
+Always run it for this deliverable, and do not deliver before it ends.
+
+## 8. Deliver
 
 Write the provenance sidecar to `<scratch>/<slug>.provenance.md`:
 

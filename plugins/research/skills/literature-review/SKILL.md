@@ -6,7 +6,7 @@ description: >-
 when_to_use: >-
   Trigger phrases: "literature review", "lit review", "survey the papers on", "related work section", "what papers exist on", "what does the literature say about", "prior work on", "who has published on", "state of the art in".
   A general multi-source brief belongs to deep-research, a critique of one paper to peer-review, and a quick paper lookup to external-research.
-allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress
+allowed-tools: WebSearch WebFetch Read Write Bash(mkdir *) Agent mcp__savvy-progress__progress Grep Skill Bash(cp *) Bash(shasum *)
 ---
 
 # Literature review
@@ -32,7 +32,8 @@ Literature review progress:
 - [ ] 3. Papers gathered by research:researcher (fewer than 8 papers: gather again)
 - [ ] 4. Review drafted by research:writer
 - [ ] 5. Draft verified and cited by research:verifier
-- [ ] 6. Delivered with judgement calls and anomalies
+- [ ] 6. Verified draft copyedited by writing:copyedit, citations unchanged
+- [ ] 7. Delivered with judgement calls and anomalies
 ```
 
 ## 1. Check local knowledge
@@ -81,7 +82,12 @@ Spawn a `research:verifier` agent with the reporting line from the Progress repo
 - The rule that every factual paragraph carries at least one citation, and a claim that rests on a single source is hedged rather than asserted.
 - The full contents of `house-style.md`.
 
-## 6. Deliver
+## 6. Copyedit
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/copyedit-step.md` and follow it on the file the verifier wrote.
+Always run it for this deliverable, and do not deliver before it ends.
+
+## 7. Deliver
 
 Write a provenance sidecar to `<scratch>/<slug>.provenance.md` with the papers excluded and why, how conflicting results were resolved, and which cross-paper comparisons are not like-for-like.
 In the delivery message, give the review's path, then those judgement calls, the anomalies in the evidence and the claims the verifier weakened or removed.

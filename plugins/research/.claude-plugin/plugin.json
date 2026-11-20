@@ -10,5 +10,6 @@
   "homepage": "https://github.com/carelvniekerk/agentic-skills",
   "repository": "https://github.com/carelvniekerk/agentic-skills",
   "license": "MIT",
-  "keywords": ["research", "literature-review", "peer-review", "academic", "citations"]
+  "keywords": ["research", "literature-review", "peer-review", "academic", "citations"],
+  "dependencies": ["writing"]
 }

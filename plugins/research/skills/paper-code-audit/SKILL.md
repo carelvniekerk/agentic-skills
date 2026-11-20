@@ -6,7 +6,7 @@ description: >-
 argument-hint: <paper URL, arXiv ID or path> <repository URL>
 effort: high
 disable-model-invocation: true
-allowed-tools: WebSearch WebFetch Read Glob Grep Write Bash(mkdir *) Bash(git clone *) Bash(git -C * rev-parse HEAD) Agent mcp__savvy-progress__progress
+allowed-tools: WebSearch WebFetch Read Glob Grep Write Bash(mkdir *) Bash(git clone *) Bash(git -C * rev-parse HEAD) Agent mcp__savvy-progress__progress Skill Bash(cp *) Bash(shasum *)
 ---
 
 # Paper-code audit
@@ -31,7 +31,8 @@ A deviation suspected because a file is absent is labelled `[Likely]` or `[Guess
 - 4. Classify findings
 - 5. Write the audit
 - 6. Verify and cite
-- 7. Deliver
+- 7. Copyedit
+- 8. Deliver
 - Gotchas
 - Progress reporting
 - Strict prohibitions
@@ -48,7 +49,8 @@ Audit progress:
 - [ ] 4. Findings classified by you, saved to the findings file
 - [ ] 5. Audit drafted by research:writer
 - [ ] 6. Draft verified and cited by research:verifier
-- [ ] 7. Delivered, blocking findings first, unchecked claims named
+- [ ] 7. Verified draft copyedited by writing:copyedit, citations unchanged
+- [ ] 8. Delivered, blocking findings first, unchecked claims named
 ```
 
 ## 1. Identify the targets
@@ -112,7 +114,12 @@ Spawn a `research:verifier` agent with the reporting line from the Progress repo
 - The rule that `path:line` references are internal evidence, not citations, and stay untouched.
 - The full contents of `house-style.md`.
 
-## 7. Deliver
+## 7. Copyedit
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/copyedit-step.md` and follow it on the file the verifier wrote.
+Always run it for this deliverable, and do not deliver before it ends.
+
+## 8. Deliver
 
 Report the verdict with the blocking findings first, then the judgement calls behind the severity labels, then the claims you could not check and why.
 

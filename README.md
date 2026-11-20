@@ -46,6 +46,8 @@ Argues for a single agent first, then maps constraints onto subagents, handoffs,
 
 - **`research`** — the full research pipeline: evidence gathering, synthesis, citation anchoring, and critique.
 Ships four subagents (`researcher` → `writer` → `verifier` → `reviewer`) that the skills delegate to.
+It depends on `writing`: `deep-research`, `literature-review`, `source-comparison`, `paper-draft` and `paper-code-audit` run `writing:copyedit` on the verified file before delivery, and check that no citation changed.
+`tldr`, `eli5`, `external-research` and `peer-review` are not copyedited.
 
 - **`python-quality`** — no skills and no agents.
 It ships three hooks that enforce Python hygiene without asking Claude to remember to.
