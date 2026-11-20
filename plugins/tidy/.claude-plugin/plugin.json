@@ -11,5 +11,5 @@
   "repository": "https://github.com/carelvniekerk/agentic-skills",
   "license": "MIT",
   "keywords": ["audit", "cleanup", "skills", "memory", "connectors", "desktop"],
-  "dependencies": ["dreaming"]
+  "dependencies": ["dreaming", "uv"]
 }
