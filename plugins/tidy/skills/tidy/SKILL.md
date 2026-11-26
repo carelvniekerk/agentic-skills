@@ -91,6 +91,7 @@ When every dreamer has finished, read `<project>/dream-staging/REPORT.md` and ad
 
 - one row per Merges, Rewrites, Link fixes and Dates entry, grouped by the staged memory file, with the report's reason in "What is wrong" and "What to do";
 - one row per Promotions and Project files entry, with its exact added or removed text in `details`, defaulting to Keep as is because the file is shared with the team;
+- one row per Global entry in the global layer's table, with its exact added text in `details`, defaulting to Keep as is, because `dreaming:dream` asks about the global file in its own question even after a tick, and drop any memory sub-agent row that edits the same lines of `~/.claude/CLAUDE.md`, because two edits to one file would conflict;
 - one row per Deletions entry, defaulting to Keep, with the paired promotion named when there is one;
 - Flags go in as `flag` rows.
 
@@ -168,7 +169,7 @@ Do this once per project, before the other `edit_file` rows that name the same f
 
 1. Collect the project's ticked `dream_apply` and `dream_delete` rows.
 2. If none is ticked, run `/dreaming:dream discard <folder>` so the next pass does not stop on a stale report, and go to the next project.
-3. Otherwise remove from `<project>/dream-staging/` every staged file that has no ticked row, and drop the text of each unticked Promotions or Project files entry from its staged project file with Edit, using the exact text from the report.
+3. Otherwise remove from `<project>/dream-staging/` every staged file that has no ticked row, and drop the text of each unticked Promotions, Project files or Global entry from its staged file with Edit, using the exact text from the report.
 Leave a deletion in `REPORT.md` untouched, because dream asks about each deletion in its own question and only offers one when it was ticked, so answer that question with the ticked deletions only.
 4. Run `/dreaming:dream apply <folder>`.
 It shows its own diff and asks its own questions, and it commits memory with a snapshot before it writes.
