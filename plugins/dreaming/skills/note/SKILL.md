@@ -104,6 +104,7 @@ Do not quote the memory file or show its frontmatter.
 ## Gotchas
 
 - Today's date and the session id come from `date +%F` and `${CLAUDE_SESSION_ID}`.
+- Take quotes and the rule's wording from the user's prompt in the conversation, never from this skill's arguments, because Claude Code expands placeholders such as `${CLAUDE_PLUGIN_ROOT}` in the arguments before the skill reads them.
 - The native memory instruction may also prompt you to save the same feedback. Use this skill's format, so the dream pass can count it, and do not write a second file.
 - An `implement` loop can return up to nine verdicts per round. One note per round, for the finding most likely to recur, keeps the counts meaningful.
 
