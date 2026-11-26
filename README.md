@@ -23,7 +23,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `orchestration`  | `delegate`, `setup`                                                                                                       | `repo-map`, `call-sites`, `api-docs`       | `SessionStart`, `PreToolUse`, `Stop`       |
 | `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
 | `implement`      | `ticket`, `architecture-design`, `implement`, `drift-check`                                                                   | `test-reviewer`, `code-reviewer`, `architecture-reviewer`, `drift-reviewer` | `PreToolUse`, `SessionStart` |
-| `dreaming`       | `dream`                                                                                                                   | `dreamer`                                  | `SessionStart`, `PreToolUse`               |
+| `dreaming`       | `dream`, `note`                                                                                                           | `dreamer`                                  | `SessionStart`, `UserPromptSubmit`, `PreToolUse` |
 | `desktop-dreamer` | `dream`                                                                                                          | —                                          | —                                          |
 | `writing`        | `copyedit`                                                                                                                | `copyedit-reviewer`                        | —                                          |
 | `tidy`           | `tidy`                                                                                                                    | —                                          | —                                          |
@@ -96,16 +96,22 @@ It needs the `orchestration` plugin for its lookups.
 It also depends on `python-quality` and `nodejs-quality`, so their hooks (secrets guard, fix on write, turn gate) run in every project that installs it, and on Google's `egm` plugin, which the marketplace pins by commit SHA.
 Nothing in `implement` calls `egm` yet.
 
-- **`dreaming`**: consolidates Claude Code native auto memory, with no install script and no background process.
+- **`dreaming`**: captures lessons from your feedback and consolidates Claude Code native auto memory, with no install script and no background process.
+A `UserPromptSubmit` hook reads the end of the transcript and tells the session when you rejected a tool call or interrupted a request in the last turn, or when your prompt holds preference or praise wording.
+The session then decides whether to run `/dreaming:note`, which writes the lesson as a memory with `recurrence`, `occurrences`, `scope` and `polarity` in its frontmatter, or adds one to the count of the memory that already holds it.
+Reviewer verdicts from `implement` and `writing` reach `note` through its description, without a hook.
+`note` never edits `CLAUDE.md` or rules.
 A `SessionStart` hook checks whether memory changed since the last pass and at least seven days have passed, or whether `MEMORY.md` exceeds 80 lines, and then tells the session to start the `dreamer` subagent where you can see it.
 The agent writes a proposal and a report to a staging directory beside the memory directory, and a `PreToolUse` hook refuses any other write by that agent.
 The agent also reads the project's `CLAUDE.md` and `.claude/rules/`.
 It drops memories that a project file already states, merges rules that two project files state twice, flags contradictions without resolving them, and proposes moving a memory into `CLAUDE.md` when it is a rule for the whole team.
-It never promotes a `user` memory and leaves `CLAUDE.local.md` and `~/.claude/CLAUDE.md` alone.
-`/dreaming:dream apply` shows the diff, snapshots memory in a git repository inside the memory directory, and applies the changes only on your approval, with project files and deletions approved in separate questions.
+It weighs each lesson by its recurrence, puts a lesson repeated within one session first, routes a directory-scoped lesson to a `.claude/rules/` file with `paths:`, and flags a rule that is already written down but still ignored as a candidate for a hook.
+It never promotes a `user` memory into a project file and leaves `CLAUDE.local.md` alone.
+A lesson that applies to every project can go into `~/.claude/CLAUDE.md`, which always gets its own question, and when chezmoi manages that file the change goes to the chezmoi source and only that target is applied.
+`/dreaming:dream apply` shows the diff, snapshots memory in a git repository inside the memory directory, and applies the changes only on your approval, with project files, the global file and deletions approved in separate questions.
 It leaves project file changes uncommitted in the working tree, so `git diff` shows them and your own workflow commits them.
 `/dreaming:dream all` runs each project on its own, and `/dreaming:dream revert` undoes a pass.
-It needs `jq`, and the hook gate is tested by `plugins/dreaming/tests/acceptance.sh`.
+It needs `jq`, and the three hooks are tested by `plugins/dreaming/tests/acceptance.sh`.
 
 - **`desktop-dreamer`**: consolidates the memory store of the Claude desktop app, which `dreaming` cannot reach because the store is a set of files behind the `mcp__memory__` tools and not a directory on disk.
 `/desktop-dreamer:dream` reads every memory file, writes them verbatim to `desktop-memory-backup-<timestamp>.txt`, sends you that file and waits until you confirm you have saved it.

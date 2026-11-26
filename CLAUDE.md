@@ -63,11 +63,11 @@ agentic-skills/
     │   └── evals/            trigger and near-miss cases for architecture-design, drift-check and ticket
     ├── dreaming/
     │   ├── .claude-plugin/plugin.json
-    │   ├── skills/           dream
+    │   ├── skills/           dream, note
     │   ├── agents/           dreamer.md
-    │   ├── hooks/            hooks.json + dream-gate.sh, staging-guard.sh
+    │   ├── hooks/            hooks.json + dream-gate.sh, staging-guard.sh, learning-nudge.sh, memory-settings.sh (sourced)
     │   ├── tests/            acceptance.sh
-    │   └── evals/            trigger and near-miss cases for dream
+    │   └── evals/            trigger and near-miss cases for dream and note
     ├── desktop-dreamer/
     │   ├── .claude-plugin/plugin.json
     │   ├── skills/           dream
@@ -108,7 +108,7 @@ The authoring meta-skills live in the `meta` plugin like everything else, so the
 | `orchestration`  | delegate, setup + 3 Haiku agents (repo-map and call-sites on a code graph, api-docs) + hooks: Bash gate, Stop check, session context | `/orchestration:setup`         |
 | `meta`           | create-skill, create-hook, create-agent, create-instructions                                                               | `/meta:create-skill`           |
 | `implement`      | ticket, architecture-design, implement, drift-check + 4 read-only reviewer agents (tests, code, architecture, drift) + hooks: test lock, SessionStart drift gate; depends on `orchestration`, `egm` (Google, pinned by SHA in the marketplace), `python-quality` and `nodejs-quality` | `/implement:ticket`, `/implement:architecture-design` |
-| `dreaming`       | dream + 1 agent (dreamer, writes only to a staging directory) + hooks: SessionStart gate that starts the agent in the current session, PreToolUse staging guard. Works on native auto memory and on the project's CLAUDE.md and `.claude/rules/`, which it changes only on approval| `/dreaming:dream`                |
+| `dreaming`       | dream, note + 1 agent (dreamer, writes only to a staging directory) + hooks: SessionStart gate that starts the agent in the current session, UserPromptSubmit nudge after a rejection, an interrupt or preference wording, PreToolUse staging guard. note records a lesson with a recurrence count; dream weighs the counts and works on native auto memory, the project's CLAUDE.md and `.claude/rules/`, and the global `~/.claude/CLAUDE.md`, which it changes only on approval, the global file always in its own question | `/dreaming:dream`, `/dreaming:note` |
 | `desktop-dreamer` | dream: backs up the desktop app's memory store to a text file, then consolidates it and restores it on request. Skill only, no agents or hooks. Needs the `mcp__memory__` tools, so it does not work in the CLI | `/desktop-dreamer:dream` |
 | `writing` | copyedit: a deterministic prose lint with a compare mode, English and German references, English and German catalogues of AI tells, and a four-pass copyedit of finished client deliverables that ends only when the read-only `copyedit-reviewer` agent returns CLEAR. No hooks | `/writing:copyedit` |
 | `tidy` | tidy: audits a desktop setup in five parts (interface, memory and context, skills, connectors, scheduled tasks) and builds one dark checklist page. Memory, CLAUDE.md and rules changes come from a propose-only `dreaming:dream` run. Applies only ticked rows after a yes in chat. Skill only; depends on `dreaming` and `uv`; needs the desktop app's session tools | `/tidy:tidy` |

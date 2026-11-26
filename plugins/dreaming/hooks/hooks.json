@@ -1,5 +1,5 @@
 {
-    "description": "Starts a visible memory consolidation subagent at session start when native memory is due for one, and confines that subagent's writes to a staging directory.",
+    "description": "Starts a visible memory consolidation subagent at session start when native memory is due for one, confines that subagent's writes to a staging directory, and tells the session when the user rejected or interrupted the last turn or stated a preference, so it can record the lesson with dreaming:note.",
     "hooks": {
         "SessionStart": [
             {
@@ -7,9 +7,20 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dream-gate.sh",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/dream-gate.sh\"",
                         "timeout": 10,
                         "statusMessage": "checking memory"
+                    }
+                ]
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/learning-nudge.sh\"",
+                        "timeout": 10
                     }
                 ]
             }
@@ -20,7 +31,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/staging-guard.sh",
+                        "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/staging-guard.sh\"",
                         "timeout": 5
                     }
                 ]

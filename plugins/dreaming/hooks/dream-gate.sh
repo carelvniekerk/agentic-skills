@@ -27,34 +27,10 @@ proj=${DREAMING_PROJECT_DIR:-}
 [[ -z "$proj" && -n "$transcript" ]] && proj=${transcript%/*}
 [[ -n "$proj" && -d "$proj" ]] || exit 0
 
-SETTINGS=()
-if [[ -n "$cwd" ]]; then
-  SETTINGS+=("$cwd/.claude/settings.local.json" "$cwd/.claude/settings.json")
-fi
-SETTINGS+=("$HOME/.claude/settings.json")
-
-# First definition wins, most specific file first.
-setting() {
-  local key="$1" file val
-  for file in "${SETTINGS[@]}"; do
-    [[ -r "$file" ]] || continue
-    val=$(jq -r --arg k "$key" \
-      'if type == "object" and has($k) then (.[$k] | tostring) else empty end' \
-      "$file" 2>/dev/null) || continue
-    if [[ -n "$val" ]]; then
-      printf '%s' "$val"
-      return
-    fi
-  done
-}
-
-[[ "$(setting autoMemoryEnabled)" == "false" ]] && exit 0
-[[ "${CLAUDE_CODE_DISABLE_AUTO_MEMORY:-}" == "1" ]] && exit 0
-
-# A custom memory directory breaks the layout the agent, the guard and the
-# transcript lookup all assume (memory/ beside the transcripts), and one global
-# override would put every project in the same directory. Unsupported.
-[[ -n "$(setting autoMemoryDirectory)" ]] && exit 0
+HERE=$(cd -P -- "$(dirname "${BASH_SOURCE[0]}")" && pwd -P) || exit 0
+# shellcheck source=memory-settings.sh
+source "$HERE/memory-settings.sh" 2>/dev/null || exit 0
+memory_disabled "$cwd" && exit 0
 
 mem="$proj/memory"
 [[ -d "$mem" ]] || exit 0
@@ -119,9 +95,10 @@ Memory directory: $mem
 Staging directory: $stage
 State file: $state
 Project root: $root
+Global instructions file: $HOME/.claude/CLAUDE.md
 Second, the agent writes a proposal and a report only under the staging directory, and the user's own request does not wait for it.
-It may propose changes to the project's CLAUDE.md and .claude/rules/ files as well, including moving a memory that is a team-wide rule into CLAUDE.md.
-Third, when the agent reports back, the dreaming:dream skill (argument: apply) shows the diff and asks the user, and nothing is written to the memory directory or to a project file before that approval."
+It may propose changes to the project's CLAUDE.md and .claude/rules/ files as well, including moving a memory that is a team-wide rule into CLAUDE.md, and to the global instructions file for feedback that applies to every project.
+Third, when the agent reports back, the dreaming:dream skill (argument: apply) shows the diff and asks the user, and nothing is written to the memory directory, a project file or the global instructions file before that approval."
 
 jq -n --arg c "$context" '{
   hookSpecificOutput: {
