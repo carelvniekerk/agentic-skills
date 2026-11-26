@@ -469,3 +469,5 @@ Everything is hand-edited markdown and JSON.
   The rule is small, easy to follow by hand, and unambiguous when you author skills sentence-by-sentence.
 - Do not bake model versions into commit-message templates.
 - Do not skip the prohibitions table for skills that touch Git, the filesystem, or remote services.
+- Do not leave `${CLAUDE_PLUGIN_ROOT}` unquoted in a `hooks.json` command.
+Wrap it in double quotes, as in `"\"${CLAUDE_PLUGIN_ROOT}/hooks/<script>.sh\""`, or use the exec form with an `args` array, because a plugin path with a space splits an unquoted command into several words and `claude plugin validate` warns about it.
