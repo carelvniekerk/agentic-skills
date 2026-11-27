@@ -24,7 +24,7 @@ For authoring conventions (plugin layout, frontmatter rules, semantic line break
 | `meta`           | `create-skill`, `create-hook`, `create-agent`, `create-instructions`                                                      | —                                          | —                                          |
 | `implement`      | `ticket`, `architecture-design`, `implement`, `drift-check`                                                                   | `test-reviewer`, `code-reviewer`, `architecture-reviewer`, `drift-reviewer` | `PreToolUse`, `SessionStart` |
 | `dreaming`       | `dream`, `note`                                                                                                           | `dreamer`                                  | `SessionStart`, `UserPromptSubmit`, `PreToolUse` |
-| `desktop-dreamer` | `dream`                                                                                                          | —                                          | —                                          |
+| `desktop-dreamer` | `dream`, `note`                                                                                                  | —                                          | —                                          |
 | `writing`        | `copyedit`                                                                                                                | `copyedit-reviewer`                        | —                                          |
 | `tidy`           | `tidy`                                                                                                                    | —                                          | —                                          |
 
@@ -118,7 +118,16 @@ It needs `jq`, and the three hooks are tested by `plugins/dreaming/tests/accepta
 It then proposes merges, removals and new facts from the current conversation, shows the diff, and writes only what you approve, with deletions approved separately.
 `/desktop-dreamer:dream revert <backup-file>` restores the store from a backup.
 It needs the desktop app's memory tools and stops with a message in the CLI.
-The apply and revert paths cannot be tested by `claude plugin eval`, so only the trigger and near-miss cases are in `plugins/desktop-dreamer/evals`.
+`/desktop-dreamer:note` records a correction, a standing preference or a confirmed approach as `/notes/<slug>.md` with a recurrence count and an occurrence list, and raises the count when the same lesson comes back.
+`dream` adds the counts when it merges notes, lists repeated lessons first and suggests instruction changes from them: a line for `/preferences.md` in the store (its own approval question), wording for the app's personal preferences and for `CLAUDE.md` files, both for you to paste because nothing there can write to them.
+The plugin ships no hook, and whether hooks fire in the desktop app is unverified, so nothing flags a correction the way the `dreaming` nudge does and `note` fires only when your words match its description.
+To make that more likely, add this to your personal preferences in the app:
+
+```text
+When I correct you, state a standing preference, say "from now on", "always", "never" or "I told you already", or praise an approach and ask you to keep it, run the desktop-dreamer:note skill before you continue. Do not run it for a one-off instruction about the current task.
+```
+
+The apply and revert paths and the apply path of `note` cannot be tested by `claude plugin eval`, so only the trigger and near-miss cases are in `plugins/desktop-dreamer/evals`.
 
 - **`writing`**: copyedits a finished client deliverable in English or German before it goes out.
 `/writing:copyedit` lints the draft with `prose-lint.py`, edits in four passes (mechanics, words, sentences, consistency), lints again and runs `prose-lint.py --compare` against the original to confirm that numbers, negations, modals and quotations survived.

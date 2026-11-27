@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "desktop-dreamer",
-  "description": "Consolidates the Claude desktop app's memory store through the mcp__memory__ file tools. The dream skill writes a verbatim backup file first and has you save it, then merges duplicates, drops stale lines and adds durable facts from the current conversation, and writes only on approval. A revert mode restores the backup. Skill only, no agents or hooks.",
+  "description": "Consolidates the Claude desktop app's memory store through the mcp__memory__ file tools. The dream skill writes a verbatim backup file first and has you save it, then merges duplicates, drops stale lines and adds durable facts from the current conversation, and writes only on approval. A revert mode restores the backup. The note skill records a lesson from your feedback as a file with a recurrence count, which dream weighs later and turns into suggested changes to your instructions. Skill only, no agents or hooks.",
   "author": {
     "name": "Carel van Niekerk",
     "email": "code@carelvniekerk.com",
@@ -10,5 +10,5 @@
   "homepage": "https://github.com/carelvniekerk/agentic-skills",
   "repository": "https://github.com/carelvniekerk/agentic-skills",
   "license": "MIT",
-  "keywords": ["memory", "desktop", "consolidation", "backup", "revert"]
+  "keywords": ["memory", "desktop", "consolidation", "backup", "revert", "feedback"]
 }
